@@ -31,7 +31,8 @@
     db:        { id: 'db',        label: 'Query Engine',        colorVar: '--cat-db',           order: 12 },
     runtime:   { id: 'runtime',   label: 'Runtime / Sistema',   colorVar: '--cat-runtime',      order: 13 },
     engine:    { id: 'engine',    label: 'Engine / Game',        colorVar: '--cat-engine',       order: 14 },
-    sprites:   { id: 'sprites',   label: 'Engine Sprites',       colorVar: '--cat-sprites',      order: 15 }
+    sprites:   { id: 'sprites',   label: 'Engine Sprites',       colorVar: '--cat-sprites',      order: 15 },
+    physics:   { id: 'physics',   label: 'Física / Physics',     colorVar: '--cat-physics',      order: 16 }
   };
 
   /* Tipos de puerto para el tipado visual de enchufes (color del conector) */
@@ -665,14 +666,50 @@
   def('sprite_set_velocity', 'sprites', 'stack', 'velocidad [SID] = vx:[VX] vy:[VY]',
       { SID: { type: 'string', port: PORT.string }, VX: { type: 'number', port: PORT.number, default: 0 },
         VY: { type: 'number', port: PORT.number, default: 0 } }, { sideEffects: ['ui'] });
-  def('sprite_on_collision', 'sprites', 'hat', 'al colisionar [A] con [B]',
+def('sprite_on_collision', 'sprites', 'hat', 'al colisionar [A] con [B]',
       { A: { type: 'string', port: PORT.string }, B: { type: 'string', port: PORT.string } }, { sideEffects: ['ui'] });
   def('sprite_is_touching', 'sprites', 'boolean', '[A] toca [B]?',
       { A: { type: 'string', port: PORT.string }, B: { type: 'string', port: PORT.string } }, {});
 
   /* ===================================================================
-   * API de consulta
+   * 31. PHYSICS / FÍSICA (Verde Oscuro) — 12
+   * Box2D / Matter.js estilo: mundo, cuerpos, fuerzas, colisiones, joints.
    * =================================================================== */
+  def('physics_enable', 'physics', 'stack', 'activar física gravedad X:[GX] Y:[GY]',
+      { GX: { type: 'number', port: PORT.number, default: 0 }, GY: { type: 'number', port: PORT.number, default: 9.8 } },
+      { sideEffects: ['ui', 'state'] });
+  def('physics_disable', 'physics', 'stack', 'desactivar física', {}, { sideEffects: ['ui', 'state'] });
+  def('physics_create_body', 'physics', 'stack', 'crear cuerpo [BID] tipo [TYPE] en X:[X] Y:[Y]',
+      { BID: { type: 'string', port: PORT.string },
+        TYPE: { type: 'dropdown', port: PORT.any, options: ['dynamic', 'static', 'kinematic'] },
+        X: { type: 'number', port: PORT.number, default: 0 }, Y: { type: 'number', port: PORT.number, default: 0 } },
+      { sideEffects: ['ui', 'state'] });
+  def('physics_destroy_body', 'physics', 'stack', 'destruir cuerpo [BID]',
+      { BID: { type: 'string', port: PORT.string } }, { sideEffects: ['ui', 'state'] });
+  def('physics_set_velocity', 'physics', 'stack', 'velocidad [BID] = vx:[VX] vy:[VY]',
+      { BID: { type: 'string', port: PORT.string }, VX: { type: 'number', port: PORT.number, default: 0 },
+        VY: { type: 'number', port: PORT.number, default: 0 } }, { sideEffects: ['state'] });
+  def('physics_apply_force', 'physics', 'stack', 'aplicar fuerza [BID] fx:[FX] fy:[FY] en X:[X] Y:[Y]',
+      { BID: { type: 'string', port: PORT.string }, FX: { type: 'number', port: PORT.number, default: 0 },
+        FY: { type: 'number', port: PORT.number, default: 0 }, X: { type: 'number', port: PORT.number, default: 0 },
+        Y: { type: 'number', port: PORT.number, default: 0 } }, { sideEffects: ['state'] });
+  def('physics_apply_impulse', 'physics', 'stack', 'aplicar impulso [BID] ix:[IX] iy:[IY] en X:[X] Y:[Y]',
+      { BID: { type: 'string', port: PORT.string }, IX: { type: 'number', port: PORT.number, default: 0 },
+        IY: { type: 'number', port: PORT.number, default: 0 }, X: { type: 'number', port: PORT.number, default: 0 },
+        Y: { type: 'number', port: PORT.number, default: 0 } }, { sideEffects: ['state'] });
+  def('physics_set_gravity_scale', 'physics', 'stack', 'escala gravedad [BID] = [SCALE]',
+      { BID: { type: 'string', port: PORT.string }, SCALE: { type: 'number', port: PORT.number, default: 1 } },
+      { sideEffects: ['state'] });
+  def('physics_on_collision', 'physics', 'hat', 'al colisionar [A] con [B]',
+      { A: { type: 'string', port: PORT.string }, B: { type: 'string', port: PORT.string } }, { sideEffects: ['state'] });
+  def('physics_get_position', 'physics', 'reporter', 'posición [BID]',
+      { BID: { type: 'string', port: PORT.string } }, { returns: 'json' });
+  def('physics_get_velocity', 'physics', 'reporter', 'velocidad [BID]',
+      { BID: { type: 'string', port: PORT.string } }, { returns: 'json' });
+  def('physics_create_distance_joint', 'physics', 'stack', 'joint distancia [JID] entre [A] y [B] largo [LEN]',
+      { JID: { type: 'string', port: PORT.string }, A: { type: 'string', port: PORT.string },
+        B: { type: 'string', port: PORT.string }, LEN: { type: 'number', port: PORT.number, default: 1 } },
+      { sideEffects: ['state'] });
   const ScratchBlocks = {
     CATEGORIES,
     PORT,
@@ -704,218 +741,9 @@
     }
   };
 
-  /* ===================================================================
-   * COMPILADOR AOT
-   * Convierte el árbol de instancias de bloques en una máquina de estados
-   * JSON pura y validada. Estructura de entrada (scripts):
-   *   {
-   *     on_mode_init: [ blockInstance, ... ],
-   *     ...
-   *   }
-   * blockInstance = {
-   *   opcode, args:{TOKEN:value}, next: blockInstance|null,
-   *   body: blockInstance|null, elseBody: blockInstance|null
-   * }
-   * =================================================================== */
-  const ScratchAOT = {
-    VERSION: 2,
-
-    /* Tope de seguridad: una cadena lineal no debe superar este largo.
-       Si lo hace, la compilación FALLA explícitamente (antes se truncaba
-       en silencio en el render, perdiendo bloques). */
-    MAX_CHAIN: 1000,
-    MAX_NESTING: 8,
-
-    /** Valida y coerce un valor de argumento contra su especificación. */
-    _coerce(token, spec, raw) {
-      if (spec == null) return raw;
-      switch (spec.type) {
-        case 'number':
-        case 'slider': {
-          if (raw === '' || raw == null) return spec.default || 0;
-          const num = Number(raw);
-          return Number.isNaN(num) ? (spec.default || 0) : num;
-        }
-        case 'boolean':
-          return raw === true || raw === 'true' || raw === 1 || raw === '1';
-        case 'dropdown':
-          if (Array.isArray(spec.options) && !spec.options.includes(raw) && raw !== '@ndi_sources' && raw !== '@context') {
-            return spec.options[0];
-          }
-          return raw;
-        case 'textarea':
-        case 'string':
-        case 'input':
-        case 'id':
-        case 'display_id':
-        case 'output_id':
-        case 'source_id':
-        case 'player_id':
-        case 'audio_file':
-        case 'image_file':
-        default:
-          return raw == null ? (spec.default != null ? spec.default : '') : raw;
-      }
-    },
-
-    /** Validación profunda de bloques anidados. */
-    _validateBlock(block, depth, errors) {
-      if (!block) return true;
-      if (depth > this.MAX_NESTING) {
-        errors.push('Anidación máxima de ' + this.MAX_NESTING + ' niveles excedida');
-        return false;
-      }
-      if (!block.opcode || !ScratchBlocks.exists(block.opcode)) {
-        errors.push('Opcode inválido: ' + (block.opcode || 'null'));
-        return false;
-      }
-      const defn = REGISTRY[block.opcode];
-      if (!defn) {
-        errors.push('Opcode no registrado: ' + block.opcode);
-        return false;
-      }
-      // Validate required args
-      Object.keys(defn.args).forEach(token => {
-        const spec = defn.args[token];
-        const val = (block.args || {})[token];
-        if (val === undefined || val === null || val === '') {
-          if (spec.default === undefined && spec.type !== 'boolean') {
-            errors.push('Argumento requerido faltante: ' + token + ' en ' + block.opcode);
-          }
-        }
-      });
-      return true;
-    },
-
-    _serialize(block, depth) {
-      if (!block || !ScratchBlocks.exists(block.opcode)) return null;
-      depth = depth || 0;
-      if (depth >= ScratchAOT.MAX_CHAIN) {
-        throw new Error('AOT: cadena supera el máximo de ' + ScratchAOT.MAX_CHAIN + ' bloques');
-      }
-      const defn = REGISTRY[block.opcode];
-      const args = {};
-      Object.keys(defn.args).forEach(token => {
-        args[token] = this._coerce(token, defn.args[token], (block.args || {})[token]);
-      });
-      const node = { opcode: block.opcode, args };
-      if (defn.hasBody) {
-        defn.bodies.forEach(b => {
-          node[b] = this._serializeChain(block[b], depth + 1);
-        });
-      }
-      if (block.next) {
-        node.next = Array.isArray(block.next)
-          ? this._serializeChain(block.next, depth + 1)
-          : [this._serialize(block.next, depth + 1)];
-      }
-      if (block._id != null) node._id = block._id;
-      return node;
-    },
-
-    _serializeChain(head, depth) {
-      depth = depth || 0;
-      if (Array.isArray(head)) {
-        return head.map(h => this._serialize(h, depth)).filter(Boolean);
-      }
-      return [this._serialize(head, depth)];
-    },
-
-    /** Compila todos los scripts a máquina de estados. */
-    compile(scripts, opts) {
-      opts = opts || {};
-      const events = {};
-      let blockCount = 0;
-      const errors = [];
-      Object.keys(scripts || {}).forEach(eventOpcode => {
-        const defn = REGISTRY[eventOpcode];
-        if (!defn || defn.type !== 'hat') {
-          throw new Error('AOT: "' + eventOpcode + '" no es un bloque Hat válido');
-        }
-        events[eventOpcode] = this._serializeChain(scripts[eventOpcode]);
-        blockCount += this._countChain(scripts[eventOpcode]);
-      });
-      const machine = {
-        version: this.VERSION,
-        compiledAt: new Date().toISOString(),
-        engine: 'scratch-aot',
-        blockCount,
-        events,
-        hotReload: !!opts.hotReload,
-        preserveState: opts.preserve || null,
-        snapshotRef: opts.snapshot || null
-      };
-      if (opts.previousCompiledAt) machine.previousCompiledAt = opts.previousCompiledAt;
-      return machine;
-    },
-
-    /** Recompila sin perder la partida en curso. Toma la máquina previa y los
-     *  nuevos scripts, y produce una máquina marcada hotReload que el runtime
-     *  rehidrata con el snapshot de RAM existente (Visual Stepper lo resalta). */
-    hotReload(prevMachine, scripts, opts) {
-      opts = opts || {};
-      const merged = Object.assign({}, opts, {
-        hotReload: true,
-        previousCompiledAt: prevMachine && prevMachine.compiledAt,
-        snapshot: opts.snapshot || (prevMachine && prevMachine.snapshotRef) || null
-      });
-      return this.compile(scripts, merged);
-    },
-
-    _countChain(head) {
-      if (Array.isArray(head)) {
-        return head.reduce((acc, h) => acc + this._countChain(h), 0);
-      }
-      let n = 0, cur = head;
-      while (cur) {
-        const d = REGISTRY[cur.opcode];
-        n++;
-        if (d && d.hasBody && d.bodies) {
-          d.bodies.forEach(b => { n += this._countChain(cur[b]); });
-        }
-        cur = cur.next;
-      }
-      return n;
-    },
-
-    /** Validación de integridad: referencias, tipos de puerto y bloques inseguros. */
-    validate(machine, opts) {
-      opts = opts || {};
-      const errors = [];
-      const walk = (chain, inProd) => {
-        (chain || []).forEach(node => {
-          const d = REGISTRY[node.opcode];
-          if (!d) { errors.push('opcode desconocido: ' + node.opcode); return; }
-          if (inProd && d.disabledInProd) {
-            errors.push('bloque inseguro en producción: ' + node.opcode);
-          }
-          // Validar tipos de puerto en args tipo reporter/boolean
-          Object.keys(d.args).forEach(tok => {
-            const spec = d.args[tok];
-            if ((spec.type === 'reporter' || spec.type === 'boolean') && node.args[tok] != null) {
-              const child = node.args[tok];
-              if (child && child.opcode) {
-                const cd = REGISTRY[child.opcode];
-                if (cd && cd.returns && spec.returns && spec.returns !== 'any' && cd.returns !== 'any') {
-                  if (spec.returns !== cd.returns) {
-                    errors.push(node.opcode + '.' + tok + ': tipo ' + cd.returns + ' no compatible con ' + spec.returns);
-                  }
-                }
-              }
-            }
-          });
-          if (d.hasBody && d.bodies) d.bodies.forEach(b => walk(node[b], inProd));
-        });
-      };
-      Object.keys(machine.events).forEach(ev => walk(machine.events[ev], opts.production));
-      return { valid: errors.length === 0, errors };
-    }
-  };
-
   global.ScratchBlocks = ScratchBlocks;
-  global.ScratchAOT = ScratchAOT;
 
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { ScratchBlocks, ScratchAOT };
+    module.exports = { ScratchBlocks };
   }
 })(typeof window !== 'undefined' ? window : this);

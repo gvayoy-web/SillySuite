@@ -35,8 +35,6 @@
 
     init() {
       this.buildSkeleton();
-      this._applySavedDarkMode();
-      this._loadCustomConfig();
       this.collectHats();
       this.buildPalette();
       this.buildEventTabs();
@@ -64,23 +62,8 @@
             <button class="toolbar-btn" data-act="redo" title="Rehacer (Ctrl+Shift+Z)" aria-label="Rehacer">↷ Rehacer</button>
             <button class="toolbar-btn" data-act="clear" aria-label="Limpiar lienzo">🗑 Limpiar</button>
             <button class="toolbar-btn" data-act="preview" aria-label="Vista previa">👁 Vista</button>
-            <span class="tb-sep" aria-hidden="true"></span>
-            <button class="toolbar-btn" data-act="export" title="Exportar JSON" aria-label="Exportar">💾 Exportar</button>
-            <button class="toolbar-btn" data-act="import" title="Importar JSON" aria-label="Importar">📂 Importar</button>
-            <button class="toolbar-btn" data-act="save-local" title="Guardar en navegador" aria-label="Guardar">⬇ Guardar</button>
-            <button class="toolbar-btn" data-act="load-local" title="Cargar del navegador" aria-label="Cargar">⬆ Cargar</button>
-            <span class="tb-sep" aria-hidden="true"></span>
-            <button class="toolbar-btn" data-act="zoom-out" title="Alejar" aria-label="Alejar">－</button>
-            <span class="tb-zoom" id="sbZoom" aria-live="polite">100%</span>
-            <button class="toolbar-btn" data-act="zoom-in" title="Acercar" aria-label="Acercar">＋</button>
-            <button class="toolbar-btn" data-act="zoom-reset" title="Restablecer zoom" aria-label="Restablecer zoom">⤢</button>
-            <button class="toolbar-btn" data-act="reset-view" title="Centrar lienzo (pan+zoom)" aria-label="Centrar vista">⊕</button>
             <span class="spacer"></span>
-            <button class="toolbar-btn" data-act="customizer" title="Personalización Extrema" aria-label="Abrir personalización">⚙</button>
-            <button class="toolbar-btn" data-act="perf" title="Performance Dashboard" aria-label="Abrir dashboard de rendimiento">📊</button>
-            <button class="toolbar-btn" data-act="shortcuts" title="Keyboard Shortcuts" aria-label="Abrir gestor de atajos de teclado">⌨</button>
-            <button class="toolbar-btn" data-act="toggle-dark" title="Modo oscuro/claro" aria-label="Cambiar tema">🌓</button>
-            <span class="sb-status" id="sbStatus" role="status" aria-live="polite"><span class="sb-status-dot" aria-hidden="true"></span>Listo</span>
+            <button class="toolbar-btn" data-act="context" aria-label="Menú">⋮</button>
           </div>
           <div class="scratch-body">
             <aside class="scratch-palette" id="sbPalette" role="region" aria-label="Paleta de bloques"></aside>
@@ -99,10 +82,9 @@
       this.elCanvas = this.root.querySelector('#sbCanvas');
       this.elConsole = this.root.querySelector('#sbConsole');
       this.elInspector = this.root.querySelector('#sbInspector');
-      this.elStatus = this.root.querySelector('#sbStatus');
       this.elPreview = this.root.querySelector('#sbPreview');
-      this.elZoom = this.root.querySelector('#sbZoom');
       this._previewTimer = null;
+      this._currentCategory = null; // Para trackear la categoría seleccionada
       // Cualquier edición inline en el lienzo actualiza la vista previa en vivo.
       this.elCanvas.addEventListener('input', () => this.schedulePreview());
       this.elCanvas.addEventListener('change', () => this.schedulePreview());
@@ -135,42 +117,227 @@
       return { opcode, args, next: null, _id: ++this._idCounter };
     }
 
-    /* ---- Paleta ---- */
+    /* ---- Paleta Mejorada con Dropdowns ---- */
     buildPalette() {
       const cats = ScratchBlocks.categoriesOrdered();
       const searchBox = `
         <div class="palette-search">
           <input type="search" id="sbPaletteSearch" placeholder="🔍 Buscar bloque…" autocomplete="off" />
         </div>`;
-      this.elPalette.innerHTML = searchBox + cats.map(cat => {
-        const blocks = ScratchBlocks.byCategory(cat.id);
-        const items = blocks.map(def => `
-          <div class="palette-block block-${cat.id}" data-op="${def.opcode}" draggable="true" style="--block-color:var(${cat.colorVar})" role="option" aria-label="${this.humanize(def.opcode)} - ${def.type}">
-            <span class="pb-icon" aria-hidden="true">${BLOCK_ICON}</span>
-            <span class="pb-label">${this.humanize(def.opcode)}</span>
-            <span class="pb-type">${def.type}</span>
-          </div>`).join('');
-        return `
-          <div class="palette-category" data-cat="${cat.id}" role="group" aria-label="${cat.label}">
-            <div class="palette-category-header" role="button" tabindex="0" aria-expanded="true">
-              <span class="swatch" style="background:var(${cat.colorVar})" aria-hidden="true"></span>
-              ${cat.label}
-            </div>
-            <div class="palette-category-content">${items}</div>
-          </div>`;
-      }).join('');
+      const dropdownMenu = `
+        <div class="palette-dropdown-container">
+          <button class="dropdown-btn" data-toggle="palette-dropdown" aria-expanded="false" aria-haspopup="true">
+            <span class="dropdown-icon">📦</span>
+            <span class="dropdown-text">Categorías de bloques</span>
+            <span class="dropdown-arrow">▼</span>
+          </button>
+          <div class="palette-dropdown" id="paletteDropdown">
+            ${cats.map(cat => `
+              <div class="dropdown-category-item" data-cat="${cat.id}" role="option" aria-label="${cat.label}">
+                <span class="category-badge" style="background:var(${cat.colorVar})" aria-hidden="true"></span>
+                <span class="category-label">${cat.label}</span>
+                <span class="category-count">${ScratchBlocks.byCategory(cat.id).length}</span>
+              </div>
+            `).join('')
+            }
+          </div>
+        </div>`;
+      
+      this.elPalette.innerHTML = searchBox + dropdownMenu;
+
+      this.setupPaletteDropdown();
 
       const search = this.elPalette.querySelector('#sbPaletteSearch');
       if (search) {
         search.addEventListener('input', () => this.filterPalette(search.value));
         search.addEventListener('keydown', e => e.stopPropagation());
       }
-      this.elPalette.querySelectorAll('.palette-category-header').forEach(h => {
-        h.addEventListener('click', () => h.parentElement.classList.toggle('collapsed'));
+    }
+
+    /* Configurar menú desplegable para la paleta */
+    setupPaletteDropdown() {
+      const dropdownBtn = this.elPalette.querySelector('.dropdown-btn');
+      const paletteDropdown = this.elPalette.querySelector('#paletteDropdown');
+      
+      if (!dropdownBtn || !paletteDropdown) return;
+      
+      // Toggle del menú desplegable
+      dropdownBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isExpanded = dropdownBtn.getAttribute('aria-expanded') === 'true';
+        dropdownBtn.setAttribute('aria-expanded', String(!isExpanded));
+        paletteDropdown.classList.toggle('show');
       });
-      this.elPalette.querySelectorAll('.palette-block').forEach(b => {
-        b.addEventListener('click', () => this.addBlock(b.dataset.op));
+      
+      // Cerrar el menú al hacer clic fuera
+      document.addEventListener('click', () => {
+        if (paletteDropdown.classList.contains('show')) {
+          paletteDropdown.classList.remove('show');
+          dropdownBtn.setAttribute('aria-expanded', 'false');
+        }
       });
+      
+      // Seleccionar categoría desde el desplegable
+      paletteDropdown.querySelectorAll('.dropdown-category-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const catId = item.dataset.cat;
+          this.selectCategoryFromDropdown(catId);
+          paletteDropdown.classList.remove('show');
+          dropdownBtn.setAttribute('aria-expanded', 'false');
+        });
+        
+        // Añadir soporte para teclado
+        item.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            item.click();
+          }
+        });
+      });
+      
+      // Cargar las categorías visibles inicialmente
+      this.updatePaletteDisplay();
+    }
+
+    /* Seleccionar una categoría desde el dropdown */
+    selectCategoryFromDropdown(catId) {
+      // Guardar la categoría seleccionada
+      this._currentCategory = catId;
+      
+      // Mover los bloques de la categoría seleccionada a la vista principal
+      this.updatePaletteDisplay();
+      
+      // Log para debugging
+      this.log('info', 'Categoría seleccionada: ' + ScratchBlocks.categoriesOrdered().find(c => c.id === catId)?.label || catId);
+    }
+
+    /* Actualizar el display de la paleta basado en la categoría seleccionada */
+    updatePaletteDisplay() {
+      const catId = this._currentCategory || 'all';
+      let blocks;
+      
+      if (catId === 'all') {
+        blocks = ScratchBlocks.all().filter(def => def.type !== 'hat');
+        this.elPalette.classList.add('show-all');
+      } else {
+        blocks = ScratchBlocks.byCategory(catId);
+        this.elPalette.classList.remove('show-all');
+      }
+      
+      // Generar HTML de bloques con diseños específicos por tipo
+      const items = blocks.map(def => {
+        const category = ScratchBlocks.categoriesOrdered().find(c => c.id === catId) || {
+          label: 'Other',
+          colorVar: '--builder-primary'
+        };
+        
+        const blockHtml = `
+          <div class="palette-block block-${def.type} block-${def.category}" 
+               data-op="${def.opcode}" 
+               draggable="true" 
+               style="--block-color:var(${category.colorVar})" 
+               role="option" 
+               aria-label="${this.humanize(def.opcode)} - ${def.type}"
+               title="${def.type}: ${this.humanize(def.opcode)}">
+            <span class="pb-icon" aria-hidden="true">${BLOCK_ICON}</span>
+            <span class="pb-label">${this.humanize(def.opcode)}</span>
+            <span class="pb-type ${def.type}">${this.getBlockTypeIcon(def.type)}</span>
+            <span class="pb-category-tag">${def.category}</span>
+            ${this.getBlockStyleIndicator(def.type)}
+          </div>`;
+        
+        return blockHtml;
+      }).join('');
+      
+      // Añadir el contenido al palette (si existe)
+      if (this.elPalette) {
+        // Obtener el contenedor de bloques, si existe
+        const paletteContent = this.elPalette.querySelector('.palette-category-content') || this.elPalette;
+        if (paletteContent) {
+          paletteContent.innerHTML = items;
+          
+          // Añadir event listeners a los nuevos bloques
+          paletteContent.querySelectorAll('.palette-block').forEach(b => {
+            b.addEventListener('click', () => this.addBlock(b.dataset.op));
+            b.addEventListener('dragstart', (e) => this.handleDragStart(e, b.dataset.op));
+          });
+        } else {
+          this.elPalette.innerHTML = items;
+        }
+      }
+    }
+
+    /* Obtener icono para el tipo de bloque */
+    getBlockTypeIcon(type) {
+      const icons = {
+        'hat': '🧢',
+        'reporter': '📊',
+        'boolean': '⭕',
+        'command': '▶',
+        'motion': '🚶',
+        'looks': '🎨',
+        'sound': '🔊',
+        'pen': '✏️',
+        'data': '📊',
+        'event': '⚡',
+        'control': '🔧',
+        'sensing': '👁️',
+        'operator': '⚙️',
+        'variable': '📝',
+        'list': '📋',
+        'procedure': '📖'
+      };
+      return icons[type] || '📦';
+    }
+
+    /* Obtener indicador de estilo específico para el tipo de bloque */
+    getBlockStyleIndicator(type) {
+      const indicators = {
+        'hat': '<div class="block-style-indicator hat-indicator" aria-hidden="true">H</div>',
+        'reporter': '<div class="block-style-indicator reporter-indicator" aria-hidden="true">R</div>',
+        'boolean': '<div class="block-style-indicator boolean-indicator" aria-hidden="true">○</div>',
+        'command': '<div class="block-style-indicator command-indicator" aria-hidden="true">▶</div>',
+        'control': '<div class="block-style-indicator control-indicator" aria-hidden="true">⚙️</div>',
+        'operator': '<div class="block-style-indicator operator-indicator" aria-hidden="true">∑</div>',
+        'event': '<div class="block-style-indicator event-indicator" aria-hidden="true">⚡</div>',
+        'variable': '<div class="block-style-indicator variable-indicator" aria-hidden="true">?</div>',
+        'list': '<div class="block-style-indicator list-indicator" aria-hidden="true">[]</div>',
+        'reporter': '<div class="block-style-indicator reporter-indicator" aria-hidden="true">□</div>',
+        'boolean': '<div class="block-style-indicator boolean-indicator" aria-hidden="true">⬚</div>'
+      };
+      return indicators[type] || '';
+    }
+
+    /* Manejar el inicio del arrastre para bloques */
+    handleDragStart(e, opcode) {
+      const blockEl = e.target.closest('.palette-block');
+      if (blockEl) {
+        const def = ScratchBlocks.get(opcode);
+        e.dataTransfer.setData('text/plain', opcode);
+        e.dataTransfer.effectAllowed = 'copy';
+        
+        // Añadir clases para estilos visuales específicos
+        blockEl.classList.add('dragging', `dragging-${def.type}`);
+        
+        if (def.type === 'hat') {
+          blockEl.classList.add('hat-dragging');
+        } else if (def.type === 'reporter') {
+          blockEl.classList.add('reporter-dragging');
+        } else if (def.type === 'boolean') {
+          blockEl.classList.add('boolean-dragging');
+        }
+        
+        // Forzar la visibilidad del elemento para drag & drop
+        blockEl.style.display = 'block';
+        
+        // Guardar el elemento para el dragend
+        if (this._dragElementCleanup) clearTimeout(this._dragElementCleanup);
+        this._dragElementCleanup = setTimeout(() => {
+          blockEl.classList.remove('dragging', 'dragging-hat', 'dragging-reporter', 'dragging-boolean');
+          blockEl.style.display = '';
+        }, 100);
+      }
     }
 
     /* Filtra la paleta por opcode o etiqueta legible en vivo. Soporte fuzzy. */
@@ -578,44 +745,26 @@
         else if (act === 'redo') this.redo();
         else if (act === 'clear') this.clearCanvas();
         else if (act === 'preview') this.togglePreview();
-        else if (act === 'zoom-in') this.setZoom(this.zoom + 0.15);
-        else if (act === 'zoom-out') this.setZoom(this.zoom - 0.15);
-        else if (act === 'zoom-reset' || act === 'reset-view') this.resetView();
-        else if (act === 'toggle-dark') this.toggleDarkMode();
-        else if (act === 'export') this.exportToFile();
-        else if (act === 'import') this.importFromFile();
-        else if (act === 'save-local') this.saveToLocalStorage();
-        else if (act === 'load-local') this.loadFromLocalStorage();
-        else if (act === 'customizer') this.openCustomizer();
-        else if (act === 'perf') this.openPerformanceDashboard();
-        else if (act === 'shortcuts') this.openShortcutManager();
+        else if (act === 'context') this.toggleContextMenu();
       });
     }
 
     bindKeys() {
-      document.addEventListener('keydown', e => {
+      this._boundKeydown = (e => {
         if (e.code === 'Space') { window.__sbSpaceDown = true; }
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); this.undo(); }
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && e.shiftKey) { e.preventDefault(); this.redo(); }
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); this.redo(); }
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); this.saveToLocalStorage(); }
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'o') { e.preventDefault(); this.importFromFile(); }
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'e') { e.preventDefault(); this.exportToFile(); }
-        if ((e.ctrlKey || e.metaKey) && e.key === '/') { e.preventDefault(); this.openQuickHelp(); }
-        if ((e.ctrlKey || e.metaKey) && e.key === '.') { e.preventDefault(); this.openCustomizer(); }
-        if ((e.ctrlKey || e.metaKey) && e.key === ',') { e.preventDefault(); this.openPerformanceDashboard(); }
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'k') { e.preventDefault(); this.openShortcutManager(); }
         if (e.key === 'Delete' && this.selected) this.deleteSelected();
         if (e.key === 'Escape') {
-          this.closeCustomizer();
-          this.closePerformanceDashboard();
-          this.closeShortcutManager();
-          this.closeQuickHelp();
+          this._hideContextMenu();
         }
       });
-      document.addEventListener('keyup', e => {
+      this._boundKeyup = (e => {
         if (e.code === 'Space') { window.__sbSpaceDown = false; }
       });
+      document.addEventListener('keydown', this._boundKeydown);
+      document.addEventListener('keyup', this._boundKeyup);
     }
 
     /* ---- Quick-Add Context Menu ---- */
@@ -624,7 +773,8 @@
         e.preventDefault();
         this._showContextMenu(e.clientX, e.clientY);
       });
-      document.addEventListener('click', () => this._hideContextMenu());
+      this._boundDocClick = () => this._hideContextMenu();
+      document.addEventListener('click', this._boundDocClick);
     }
 
     _showContextMenu(x, y) {
@@ -702,6 +852,14 @@
       if (this._contextMenu) {
         this._contextMenu.remove();
         this._contextMenu = null;
+      }
+    }
+
+    toggleContextMenu() {
+      if (this._contextMenu) {
+        this._hideContextMenu();
+      } else {
+        this._showContextMenu(this._lastContextX, this._lastContextY);
       }
     }
 
@@ -1042,8 +1200,11 @@
     _attachEngineEventSource() {
       if (this._engineWS) return;
       const wsUrl = (window.__SB_WS_URL || 'ws://' + location.hostname + ':8081');
+      // Token de autenticación (se puede inyectar desde el backend o localStorage)
+      const authToken = localStorage.getItem('sillyquiz-engine-token') || window.__SB_AUTH_TOKEN || '';
+      const urlWithAuth = authToken ? (wsUrl + '?token=' + encodeURIComponent(authToken)) : wsUrl;
       try {
-        const ws = new WebSocket(wsUrl);
+        const ws = new WebSocket(urlWithAuth);
         ws.binaryType = 'arraybuffer';
 
         // Wrapper EventEmitter para la fuente
@@ -1067,6 +1228,16 @@
         ws.onmessage = (e) => {
           try {
             const msg = JSON.parse(e.data);
+            if (msg.type === 'auth_required') {
+              this.log('warn', 'Auth requerida para Engine WS');
+              ws.close();
+              return;
+            }
+            if (msg.type === 'auth_failed') {
+              this.log('error', 'Engine WS auth falló: ' + (msg.reason || 'token inválido'));
+              ws.close();
+              return;
+            }
             if (msg.type === 'engine_event' || msg.type === 'leaderboard_update') {
               source._emit('engine_event', {
                 eventKey: msg.eventKey || 'engine_event',
@@ -1567,7 +1738,20 @@
 
     /* Carga una plantilla (heads: mapa evento -> cadena o array de stacks). */
     loadTemplate(data) {
-      const heads = (data && data.heads) ? data.heads : data;
+      // Migrar plantilla a versión actual
+      let tpl = data;
+      if (global.TemplateMigration) {
+        const migrated = global.TemplateMigration.migrateTemplate(tpl);
+        if (migrated) {
+          const validation = global.TemplateMigration.validateTemplate(migrated);
+          if (!validation.valid) {
+            this.log('warn', 'Plantilla con advertencias: ' + validation.errors.join(', '));
+          }
+          tpl = migrated;
+        }
+      }
+      
+      const heads = (tpl && tpl.heads) ? tpl.heads : tpl;
       if (!heads || typeof heads !== 'object') { this.log('error', 'plantilla inválida'); return; }
       this.heads = {};
       this._idCounter = 0;
@@ -1584,12 +1768,12 @@
       this.renderTabs();
       this.renderCanvas();
       this.pushSnapshot();
-      this.log('info', 'Plantilla cargada (' + Object.keys(this.heads).length + ' eventos)');
+      this.log('info', 'Plantilla cargada v' + (tpl.version || 1) + ' (' + Object.keys(this.heads).length + ' eventos)');
     }
 
     /* Exporta el borrador actual como plantilla JSON (formato heads). */
     exportTemplate() {
-      return { version: (ScratchAOT.VERSION || '1.0'), type: 'scratch-mode', heads: this.heads };
+      return { version: TemplateMigration.CURRENT_VERSION, type: 'scratch-mode', heads: this.heads };
     }
 
     rehydrate(node) {
@@ -2368,14 +2552,55 @@
       this._shortcutsOpen = false;
     }
 
-    /* ---- Consola ---- */
-    log(level, msg) {
-      const line = document.createElement('div');
-      line.className = 'log-line lvl-' + level;
-      const t = new Date().toLocaleTimeString();
-      line.textContent = `[${t}] ${msg}`;
-      this.elConsole.appendChild(line);
-      this.elConsole.scrollTop = this.elConsole.scrollHeight;
+    /* ---- Limpieza completa al cerrar/descartar ---- */
+    destroy() {
+      // Cerrar WebSocket del engine
+      if (this._engineWS) {
+        this._engineWS.close();
+        this._engineWS = null;
+      }
+      // Detach engine event source
+      if (this.runtime && this.runtime.detachEngineEventSource) {
+        this.runtime.detachEngineEventSource();
+      }
+      // Limpiar timeouts/intervals
+      if (this._previewTimer) {
+        clearTimeout(this._previewTimer);
+        this._previewTimer = null;
+      }
+      // Remover listeners globales
+      document.removeEventListener('keydown', this._boundKeydown);
+      document.removeEventListener('keyup', this._boundKeyup);
+      document.removeEventListener('click', this._boundDocClick);
+      // Limpiar modales abiertos
+      this.closeCustomizer();
+      this.closePerformanceDashboard();
+      this.closeQuickHelp();
+      this.closeShortcutManager();
+      // Limpiar referencias DOM
+      this.domMap = {};
+      this.heads = {};
+      this.snapshots = [];
+      this.trace = [];
+      this.selected = null;
+      this._drag = null;
+      this._contextMenu = null;
+      this._importInput = null;
+      this._importConfigInput = null;
+      // Detener runtime
+      if (this.runtime) {
+        this.runtime.panic();
+        this.runtime = null;
+      }
+      // Limpiar NDI/Display managers
+      if (this._dm) {
+        this._dm.disconnectAll?.();
+        this._dm = null;
+      }
+      if (this._ndi) {
+        this._ndi.stopDiscoveryWorker?.();
+        this._ndi = null;
+      }
     }
   }
 

@@ -22,6 +22,9 @@
   const ScratchBlocks = global.ScratchBlocks
     || (typeof require !== 'undefined' ? require('./scratch-blocks.js').ScratchBlocks : null);
 
+  const SandboxedJS = global.SandboxedJS
+    || (typeof require !== 'undefined' ? require('./scratch-sandbox.js').SandboxedJS : null);
+
   const MAX_STEPS = 2000000;
   const PERF_LOG_THRESHOLD_MS = 50;
 
@@ -79,6 +82,85 @@
       this.killed = false;
       this.activeCount = 0;
       this._perfMetrics = { blocks: 0, totalTime: 0, slowBlocks: [] };
+    }
+
+    /** Avanza la simulación física un paso (dt = 1/60s ≈ 16.67ms). */
+    stepPhysics(dt) {
+      const physics = this.state.__physics;
+      if (!physics || !physics.bodies) return;
+      dt = dt || (1/60);
+      const gravity = physics.world?.gravity || { x: 0, y: 9.8 };
+      
+      // 1. Aplicar gravedad a cuerpos dinámicos
+      Object.values(physics.bodies).forEach(b => {
+        if (b.type !== 'static' && b.mass > 0) {
+          const scale = b.gravityScale ?? 1;
+          b.vy = (b.vy || 0) + gravity.y * scale * dt;
+          b.vx = (b.vx || 0) + gravity.x * scale * dt;
+        }
+      });
+
+      // 2. Integrar velocidades -> posiciones
+      Object.values(physics.bodies).forEach(b => {
+        if (b.type !== 'static') {
+          b.x = (b.x || 0) + (b.vx || 0) * dt * 100; // factor de escala para pixeles
+          b.y = (b.y || 0) + (b.vy || 0) * dt * 100;
+        }
+      });
+
+      // 3. Colisiones simples AABB (resolución básica)
+      this._resolveCollisions(physics.bodies);
+
+      // 4. Resetear fuerzas acumuladas
+      Object.values(physics.bodies).forEach(b => {
+        b.fx = 0;
+        b.fy = 0;
+      });
+
+      physics.stepCount = (physics.stepCount || 0) + 1;
+    }
+
+    /** Resolución simple de colisiones AABB entre cuerpos. */
+    _resolveCollisions(bodies) {
+      const ids = Object.keys(bodies);
+      for (let i = 0; i < ids.length; i++) {
+        for (let j = i + 1; j < ids.length; j++) {
+          const a = bodies[ids[i]];
+          const b = bodies[ids[j]];
+          if (a.type === 'static' && b.type === 'static') continue;
+          
+          // AABB simple (asumimos cajas de 1x1 unidad = 50px)
+          const size = 0.5;
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const distX = Math.abs(dx);
+          const distY = Math.abs(dy);
+          const overlapX = size - distX;
+          const overlapY = size - distY;
+          
+          if (overlapX > 0 && overlapY > 0) {
+            // Separar en el eje de menor penetración
+            if (overlapX < overlapY) {
+              const sign = dx >= 0 ? 1 : -1;
+              if (a.type !== 'static') a.x += overlapX * 0.5 * sign;
+              if (b.type !== 'static') b.x -= overlapX * 0.5 * sign;
+              // Rebote simple
+              const vxRel = (a.vx || 0) - (b.vx || 0);
+              const restitution = 0.3;
+              if (a.type !== 'static') a.vx = (a.vx || 0) - vxRel * restitution * (b.mass / (a.mass + b.mass));
+              if (b.type !== 'static') b.vx = (b.vx || 0) + vxRel * restitution * (a.mass / (a.mass + b.mass));
+            } else {
+              const sign = dy >= 0 ? 1 : -1;
+              if (a.type !== 'static') a.y += overlapY * 0.5 * sign;
+              if (b.type !== 'static') b.y -= overlapY * 0.5 * sign;
+              const vyRel = (a.vy || 0) - (b.vy || 0);
+              const restitution = 0.3;
+              if (a.type !== 'static') a.vy = (a.vy || 0) - vyRel * restitution * (b.mass / (a.mass + b.mass));
+              if (b.type !== 'static') b.vy = (b.vy || 0) + vyRel * restitution * (a.mass / (a.mass + b.mass));
+            }
+          }
+        }
+      }
     }
 
     getMetrics() {
@@ -223,6 +305,8 @@
           if (this._perfMetrics.slowBlocks.length > 50) this._perfMetrics.slowBlocks.shift();
         }
         this.stepper('end', node, ctx);
+        // Avanzar simulación física después de cada bloque (si está activa)
+        if (this.state.__physics) this.stepPhysics(1/60);
       }
     }
 
@@ -308,6 +392,72 @@
       if (phase === 'start' && h.onBlockStart) h.onBlockStart(node, ctx);
       else if (phase === 'end' && h.onBlockEnd) h.onBlockEnd(node, ctx);
       else if ((phase === 'error' || phase === 'catch') && h.onError) h.onError(node, phase, msg, ctx);
+    }
+
+    /** Avanza la simulación física un paso (Euler semi-implícito simplificado). */
+    stepPhysics(dt) {
+      const physics = this.state.__physics;
+      if (!physics || !physics.bodies) return;
+      const gx = physics.world?.gravity?.x || 0;
+      const gy = physics.world?.gravity?.y || 9.8;
+      
+      Object.values(physics.bodies).forEach(b => {
+        if (b.type === 'static' || b.mass === 0) return;
+        // Gravedad (con escala opcional)
+        const scale = b.gravityScale ?? 1;
+        b.vy = (b.vy || 0) + gy * scale * dt;
+        b.vx = (b.vx || 0) + gx * scale * dt;
+        // Fuerzas acumuladas
+        if (b.fx || b.fy) {
+          b.vx += (b.fx / b.mass) * dt;
+          b.vy += (b.fy / b.mass) * dt;
+          b.fx = 0; b.fy = 0;
+        }
+        // Integrar posición
+        b.x = (b.x || 0) + b.vx * dt * 50; // factor de escala para visualización
+        b.y = (b.y || 0) + b.vy * dt * 50;
+        
+        // Suelo simple (y = 0)
+        if (b.y < 0.5) {
+          b.y = 0.5;
+          b.vy = Math.abs(b.vy) * 0.3; // restitución
+        }
+        // Techo (y = 100)
+        if (b.y > 99.5) {
+          b.y = 99.5;
+          b.vy = -Math.abs(b.vy) * 0.3;
+        }
+        // Paredes (x = 0, x = 100)
+        if (b.x < 0.5) {
+          b.x = 0.5;
+          b.vx = Math.abs(b.vx) * 0.3;
+        }
+        if (b.x > 99.5) {
+          b.x = 99.5;
+          b.vx = -Math.abs(b.vx) * 0.3;
+        }
+      });
+      
+      // Joints de distancia (muy simplificado)
+      if (physics.joints) {
+        Object.values(physics.joints).forEach(j => {
+          if (j.type !== 'distance') return;
+          const a = physics.bodies[j.bodyA];
+          const b = physics.bodies[j.bodyB];
+          if (!a || !b) return;
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist === 0) return;
+          const diff = (dist - j.length) / dist * 0.5;
+          const ox = dx * diff;
+          const oy = dy * diff;
+          if (a.type !== 'static') { a.x += ox; a.y += oy; }
+          if (b.type !== 'static') { b.x -= ox; b.y -= oy; }
+        });
+      }
+      
+      physics.stepCount = (physics.stepCount || 0) + 1;
     }
   }
 
@@ -469,6 +619,18 @@
           case 'get_answer': return '';
           case 'mouse_x': return 0;
           case 'mouse_y': return 0;
+          case 'physics_get_position': {
+            const physics = ctx.state.__physics;
+            const b = physics && physics.bodies && physics.bodies[args.BID];
+            if (!b) return { x: 0, y: 0 };
+            return { x: b.x, y: b.y };
+          }
+          case 'physics_get_velocity': {
+            const physics = ctx.state.__physics;
+            const b = physics && physics.bodies && physics.bodies[args.BID];
+            if (!b) return { vx: 0, vy: 0 };
+            return { vx: b.vx, vy: b.vy };
+          }
           default: return null;
         }
       },
@@ -646,12 +808,112 @@
         if (opcode === 'runtime_hot_reload') { return { ok: true }; }
         if (opcode === 'system_replicate_state_to_node') { return { ok: true }; }
         if (opcode === 'global_panic_reset') { ctx.runtime.panic(); return { ok: true }; }
+        if (opcode === 'execute_raw_javascript') {
+          if (!SandboxedJS) return { ok: false, error: 'Sandbox no disponible' };
+          return SandboxedJS.run(args.CODE || '', { timeoutMs: 2000, memoryLimitMb: 10, globals: { state: ctx.state } })
+            .then(res => ({ ok: true, result: res }))
+            .catch(err => ({ ok: false, error: err.message }));
+        }
         if (opcode === 'break_stack') { throw new BreakSignal(); }
         if (opcode === 'wait_seconds') {
           const sec = num(args.SEC, 1);
           return { ok: true, delay: Math.max(0, Math.min(sec * 1000, 30000)) };
         }
         if (opcode === 'wait_until_timestamp') { return { ok: true }; }
+        // Physics / Física
+        if (opcode === 'physics_enable') {
+          ctx.state.__physics = ctx.state.__physics || { world: { gravity: { x: num(args.GX), y: num(args.GY) } }, bodies: {}, stepCount: 0 };
+          return { ok: true };
+        }
+        if (opcode === 'physics_disable') {
+          ctx.state.__physics = null;
+          return { ok: true };
+        }
+        if (opcode === 'physics_create_body') {
+          const physics = ctx.state.__physics;
+          if (!physics) return { ok: false, error: 'Física no activada. Usa physics_enable primero.' };
+          physics.bodies = physics.bodies || {};
+          const type = args.TYPE || 'dynamic';
+          const mass = type === 'static' ? 0 : 1;
+          physics.bodies[args.BID] = {
+            type,
+            mass,
+            x: num(args.X), y: num(args.Y),
+            vx: 0, vy: 0,
+            fx: 0, fy: 0,
+            angle: 0, angularVel: 0,
+            fixtures: []
+          };
+          return { ok: true };
+        }
+        if (opcode === 'physics_destroy_body') {
+          const physics = ctx.state.__physics;
+          if (physics && physics.bodies) delete physics.bodies[args.BID];
+          return { ok: true };
+        }
+        if (opcode === 'physics_set_velocity') {
+          const physics = ctx.state.__physics;
+          if (physics && physics.bodies && physics.bodies[args.BID]) {
+            const b = physics.bodies[args.BID];
+            b.vx = num(args.VX);
+            b.vy = num(args.VY);
+          }
+          return { ok: true };
+        }
+        if (opcode === 'physics_apply_force') {
+          const physics = ctx.state.__physics;
+          if (physics && physics.bodies && physics.bodies[args.BID]) {
+            const b = physics.bodies[args.BID];
+            const px = num(args.X);
+            const py = num(args.Y);
+            b.fx = (b.fx || 0) + num(args.FX);
+            b.fy = (b.fy || 0) + num(args.FY);
+            // Para aplicación puntual, actualizamos velocidad inmediatamente (simplificado)
+            b.vx = (b.vx || 0) + num(args.FX) / (b.mass || 1) * 0.016;
+            b.vy = (b.vy || 0) + num(args.FY) / (b.mass || 1) * 0.016;
+          }
+          return { ok: true };
+        }
+        if (opcode === 'physics_apply_impulse') {
+          const physics = ctx.state.__physics;
+          if (physics && physics.bodies && physics.bodies[args.BID]) {
+            const b = physics.bodies[args.BID];
+            b.vx = (b.vx || 0) + num(args.IX) / (b.mass || 1);
+            b.vy = (b.vy || 0) + num(args.IY) / (b.mass || 1);
+          }
+          return { ok: true };
+        }
+        if (opcode === 'physics_set_gravity_scale') {
+          const physics = ctx.state.__physics;
+          if (physics && physics.bodies && physics.bodies[args.BID]) {
+            physics.bodies[args.BID].gravityScale = num(args.SCALE);
+          }
+          return { ok: true };
+        }
+        if (opcode === 'physics_create_distance_joint') {
+          const physics = ctx.state.__physics;
+          if (!physics) return { ok: false, error: 'Física no activada' };
+          physics.joints = physics.joints || {};
+          physics.joints[args.JID] = {
+            type: 'distance',
+            bodyA: args.A,
+            bodyB: args.B,
+            length: num(args.LEN)
+          };
+          return { ok: true };
+        }
+        if (opcode === 'physics_get_position') {
+          const physics = ctx.state.__physics;
+          const b = physics && physics.bodies && physics.bodies[args.BID];
+          if (!b) return { x: 0, y: 0 };
+          return { ok: true, x: b.x, y: b.y };
+        }
+        if (opcode === 'physics_get_velocity') {
+          const physics = ctx.state.__physics;
+          const b = physics && physics.bodies && physics.bodies[args.BID];
+          if (!b) return { vx: 0, vy: 0 };
+          return { ok: true, vx: b.vx, vy: b.vy };
+        }
         return { ok: true };
       }
     };

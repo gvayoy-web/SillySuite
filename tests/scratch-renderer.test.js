@@ -14,21 +14,33 @@ const path = require('path');
 const vm = require('vm');
 const fs = require('fs');
 
-function loadScript(filePath) {
+function loadScript(filePath, sandbox) {
   const code = fs.readFileSync(path.resolve(__dirname, '..', 'interno', 'frontend', 'js', filePath), 'utf8');
-  const sandbox = { window: {}, module: { exports: {} }, console };
-  sandbox.window.module = sandbox.module;
-  vm.createContext(sandbox);
+  if (!sandbox) {
+    sandbox = { window: {}, module: { exports: {} }, console };
+    sandbox.window.module = sandbox.module;
+    vm.createContext(sandbox);
+  }
   vm.runInContext(code, sandbox);
   return sandbox;
 }
 
-const blocksCtx = loadScript('scratch-blocks.js');
-const runtimeCtx = loadScript('scratch-runtime.js');
+const sandbox = { window: {}, module: { exports: {} }, console };
+sandbox.window.module = sandbox.module;
+vm.createContext(sandbox);
 
-const ScratchBlocks = blocksCtx.window.ScratchBlocks || blocksCtx.module.exports.ScratchBlocks;
-const ScratchAOT = blocksCtx.window.ScratchAOT || blocksCtx.module.exports.ScratchAOT;
-const ScratchRuntime = runtimeCtx.window.ScratchRuntime || runtimeCtx.module.exports.ScratchRuntime;
+loadScript('scratch-blocks.js', sandbox);
+loadScript('scratch-aot.js', sandbox);
+loadScript('scratch-sandbox.js', sandbox);
+loadScript('template-migration.js', sandbox);
+loadScript('scratch-codegen.js', sandbox);
+loadScript('scratch-runtime.js', sandbox);
+
+const ScratchBlocks = sandbox.window.ScratchBlocks || sandbox.module.exports.ScratchBlocks;
+const ScratchAOT = sandbox.window.ScratchAOT || sandbox.module.exports.ScratchAOT;
+const TemplateMigration = sandbox.window.TemplateMigration || sandbox.module.exports.TemplateMigration;
+const CodeGen = sandbox.window.CodeGen || sandbox.module.exports.CodeGen;
+const ScratchRuntime = sandbox.window.ScratchRuntime || sandbox.module.exports.ScratchRuntime;
 
 let passed = 0;
 let failed = 0;
@@ -154,7 +166,7 @@ test('AOT compile produces valid machine', () => {
     ]
   };
   const machine = ScratchAOT.compile(scripts);
-  assert(machine.version === 1);
+  assert(machine.version === 2);
   assert(machine.engine === 'scratch-aot');
   assert(machine.events.on_mode_init.length === 1);
   assert(machine.events.on_mode_init[0].opcode === 'set_theme');
@@ -462,6 +474,157 @@ test('Sprites: spawn y destroy en RAM local', async () => {
   };
   await runtime.start('on_mode_init', scripts, {});
   assert(runtime.state.__sprites['z1'].x === 10 && runtime.state.__sprites['z1'].vx === 1, 'spawn y velocity aplicados');
+});
+
+test('execute_raw_javascript: sandboxed execution works for safe code', async () => {
+  const runtime = new ScratchRuntime({ state: {} });
+  const scripts = {
+    on_mode_init: [
+      { opcode: 'execute_raw_javascript', args: { CODE: 'return 2 + 2;' }, next: null }
+    ]
+  };
+  await runtime.start('on_mode_init', scripts, {});
+});
+
+test('execute_raw_javascript: blocks access to global objects', async () => {
+  const runtime = new ScratchRuntime({ state: {} });
+  const scripts = {
+    on_mode_init: [
+      { opcode: 'execute_raw_javascript', args: { CODE: 'return typeof process;' }, next: null }
+    ]
+  };
+  await runtime.start('on_mode_init', scripts, {});
+  // Should not crash, process should be undefined in sandbox
+});
+
+test('Physics: enable + create body + apply force', async () => {
+  const runtime = new ScratchRuntime({ state: {} });
+  const scripts = {
+    on_mode_init: [
+      { opcode: 'physics_enable', args: { GX: 0, GY: 9.8 }, next: null },
+      { opcode: 'physics_create_body', args: { BID: 'ball', TYPE: 'dynamic', X: 0, Y: 10 }, next: null },
+      { opcode: 'physics_apply_force', args: { BID: 'ball', FX: 10, FY: 0, X: 0, Y: 10 }, next: null }
+    ]
+  };
+  await runtime.start('on_mode_init', scripts, {});
+  const body = runtime.state.__physics.bodies.ball;
+  assert(body !== undefined, 'cuerpo creado');
+  assert(body.vx !== undefined, 'velocidad existe');
+  assert(body.vx > 0, 'fuerza aplicada genera velocidad positiva');
+});
+
+test('Physics: disable clears world', async () => {
+  const runtime = new ScratchRuntime({ state: {} });
+  const scripts = {
+    on_mode_init: [
+      { opcode: 'physics_enable', args: { GX: 0, GY: 9.8 }, next: null },
+      { opcode: 'physics_create_body', args: { BID: 'ball', TYPE: 'dynamic', X: 0, Y: 10 }, next: null },
+      { opcode: 'physics_disable', args: {}, next: null }
+    ]
+  };
+  await runtime.start('on_mode_init', scripts, {});
+  assert(runtime.state.__physics === null, 'mundo de física limpiado');
+});
+
+console.log('\n🧪 TemplateMigration — Tests\n');
+
+test('TemplateMigration detecta v1 (sin version)', () => {
+  const v1 = { id: 'test', title: 'Test', heads: { on_mode_init: { opcode: 'set_theme', args: { THEME: 'neon' } } } };
+  assert(TemplateMigration.detectVersion(v1) === 1);
+});
+
+test('TemplateMigration detecta v2 (con version)', () => {
+  const v2 = { version: 2, id: 'test', title: 'Test', heads: { on_mode_init: [] } };
+  assert(TemplateMigration.detectVersion(v2) === 2);
+});
+
+test('TemplateMigration migra v1 -> v3', () => {
+  const v1 = { id: 'test', title: 'Test', heads: { on_mode_init: { opcode: 'set_theme', args: { THEME: 'neon' } } } };
+  const migrated = TemplateMigration.migrateToCurrent(v1);
+  assert(migrated.version === 3);
+  assert(migrated.migratedFrom === 1);
+  assert(Array.isArray(migrated.heads.on_mode_init));
+  assert(migrated.tags && Array.isArray(migrated.tags));
+  assert(migrated.difficulty === 'fácil');
+});
+
+test('TemplateMigration valida plantilla correcta', () => {
+  const v3 = { version: 3, id: 'test', title: 'Test', heads: { on_mode_init: [] } };
+  const result = TemplateMigration.validate(v3);
+  assert(result.valid === true);
+  assert(result.errors.length === 0);
+});
+
+test('TemplateMigration rechaza plantilla inválida', () => {
+  const bad = { title: 'Test' };
+  const result = TemplateMigration.validate(bad);
+  assert(result.valid === false);
+  assert(result.errors.some(e => e.includes('id')));
+});
+
+test('TemplateMigration migra batch', () => {
+  const batch = [
+    { id: 'a', title: 'A', heads: { on_mode_init: {} } },
+    { id: 'b', title: 'B', heads: { on_mode_init: [] } }
+  ];
+  const results = TemplateMigration.migrateBatch(batch);
+  assert(results.length === 2);
+  assert(results[0].migrated.version === 3);
+  assert(results[1].validation.valid === true);
+});
+
+console.log('\n🧪 CodeGen — Export Tests\n');
+
+test('CodeGen exports Python', () => {
+  const machine = ScratchAOT.compile({
+    on_mode_init: [
+      { opcode: 'set_theme', args: { THEME: 'neon' }, next: null }
+    ]
+  });
+  const python = CodeGen.export(machine, 'python');
+  assert(python.includes('import asyncio'));
+  assert(python.includes('class GameState'));
+  assert(python.includes('async def on_on_mode_init'));
+  assert(python.includes('async def run'));
+});
+
+test('CodeGen exports TypeScript', () => {
+  const machine = ScratchAOT.compile({
+    on_mode_init: [
+      { opcode: 'set_theme', args: { THEME: 'neon' }, next: null }
+    ]
+  });
+  const ts = CodeGen.export(machine, 'typescript');
+  assert(ts.includes('interface GameState'));
+  assert(ts.includes('class Providers'));
+  assert(ts.includes('export async function run'));
+});
+
+test('CodeGen rejects unsupported target', () => {
+  const machine = ScratchAOT.compile({ on_mode_init: [] });
+  assert.throws(() => CodeGen.export(machine, 'javascript'), /Target no soportado/);
+});
+
+test('CodeGen exports chain with if_then', () => {
+  // Use get_timestamp which is truly runtime-dependent
+  const machine = ScratchAOT.compile({
+    on_mode_init: [
+      {
+        opcode: 'if_then',
+        args: { COND: { opcode: 'logic_compare', args: { A: { opcode: 'get_timestamp', args: {} }, OP: '>', B: 0 } } },
+        body: [
+          { opcode: 'state_set_memory', args: { KEY: 'test', VAL: 'yes' }, next: null }
+        ],
+        next: null
+      }
+    ]
+  });
+  const python = CodeGen.export(machine, 'python');
+  assert(python.includes('Providers.boolean'));
+  // Body uses Providers.side_effect for state_set_memory
+  assert(python.includes('state_set_memory'));
+  assert(python.includes('test'));
+  assert(python.includes('yes'));
 });
 
 

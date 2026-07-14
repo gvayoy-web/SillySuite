@@ -1,0 +1,110 @@
+{
+  "id": "physics_playground",
+  "title": "Physics Playground",
+  "description": "Demo de física 2D: gravedad, colisiones, fuerzas, joints. Ideal para minijuegos tipo Angry Birds, puzzles físicos.",
+  "tags": [
+    "physics",
+    "box2d",
+    "matter",
+    "simulacion",
+    "minijuegos"
+  ],
+  "difficulty": "medio",
+  "heads": {
+    "on_mode_init": [
+      {
+        "opcode": "physics_enable",
+        "args": {
+          "GX": 0,
+          "GY": 9.8
+        },
+        "next": {
+          "opcode": "set_custom_theme",
+          "args": {
+            "BG": "#1a1a2e",
+            "TXT": "#eaeaea",
+            "ACC": "#00d4aa",
+            "FNT": "Inter, system-ui, sans-serif"
+          },
+          "next": {
+            "opcode": "state_init_memory_key",
+            "args": {
+              "KEY": "spawn_count",
+              "DEF": 0
+            },
+            "next": {
+              "opcode": "state_init_memory_key",
+              "args": {
+                "KEY": "mouse_down",
+                "DEF": 0
+              },
+              "next": {
+                "opcode": "set_text_smooth",
+                "args": {
+                  "COMP": "title",
+                  "TXT": "🏗️ PHYSICS PLAYGROUND"
+                },
+                "next": {
+                  "opcode": "set_text_smooth",
+                  "args": {
+                    "COMP": "subtitle",
+                    "TXT": "Click para crear cajas | Espacio = esfera | R = reset"
+                  },
+                  "next": {
+                    "opcode": "show_ui_component",
+                    "args": {
+                      "COMP": "ground",
+                      "DISP": "display-main"
+                    },
+                    "next": {
+                      "opcode": "show_ui_component",
+                      "args": {
+                        "COMP": "walls",
+                        "DISP": "display-main"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_player_buzz": [
+      {
+        "opcode": "state_increment_memory",
+        "args": {
+          "KEY": "spawn_count",
+          "BY": 1
+        },
+        "next": {
+          "opcode": "physics_create_body",
+          "args": {
+            "BID": "box_${spawn_count}",
+            "TYPE": "dynamic",
+            "X": 50,
+            "Y": 10
+          }
+        }
+      }
+    ],
+    "on_player_answer": [
+      {
+        "opcode": "physics_create_body",
+        "args": {
+          "BID": "sphere_${spawn_count}",
+          "TYPE": "dynamic",
+          "X": 50,
+          "Y": 5
+        }
+      }
+    ],
+    "on_custom_signal": [
+      {
+        "opcode": "physics_disable",
+        "args": {}
+      }
+    ]
+  }
+}

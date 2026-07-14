@@ -160,7 +160,7 @@
       // Barra superior: theme + timer
       html += '<div class="bd-topbar">';
       if (state.theme) html += '<span class="bd-badge">🎨 ' + esc(state.theme) + '</span>';
-      if (state.components.timer && state.timer) {
+      if (state.components?.timer && state.timer?.sec != null) {
         html += '<span class="bd-timer">⏱ ' + esc(state.timer.sec) + 's</span>';
       }
       html += '</div>';
@@ -171,10 +171,10 @@
       if (state.subtitle) html += '<div class="bd-sub">' + esc(state.subtitle) + '</div>';
       if (state.body) html += '<div class="bd-text">' + esc(state.body) + '</div>';
 
-      state.media.filter(m => m.type === 'image').forEach(m => {
+      (state.media || []).filter(m => m.type === 'image').forEach(m => {
         html += '<div class="bd-media">🖼️ ' + esc(m.src) + '</div>';
       });
-      state.media.filter(m => m.type === 'video').forEach(m => {
+      (state.media || []).filter(m => m.type === 'video').forEach(m => {
         html += '<div class="bd-media">▶️ ' + esc(m.src) + (m.loop ? ' 🔁' : '') + '</div>';
       });
 
@@ -190,9 +190,9 @@
       html += '</div>';
 
       // Scores
-      if (state.components.scores && state.scores.length) {
+      if (state.components?.scores && (state.scores || []).length) {
         html += '<div class="bd-scores">';
-        state.scores.slice(0, 6).forEach(s => {
+        (state.scores || []).slice(0, 6).forEach(s => {
           html += '<div class="bd-score-row"><span class="bd-score-name">' + esc(s.name) + '</span>' +
             '<span class="bd-score-pts">' + esc(s.pts) + '</span></div>';
         });
@@ -200,13 +200,13 @@
       }
 
       // Overlays
-      state.overlays.forEach(o => {
+      (state.overlays || []).forEach(o => {
         html += '<div class="bd-overlay">' + (o.text || (o.id ? 'Overlay ' + esc(o.id) : 'Overlay')) + '</div>';
       });
 
       // Efectos
-      if (state.effects.length) {
-        html += '<div class="bd-effects">' + state.effects.map(e => '✦ ' + esc(e)).join(' ') + '</div>';
+      if ((state.effects || []).length) {
+        html += '<div class="bd-effects">' + (state.effects || []).map(e => '✦ ' + esc(e)).join(' ') + '</div>';
       }
 
       html += '</div>';
