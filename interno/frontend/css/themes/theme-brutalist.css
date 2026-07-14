@@ -1,0 +1,119 @@
+/* ============================================================
+   theme-brutalist.css
+   Tema BRUTALISTA para el Display (displaysilly.html).
+   Alto contraste, monoespaciado, sin bordes redondeados,
+   sombras duras de desplazamiento, cero glow ni gradientes.
+   Se activa con la clase body.theme-brutalist (slug "brutalist").
+   ============================================================ */
+
+body.theme-brutalist {
+  --bg: #0a0a0a;
+  --surface: #161616;
+  --surface2: #1f1f1f;
+  --border: #3a3a3a;
+  --border2: #5a5a5a;
+  --text: #f2f2f2;
+  --wc: #ffffff;
+  --muted: #9a9a9a;
+  --accent: #2b50ff;
+  --accent2: #ffd400;
+  --glow: transparent;
+  --glow-strong: transparent;
+  --shadow: 6px 6px 0 #000;
+  --shadow-sm: 3px 3px 0 #000;
+  --shadow-lg: 10px 10px 0 #000;
+  --bg-gradient: none;
+  --font-display: 'Space Grotesk', 'Courier New', monospace;
+  --font: 'Space Mono', 'Courier New', monospace;
+}
+
+/* Forzar estética brutalista en todos los componentes del display */
+body.theme-brutalist * {
+  border-radius: 0 !important;
+  font-family: var(--font) !important;
+  text-shadow: none !important;
+  box-shadow: var(--shadow-sm) !important;
+  background-image: none !important;
+  filter: none !important;
+  -webkit-text-stroke: 0 !important;
+}
+
+body.theme-brutalist .stage,
+body.theme-brutalist .header,
+body.theme-brutalist .score-card,
+body.theme-brutalist .option-card,
+body.theme-brutalist .timer-badge,
+body.theme-brutalist .anim-box,
+body.theme-brutalist .card-bar-wrap,
+body.theme-brutalist .q-card,
+body.theme-brutalist .panel {
+  border: 3px solid var(--border2) !important;
+  background: var(--surface) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+body.theme-brutalist .score-card {
+  background: var(--surface);
+  border-color: var(--border2);
+}
+body.theme-brutalist .header {
+  background: var(--surface);
+  border-bottom: 4px solid var(--accent);
+}
+body.theme-brutalist .live-badge { background: var(--accent); }
+body.theme-brutalist .q-text { color: #ffffff; font-weight: 900; letter-spacing: 1px; }
+body.theme-brutalist .ans-text { color: var(--text); }
+body.theme-brutalist .timer-badge {
+  background: var(--accent);
+  border-color: #000;
+  box-shadow: 6px 6px 0 #000;
+}
+body.theme-brutalist .timer-num {
+  color: #fff !important;
+  text-shadow: none !important;
+  -webkit-text-stroke: 0 !important;
+}
+body.theme-brutalist .card-name { color: var(--text); font-weight: 800; }
+body.theme-brutalist .card-rank {
+  background: var(--accent2);
+  color: #000;
+  border-color: #000;
+  font-weight: 900;
+}
+body.theme-brutalist .card-bar-wrap {
+  background: #000;
+  border-color: var(--border2);
+  box-shadow: 2px 2px 0 #000;
+}
+body.theme-brutalist .q-progress-text { color: var(--text); }
+body.theme-brutalist .anim-box {
+  background: var(--surface);
+  border-color: var(--accent);
+  box-shadow: 16px 16px 0 #000;
+}
+body.theme-brutalist .anim-label { color: var(--text); font-weight: 800; }
+body.theme-brutalist .anim-sub { background: var(--accent); color: #fff; }
+body.theme-brutalist .fullscreen-takeover .ft-sub { background: var(--accent); }
+body.theme-brutalist .option-card {
+  background: var(--surface);
+  border-color: var(--border2);
+}
+body.theme-brutalist .q-eyebrow { background: var(--accent2); color: #000; }
+
+/* Sin animaciones de glow/pulse del tema-dark */
+body.theme-brutalist .versos-clock-box.critical,
+body.theme-brutalist .versos-clock-number.critical {
+  animation: none !important;
+}
+
+/* El efecto "theme-effects" en brutalismo es solo rejilla dura, sin nebulosa */
+body.theme-brutalist.theme-effects::before {
+  background: #0a0a0a !important;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px) !important;
+  background-size: 40px 40px !important;
+  animation: none !important;
+}
+body.theme-brutalist.theme-effects #decorLayer::before,
+body.theme-brutalist.theme-effects #decorLayer::after { content: none !important; }

@@ -1,0 +1,151 @@
+export const API = window.location.origin + '/api';
+window.API = API;
+
+export async function fetchRetry(url, opts = {}, retries = 2, delay = 500) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const r = await fetch(url, opts);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.json();
+    } catch (e) {
+      if (i === retries) throw e;
+      await new Promise(r => setTimeout(r, delay * (i + 1)));
+    }
+  }
+}
+
+export function apiPost(endpoint, body) {
+  return fetchRetry(API + endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+
+export function apiPut(endpoint, body) {
+  return fetchRetry(API + endpoint, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+
+let sse = null;
+let sseRetry = 1000;
+let sseReconnecting = false;
+let _sseOpened = false;
+let _sseStopped = false;
+let _sseFetchCtrl = null;
+
+function sseHandlePayload(payload, onMessage) {
+  if (!payload || payload === '[KEEPALIVE]') return;
+  try {
+    const d = JSON.parse(payload);
+    if (onMessage) onMessage(d);
+    sseRetry = 1000;
+  } catch (err) { /* ignore malformed frame */ }
+}
+
+// Fallback sobre fetch (streaming) cuando EventSource no logra abrir la conexión
+// (proxy/CORS/archivo local/offline). Reintenta con backoff.
+function startSseFetch({ onMessage, onStatusChange }) {
+  if (_sseFetchCtrl) return;
+  const ctrl = new AbortController();
+  _sseFetchCtrl = ctrl;
+  (async () => {
+    try {
+      const res = await fetch(API + '/stream', { signal: ctrl.signal, cache: 'no-store' });
+      if (!res.ok || !res.body) throw new Error('status ' + res.status);
+      if (onStatusChange) onStatusChange(true);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let idx;
+        while ((idx = buf.indexOf('\n')) >= 0) {
+          const line = buf.slice(0, idx).replace(/\r$/, '');
+          buf = buf.slice(idx + 1);
+          if (line.startsWith('data:')) {
+            sseHandlePayload(line.slice(5).trim(), onMessage);
+          }
+        }
+      }
+      if (onStatusChange) onStatusChange(false);
+    } catch (e) {
+      if (!ctrl.signal.aborted && onStatusChange) onStatusChange(false);
+    } finally {
+      _sseFetchCtrl = null;
+    }
+    if (!_sseStopped) {
+      const delay = sseRetry;
+      sseRetry = Math.min(sseRetry * 2, 20000);
+      setTimeout(() => { if (!_sseStopped) startSseFetch({ onMessage, onStatusChange }); }, delay);
+    }
+  })();
+}
+
+export function connectSSE({ onMessage, onStatusChange }) {
+  if (_sseStopped) return;
+  if (sse) { sse.close(); sse = null; }
+  _sseOpened = false;
+  const src = new EventSource(API + '/stream');
+  sse = src;
+
+  src.onopen = () => { _sseOpened = true; sseRetry = 1000; };
+
+  src.onmessage = e => {
+    try {
+      const d = JSON.parse(e.data);
+      if (onMessage) onMessage(d);
+      if (onStatusChange) onStatusChange(true);
+      sseRetry = 1000;
+    } catch (err) { console.warn('SSE parse error', err); }
+  };
+  src.addEventListener('state:snapshot', e => {
+    try {
+      const d = JSON.parse(e.data);
+      if (onMessage) onMessage(d);
+      if (onStatusChange) onStatusChange(true);
+      sseRetry = 1000;
+    } catch (err) { console.warn('SSE snapshot parse error', err); }
+  });
+  src.onerror = () => {
+    if (_sseOpened) {
+      // Se abrió pero se cayó: reconectar vía EventSource.
+      if (sseReconnecting) return;
+      sseReconnecting = true;
+      const delay = sseRetry;
+      sseRetry = Math.min(sseRetry * 2, 20000);
+      setTimeout(() => {
+        if (sse !== src) return;
+        try { src.close(); } catch (e) {}
+        sse = null;
+        sseReconnecting = false;
+        connectSSE({ onMessage, onStatusChange });
+      }, delay);
+      return;
+    }
+    // Nunca abrió (proxy/CORS/archivo local): caer a fetch stream.
+    try { src.close(); } catch (e) {}
+    sse = null;
+    startSseFetch({ onMessage, onStatusChange });
+  };
+
+  // Si EventSource no abre en 4s, usar fetch stream.
+  setTimeout(() => {
+    if (!_sseOpened && sse === src && !_sseStopped) {
+      try { src.close(); } catch (e) {}
+      sse = null;
+      startSseFetch({ onMessage, onStatusChange });
+    }
+  }, 4000);
+}
+
+export function disconnectSSE() {
+  _sseStopped = true;
+  if (_sseFetchCtrl) { try { _sseFetchCtrl.abort(); } catch (e) {} _sseFetchCtrl = null; }
+  if (sse) { try { sse.close(); } catch (e) {} sse = null; }
+}

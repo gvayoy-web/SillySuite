@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="theme-color" content="#0038ff" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <title>Display — Campeonísimo Bíblico</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;700&family=Cinzel:wght@400;600;700;900&family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+            rel="stylesheet"
+        />
+        <script>!function(){function e(){document.documentElement.style.setProperty('--vh',window.innerHeight/100+'px')}e();window.addEventListener('resize',e)}()</script>
+        <link rel="stylesheet" href="/css/display-base.css" />
+        <link rel="stylesheet" href="/css/display-overlays.css" />
+        <link rel="stylesheet" href="/css/display-mcq.css" />
+        <link rel="stylesheet" href="/css/themes/theme-dark.css" />
+        <link rel="stylesheet" href="/css/themes/theme-fire.css" />
+        <link rel="stylesheet" href="/css/themes/theme-ocean.css" />
+        <link rel="stylesheet" href="/css/themes/theme-brutalist.css" />
+        <link rel="stylesheet" href="/css/display-robust.css" />
+
+        <!-- Monitor de carga: visible AUN SI FALLAN LOS MÓDULOS JS.
+             Diagnostica por qué la pantalla no muestra nada. -->
+        <script>
+          (function () {
+            function pill(estado, texto, detalle) {
+              var p = document.getElementById("connPill");
+              var t = document.getElementById("connText");
+              if (!p) return;
+              p.className = "conn-pill conn-" + estado;
+              if (t) t.textContent = texto;
+              if (detalle) p.title = detalle;
+            }
+            function showOverlay(title, sub) {
+              var ro = document.getElementById("reconnectOverlay");
+              if (!ro) return;
+              ro.classList.add("show");
+              var t = ro.querySelector(".rc-title");
+              var s = ro.querySelector(".rc-sub");
+              if (t && title) t.textContent = title;
+              if (s && sub) s.textContent = sub;
+            }
+            window.__setConn = pill;
+            window.__sseConnected = false;
+            window.addEventListener("error", function (e) {
+              var msg = e && e.message ? e.message : "Error de script";
+              if (e && e.filename) msg += "  (" + e.filename.split("/").pop() + ":" + (e.lineno || "?") + ")";
+              pill("error", "Error de carga", msg);
+            });
+            // Si se abre como archivo local, los módulos ES no cargan y SSE no
+            // puede conectar. Avisar claramente de cómo abrirlo.
+            if (location.protocol === "file:") {
+              pill("error", "Abrir vía servidor", "Esta pantalla se abrió como archivo local. Ábrela desde http://<servidor>:<puerto>/display (usa el botón del launcher).");
+              showOverlay("Ábrela desde el servidor", "Esta pantalla no funciona abierta como archivo. En el launcher pulsa “Pantalla Display” o visita http://127.0.0.1:5000/display en el navegador.");
+            } else {
+              // Si pasan 7s y SSE nunca conectó, avisar de falta de conexión.
+              setTimeout(function () {
+                if (!window.__sseConnected) {
+                  pill("down", "Sin conexión", "No se recibió estado del servidor en 7s. Revisa que el servidor esté activo y que esta pantalla se abra desde http://<servidor>:<puerto>/display");
+                  showOverlay("Reconectando…", "No hay conexión con el servidor. Verifica que SILLYQUIZ esté iniciado y que esta pantalla se abra desde la URL del servidor (no como archivo local).");
+                }
+              }, 7000);
+            }
+          })();
+        </script>
+
+            <!-- BASE CSS LOADED VIA display-base.css -->
+    </head>
+    <body>
+        <!-- Connection status (always visible, even if JS modules fail) -->
+        <div id="connPill" class="conn-pill conn-init">
+            <span class="conn-dot"></span>
+            <span id="connText">Conectando…</span>
+        </div>
+
+        <!-- Reconnect / no-connection overlay -->
+        <div id="reconnectOverlay">
+            <div class="rc-icon">⟳</div>
+            <div class="rc-title">Reconectando…</div>
+            <div class="rc-sub">Se perdió la conexión con el servidor. Reintentando automáticamente.</div>
+        </div>
+
+        <!-- Final Round Badge -->
+        <div class="final-round-badge" id="finalRoundBadge" style="display:none;">🏆 RONDA FINAL</div>
+
+        <!-- WOW Effect Elements -->
+        <div class="hard-question-banner" id="hardQuestionBanner">⚠️ PREGUNTA DIFÍCIL</div>
+        <div class="epic-correct-overlay" id="epicCorrectOverlay"><div class="epic-text">¡CORRECTO!</div></div>
+        <div class="freeze-text" id="freezeText">⏱ TIEMPO</div>
+
+        <!-- Ambient Effects Layer -->
+        <div class="ambient-layer" id="ambientLayer"></div>
+
+        <!-- S T A T U S   B A D G E  (hidden visually, present for JS) -->
+        <div
+            class="live-badge"
+            aria-hidden="true"
+            style="
+                position: fixed;
+                opacity: 0;
+                pointer-events: none;
+                z-index: -1;
+            "
+        >
+            <div class="live-pip" id="livePip"></div>
+            <span id="liveLabel">Desconectado</span>
+        </div>
+
+        <div
+            id="decorLayer"
+            style="
+                position: fixed;
+                inset: 0;
+                z-index: 0;
+                pointer-events: none;
+                overflow: hidden;
+            "
+        ></div>
+
+        <div class="decor-corner tl">✧</div>
+        <div class="decor-corner tr">✦</div>
+        <div class="decor-corner bl">◇</div>
+        <div class="decor-corner br">◆</div>
+        <div class="screen brutal-layout">
+            <section class="question-zone">
+                <div class="timer-badge" id="timerBadge">
+                    <div class="timer-num stopped" id="timerNum">—</div>
+                </div>
+                <div class="q-progress" id="qProgress">
+                    <div class="q-progress-bar" id="qProgressBar"></div>
+                    <span class="q-progress-text" id="qProgressText"></span>
+                </div>
+                <div class="q-eyebrow" id="qEyebrow">Pregunta</div>
+                <div class="q-category-badge" id="qCatBadge"></div>
+                <div class="q-verse" id="qVerse" style="display:none;"></div>
+                <div class="q-text empty visible pos-relative" id="qText">
+                    Esperando pregunta…
+                    <div class="decor-attached at-corner-tl" id="atTL"></div>
+                    <div class="decor-attached at-corner-tr" id="atTR"></div>
+                    <div class="decor-attached at-corner-bl" id="atBL"></div>
+                    <div class="decor-attached at-corner-br" id="atBR"></div>
+                    <div class="decor-attached at-underline" id="atUnder"></div>
+                    <div class="decor-attached at-overline" id="atOver"></div>
+                    <div class="decor-attached at-dot-l" id="atDotL"></div>
+                    <div class="decor-attached at-dot-r" id="atDotR"></div>
+                </div>
+                <div class="answer-block" id="ansBlock">
+                    <div class="ans-label">Respuesta</div>
+                    <div class="ans-text" id="ansText"></div>
+                </div>
+            </section>
+
+            <div class="options-container" id="optionsContainer"></div>
+
+            <div class="scores-zone" id="scoresZone"></div>
+        </div>
+
+        <!-- Animations -->
+        <div class="anim-overlay">
+            <div class="anim-box" id="animBox">
+                <div class="anim-sub" id="animSub">¡CORRECTO!</div>
+                <div class="anim-label" id="animLabel">Jóvenes</div>
+                <div class="anim-pts" id="animPts">+10 pts</div>
+            </div>
+        </div>
+
+        <!-- Full-Screen Takeover Layer -->
+        <div class="fullscreen-takeover" id="fullscreenTakeover">
+            <div class="ft-bg" id="ftBg"></div>
+            <div class="ft-content">
+                <div class="ft-sub" id="ftSub"></div>
+                <div class="ft-label" id="ftLabel"></div>
+                <div class="ft-pts" id="ftPts"></div>
+            </div>
+        </div>
+
+        <div class="flash-overlay" id="flashOverlay"></div>
+
+        <!-- Welcome Screen -->
+        <div id="welcomeOverlay">
+            <div class="welcome-content">
+                <div class="welcome-logo">🏆</div>
+                <div class="welcome-title">SillyQuiz</div>
+                <div class="welcome-sub">Esperando la próxima ronda…</div>
+                <div class="welcome-anim">
+                    <span>.</span><span>.</span><span>.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen Crack Overlay -->
+        <div id="crackOverlay">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path id="crackPath" d="" stroke="#ff0000" stroke-width="0.5" fill="none" opacity="0.6" vector-effect="non-scaling-stroke"/>
+                <path id="crackPath2" d="" stroke="#ff2222" stroke-width="0.3" fill="none" opacity="0.4" vector-effect="non-scaling-stroke"/>
+                <path id="crackPath3" d="" stroke="#440000" stroke-width="0.2" fill="none" opacity="0.5" vector-effect="non-scaling-stroke"/>
+            </svg>
+        </div>
+        <!-- Downward Strike Overlay -->
+        <div class="strike-overlay" id="strikeOverlay">
+            <div class="strike-line"></div>
+        </div>
+        <canvas id="celebCanvas"></canvas>
+        <!-- W I N N E R   O V E R L A Y -->
+        <div id="winnerOverlay">
+            <div class="winner-crown" id="winnerCrown"></div>
+            <div class="winner-box" id="winnerBox">
+                <div class="winner-team-name" id="winnerName"></div>
+                <div class="winner-sub">¡CAMPEÓN!</div>
+            </div>
+        </div>
+
+        <!-- Final Results Podium -->
+        <div id="finalResultsOverlay">
+            <div class="fr-title">🏆 RESULTADOS FINALES</div>
+            <div class="fr-podium" id="frPodium"></div>
+            <div class="fr-close-hint">Presiona "Ocultar Resultados" en el panel de control</div>
+        </div>
+
+        <!-- ── RULETA DE ALABANZAS ── -->
+
+        <!-- ── Multiple choice options ── -->
+
+        <div id="timerEndOverlay" class="">
+            <div class="timer-end-box">
+                <div class="timer-end-icon">✕</div>
+                <div class="timer-end-label">TIEMPO</div>
+                <div class="timer-end-sub">TERMINADO</div>
+                <div class="timer-end-bar"></div>
+            </div>
+        </div>
+
+        <!-- ── RULETA OVERLAY (2 fases) ── -->
+        <div id="ruletaOverlay">
+            <!-- Phase 1: Category Duel -->
+            <div class="ruleta-phase" id="ruletaPhaseCategory">
+                <div class="ruleta-title">🎰 RULETA DE ALABANZAS</div>
+                <div class="ruleta-subtitle">Seleccionando categoría</div>
+                <div class="ruleta-duel" id="ruletaDuelColumns"></div>
+                <div class="ruleta-divider" id="ruletaDivider">
+                    <div class="ruleta-divider-core">VS</div>
+                </div>
+                <div class="ruleta-verdict-banner" id="ruletaVerdictBanner">
+                    <div class="ruleta-verdict-banner-inner">
+                        <div class="ruleta-verdict-banner-icon" id="verdictBannerIcon"></div>
+                        <div class="ruleta-verdict-banner-text" id="verdictBannerText"></div>
+                    </div>
+                </div>
+                <div class="ruleta-status-text" id="ruletaStatusText">Preparando el duelo…</div>
+            </div>
+
+            <!-- Phase 2: Wheel -->
+            <div class="ruleta-phase hidden" id="ruletaPhaseWheel">
+                <div class="ruleta-title">🎰 RULETA DE ALABANZAS</div>
+                <div class="wheel-layout">
+                    <div class="wheel-left-pane">
+                        <div id="wheelContainer">
+                            <div id="wheelPointer"></div>
+                            <canvas id="ruletaCanvas" width="500" height="500"></canvas>
+                        </div>
+                    </div>
+                    <div class="wheel-right-pane">
+                        <div class="ruleta-wheel-status" id="wheelStatus">Iniciando giro…</div>
+                        <div class="ruleta-wheel-word-display" id="wheelWordDisplay" style="display:none">
+                            <div class="ruleta-wheel-word" id="wheelWord">???</div>
+                            <div class="ruleta-wheel-word-sub">PALABRA REVELADA</div>
+                        </div>
+                        <div class="ruleta-timer" id="wheelTimer" style="display:none">
+                            <span class="ruleta-timer-label">TIEMPO</span>
+                            <span class="ruleta-timer-value" id="wheelTimerValue">15</span>
+                        </div>
+                        <div class="ruleta-tiempo-perdido hidden" id="wheelTiempoPerdido">⏰ TIEMPO PERDIDO</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── BLACK SCREEN OVERLAY ── -->
+        <div id="blackScreen"></div>
+
+        <div class="scanline-overlay"></div>
+        <!-- ── FROZEN INDICATOR ── -->
+        <div id="frozenIndicator">❄️ CONGELADO</div>
+
+        <!-- ── HANGMAN MODE ── -->
+        <div id="hangmanOverlay" class="hm-overlay">
+            <div class="hm-particles" id="hmParticles"></div>
+            <div class="hm-title">
+                <span class="hm-title-icon">🪢</span>
+                <span class="hm-title-text">AHORCADO BÍBLICO</span>
+            </div>
+            <div class="hm-layout">
+                <div class="hm-info">
+                    <div id="hmCategoryHint" class="hm-category-hint"></div>
+                    <div id="hmWordDisplay" class="hm-word-display"></div>
+                    <div id="hmWrongLetters" class="hm-wrong-letters"></div>
+                    <div id="hmResult" class="hm-result"></div>
+                    <div id="hmLetterGrid" class="hm-letter-grid"></div>
+                </div>
+                <div class="hm-figure-col">
+                    <div id="hangmanFigure" class="hm-figure">
+                        <svg viewBox="0 0 120 160">
+                            <defs>
+                                <linearGradient id="hmGallowGrad" x1="0" y1="0" x2="1" y2="0">
+                                    <stop offset="0%" stop-color="#3a3028"/>
+                                    <stop offset="50%" stop-color="#6b5a4a"/>
+                                    <stop offset="100%" stop-color="#3a3028"/>
+                                </linearGradient>
+                                <linearGradient id="hmRopeGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#7a6a5a"/>
+                                    <stop offset="100%" stop-color="#4a3a2a"/>
+                                </linearGradient>
+                                <filter id="hmFigGlow">
+                                    <feGaussianBlur stdDeviation="2" result="blur"/>
+                                    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                                </filter>
+                                <filter id="hmShadow">
+                                    <feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="rgba(0,0,0,0.4)"/>
+                                </filter>
+                            </defs>
+                            <!-- Gallows base -->
+                            <rect x="30" y="148" width="60" height="8" rx="2" fill="#3a3028"/>
+                            <!-- Left vertical -->
+                            <rect class="hm-pole" x="42" y="18" width="6" height="130" fill="url(#hmGallowGrad)" filter="url(#hmShadow)"/>
+                            <!-- Right vertical -->
+                            <rect x="72" y="18" width="6" height="130" fill="url(#hmGallowGrad)" filter="url(#hmShadow)" opacity="0.7"/>
+                            <!-- Crossbar -->
+                            <rect x="42" y="18" width="36" height="6" fill="url(#hmGallowGrad)" filter="url(#hmShadow)"/>
+                            <!-- Diagonal brace -->
+                            <line x1="42" y1="24" x2="72" y2="60" stroke="#3a3028" stroke-width="2" opacity="0.4"/>
+                            <!-- Rope -->
+                            <line class="hm-rope" x1="52" y1="24" x2="52" y2="40" stroke="url(#hmRopeGrad)" stroke-width="2.5" filter="url(#hmFigGlow)"/>
+                            <!-- Noose loop -->
+                            <ellipse cx="52" cy="41" rx="4" ry="2" fill="none" stroke="#6b5a4a" stroke-width="1.5"/>
+                            <!-- Head -->
+                            <circle id="hm-head" class="hm-body-part" cx="52" cy="48" r="8" fill="none" stroke="#e94560" stroke-width="3" filter="url(#hmFigGlow)"/>
+                            <!-- Body -->
+                            <line id="hm-body" class="hm-body-part" x1="52" y1="56" x2="52" y2="96" stroke="#e94560" stroke-width="3.5" stroke-linecap="round"/>
+                            <!-- Left arm -->
+                            <line id="hm-arm-l" class="hm-body-part" x1="52" y1="64" x2="32" y2="80" stroke="#e94560" stroke-width="3" stroke-linecap="round"/>
+                            <!-- Right arm -->
+                            <line id="hm-arm-r" class="hm-body-part" x1="52" y1="64" x2="72" y2="80" stroke="#e94560" stroke-width="3" stroke-linecap="round"/>
+                            <!-- Left leg -->
+                            <line id="hm-leg-l" class="hm-body-part" x1="52" y1="96" x2="34" y2="122" stroke="#e94560" stroke-width="3" stroke-linecap="round"/>
+                            <!-- Right leg -->
+                            <line id="hm-leg-r" class="hm-body-part" x1="52" y1="96" x2="70" y2="122" stroke="#e94560" stroke-width="3" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div id="hmHearts" class="hm-hearts"></div>
+                </div>
+            </div>
+        </div>
+        <!-- ── TIEMPO MODE OVERLAY ── -->
+        <div id="tiempoOverlay" class="versos-overlay hidden">
+            <div class="versos-progress-track">
+                <div class="versos-progress-fill" id="tiempoProgressFill"></div>
+            </div>
+            <div class="versos-inner">
+                <div class="versos-main-area">
+                    <div class="versos-clock-box" id="tiempoClockBox">
+                        <div class="versos-clock-number" id="tiempoClockNumber">--</div>
+                        <div class="versos-clock-label">TIEMPO</div>
+                    </div>
+                </div>
+                <div class="versos-sidebar-area">
+                    <div class="versos-leaderboard" id="tiempoLeaderboard">
+                        <div class="versos-lb-title">CLASIFICACIÓN</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── BATTLE MODE ── -->
+        <div id="battleOverlay" class="battle-overlay hidden">
+            <div class="battle-header">⚔️ BATALLA</div>
+            <div class="battle-teams">
+                <div class="battle-team team-red">
+                    <div class="battle-team-name">Equipo 1</div>
+                    <div class="battle-team-pts">0</div>
+                </div>
+                <div class="battle-vs">VS</div>
+                <div class="battle-team team-blue">
+                    <div class="battle-team-name">Equipo 2</div>
+                    <div class="battle-team-pts">0</div>
+                </div>
+            </div>
+            <div class="battle-question"></div>
+            <div class="battle-timer">15s</div>
+        </div>
+
+        <!-- ── SURVIVAL MODE ── -->
+        <div id="survivalOverlay" class="survival-overlay hidden">
+            <div class="survival-header">💀 SUPERVIVENCIA</div>
+            <div class="survival-vivos"></div>
+            <div class="survival-question"></div>
+            <div class="survival-timer">20s</div>
+        </div>
+
+        <!-- ── QUIZ SHOW MODE ── -->
+        <div id="quizshowOverlay" class="quizshow-overlay hidden">
+            <div class="quizshow-header">🎬 QUIZ SHOW</div>
+            <div class="quizshow-question"></div>
+            <div class="quizshow-options"></div>
+            <div class="quizshow-scores"></div>
+            <div class="quizshow-timer">20s</div>
+        </div>
+
+        <script src="quiz-renderer.js"></script>
+        <script type="module" src="/js/display-state.js"></script>
+        <script type="module" src="/js/display-shapes2.js"></script>
+        <script type="module" src="/js/display-screens.js"></script>
+    </body>
+</html>
+

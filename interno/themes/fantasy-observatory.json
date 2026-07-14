@@ -1,0 +1,122 @@
+{
+  "slug": "fantasy-observatory",
+  "name": "Mystic Observatory",
+  "description": "Tema astronómico místico con estrellas flotantes",
+  "author": "SillyQuiz",
+  "version": 3,
+  "created_at": "2026-07-07T23:10:22.468524",
+  "last_modified": "2026-07-07T23:10:22.468537",
+  "colors": {
+    "primary": "#312e81",
+    "secondary": "#fef3c7",
+    "accent": "#fbbf24",
+    "surface": "#ffffff",
+    "text": "#000000",
+    "border": "#000000",
+    "glow": "rgba(124,58,237,0.3)",
+    "bg_gradient": [
+      "#0038ff",
+      "#1a1aff"
+    ]
+  },
+  "typography": {
+    "heading_font": "Orbitron",
+    "body_font": "Space Grotesk",
+    "timer_font": "Bebas Neue",
+    "score_font": "Space Grotesk",
+    "size_scale": 1.0,
+    "text_shadow": false,
+    "text_glow": false
+  },
+  "timer": {
+    "style": "circle",
+    "position": "tr",
+    "position_x": null,
+    "position_y": null,
+    "size": "medium",
+    "colors": {
+      "background": "rgba(0,0,0,0.6)",
+      "text": "#ffffff",
+      "progress": "#7C3AED",
+      "glow": "rgba(124,58,237,0.5)",
+      "urgent": "#ff4444"
+    },
+    "animation": "pulse"
+  },
+  "layout": {
+    "scores_position": "bottom",
+    "header_style": "full",
+    "question_height": "normal",
+    "logo_visible": true,
+    "decorations_visible": true,
+    "scores_height": 300
+  },
+  "shapes": {
+    "enabled": [
+      "star",
+      "constellation",
+      "moon",
+      "comet",
+      "dove",
+      "heart",
+      "crown",
+      "key",
+      "fish",
+      "bread",
+      "lamp"
+    ],
+    "spawn_rate": 2500,
+    "max_count": 15,
+    "color_source": "celestial",
+    "behavior": "float",
+    "size": "medium",
+    "opacity": 0.8,
+    "react_to_events": true
+  },
+  "screens": {
+    "1": {
+      "name": "Principal",
+      "role": "main",
+      "elements": {
+        "timer": true,
+        "question": true,
+        "scores": true,
+        "shapes": true,
+        "overlays": true
+      },
+      "layout": {},
+      "mapping": {}
+    },
+    "2": {
+      "name": "Secundaria",
+      "role": "secondary",
+      "elements": {
+        "timer": false,
+        "question": false,
+        "scores": true,
+        "shapes": true,
+        "overlays": false
+      },
+      "layout": {},
+      "mapping": {}
+    }
+  },
+  "effects": {
+    "default_effects": [
+      "twinkle",
+      "constellation",
+      "nebula"
+    ],
+    "intensity": 1.0,
+    "mode_transition": "fade",
+    "theme_transition": "fade",
+    "screen_shake": true,
+    "confetti": true
+  },
+  "sound": {
+    "pack": "procedural",
+    "volume": 1.0,
+    "events": {}
+  },
+  "modes": {}
+}

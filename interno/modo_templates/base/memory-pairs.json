@@ -1,0 +1,64 @@
+{
+  "id": "memory-pairs-template",
+  "nombre": "Memoria de Pares",
+  "descripcion": "Juego de memoria clásico donde emparejas tarjetas idénticas",
+  "icono": "🧠",
+  "autor": "SillyQuiz Community",
+  "categoria": "memory",
+  "tags": ["memoria", "concentración", "parejas", "visual"],
+  "version": "1.0.0",
+  "fecha_creacion": "2024-07-11T16:42:16Z",
+  "descargas": 0,
+  "calificacion_promedio": 0,
+  "preview_image": "/static/images/templates/memory-pairs.png",
+  "template_config": {
+    "preguntas": {
+      "source": "baseActual",
+      "categorias": ["genesis", "exodo", "leviticus"],
+      "cantidad": 8,
+      "tipo": "memory_pairs"
+    },
+    "gamePlay": {
+      "modo": "memory_pairs",
+      "intentos": 3,
+      "mostrar_tarjetas": true,
+      "revelar_incorrectas": false
+    },
+    "scoring": {
+      "correcto": 10,
+      "incorrecto": 0,
+      "bonus_pares": true,
+      "bonus_tiempo": true
+    },
+    "timing": {
+      "tiempo_inicio": 30,
+      "tiempo_final": 0,
+      "formato": "mm:ss"
+    },
+    "visual": {
+      "tema": "memory",
+      "animaciones": ["flip", "glow", "confetti"],
+      "overlay": "scoreboard",
+      "cuadrícula": "4x4"
+    },
+    "feedback": {
+      "mostrarParejaEncontrada": true,
+      "tiempo_mostrar": 2,
+      "animacion_revelar": "glow"
+    }
+  },
+  "componentes": [
+    "preguntas",
+    "gamePlay",
+    "scoring",
+    "timing",
+    "visual",
+    "feedback"
+  ],
+  "atributos": {
+    "max_pares": 12,
+    "min_tiempo": 15,
+    "max_tiempo": 120,
+    "permitirMultiEquipo": true
+  }
+}

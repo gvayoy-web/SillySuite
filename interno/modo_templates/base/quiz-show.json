@@ -1,0 +1,56 @@
+{
+  "id": "quiz-show-template",
+  "nombre": "Quiz Show",
+  "descripcion": "Votación por mayoría. Si aciertan, +10. Si la minoría acierta, +20.",
+  "icono": "🎬",
+  "autor": "SillyQuiz Community",
+  "categoria": "quiz",
+  "tags": ["votacion", "mayoria", "minority", "show"],
+  "version": "1.0.0",
+  "fecha_creacion": "2024-01-15T10:00:00Z",
+  "descargas": 1100,
+  "calificacion_promedio": 4.6,
+  "preview_image": "/static/images/templates/quiz-show.png",
+  "template_config": {
+    "voting": {
+      "type": "majority",
+      "minority_bonus": 2,
+      "reveal_after_vote": true
+    },
+    "rounds": {
+      "total": 3,
+      "questions_per_round": 1,
+      "time_per_question": 20
+    },
+    "scoring": {
+      "majority_correct": 10,
+      "minority_correct": 20,
+      "wrong_vote": 0
+    },
+    "timer": {
+      "type": "countdown",
+      "initial_value": 20,
+      "alert_at": 5,
+      "format": "ss"
+    },
+    "visual": {
+      "theme": "quizshow",
+      "animations": ["vote", "reveal", "confetti"],
+      "overlay": "vote_results"
+    }
+  },
+  "componentes": [
+    "voting",
+    "rounds",
+    "scoring",
+    "timer",
+    "visual"
+  ],
+  "atributos": {
+    "min_rondas": 1,
+    "max_rondas": 10,
+    "min_tiempo": 10,
+    "max_tiempo": 60,
+    "permitirMultiEquipo": true
+  }
+}

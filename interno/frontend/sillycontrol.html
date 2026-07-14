@@ -1,0 +1,1466 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#07070e" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>SILLYQUIZ — Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Cinzel:wght@600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/control.css" />
+  <link rel="stylesheet" href="/css/modo-builder.css" />
+  <link rel="stylesheet" href="/css/template-gallery.css" />
+  <link rel="stylesheet" href="/css/preview-engine.css" />
+  <link rel="stylesheet" href="/css/dynamic-tabs.css" />
+  <link rel="stylesheet" href="/css/control-brutalist.css" />
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem('lq-control-theme') === 'light') {
+          document.documentElement.classList.add('control-light');
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar" aria-label="Panel de navegación">
+  <div class="sidebar-brand">LQ</div>
+  <div class="sidebar-nav">
+    <button class="tab-btn active" data-tab="dashboard" title="Dashboard" aria-label="Dashboard">🏆</button>
+    <button class="tab-btn" data-tab="preguntas" title="Preguntas" aria-label="Preguntas">❓</button>
+    <button class="tab-btn" data-tab="ahorcado" title="Ahorcado" aria-label="Ahorcado">🪢</button>
+    <button class="tab-btn" data-tab="grupos" title="Grupos" aria-label="Grupos">👥</button>
+    <button class="tab-btn" data-tab="temas" title="Apariencia" aria-label="Apariencia">🎨</button>
+    <button class="tab-btn" data-tab="pantallas" title="Pantallas" aria-label="Pantallas">🖵</button>
+    <button class="tab-btn" data-tab="editor" title="Editor de Temas" aria-label="Editor de Temas">🖌️</button>
+    <button class="tab-btn" data-tab="presentador" title="Presentador" aria-label="Presentador">🎤</button>
+    <button class="tab-btn" data-tab="modos" title="Modos (Builder)" aria-label="Modos">🧩</button>
+    <button class="tab-btn" data-tab="canva" title="Infinite Canvas (Scratch Builder)" aria-label="Infinite Canvas">🎨</button>
+    <button class="tab-btn" data-tab="config" title="Configuración" aria-label="Configuración">⚙️</button>
+  </div>
+  <div class="sidebar-nav-mode-builder">
+    <!-- Se inyecta dinámicamente el panel del builder -->
+  </div>
+  <div class="sidebar-footer">
+    <div id="sidebarStatus" class="sidebar-status" title="Estado de conexión">🔴</div>
+    <button class="tab-btn" id="themeToggle" title="Tema (Oscuro/Claro)" aria-label="Alternar tema oscuro/claro" onclick="toggleLQTheme()">◐</button>
+      <button class="tab-btn" id="displayPreviewToggle" title="Vista Display" aria-label="Alternar vista display">📺</button>
+      <button class="tab-btn" id="btnPersonalizar" title="Personalizar" aria-label="Personalizar panel">🎛️</button>
+    </div>
+</nav>
+
+<!-- Content -->
+<main class="content" id="content">
+  <div class="app-hud">
+    <span class="app-hud-mark">SILLYQUIZ</span>
+    <span class="app-hud-dot" id="appHudDot" title="Estado del servidor: comprobando…"></span>
+    <span class="app-hud-meta"><span id="appHudClock">--:--:--</span> &nbsp;·&nbsp; CONTROL</span>
+    <span class="app-hud-state" id="appHudState">servidor: —</span>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="tab-panel active" id="panel-dashboard">
+    <div class="content-header">
+      <h1>Dashboard</h1>
+      <span class="badge" id="dashStatus">Conectando…</span>
+    </div>
+    <div class="grid-2">
+      <div class="dashboard-card">
+        <div class="label">Modo Activo</div>
+        <div class="mode-indicator" id="activeModeDisplay">
+          <span class="mode-icon">💤</span>
+          <span class="mode-name">Ninguno</span>
+          <span class="mode-status">Inactivo</span>
+        </div>
+      </div>
+      <div class="dashboard-card">
+        <div class="label">Temporizador</div>
+        <div class="timer-display" id="dashTimer">00</div>
+        <div class="timer-bar"><div class="timer-bar-fill" id="dashTimerBar" style="transform:scaleX(1)"></div></div>
+        <div class="flex-row justify-center" style="gap:6px;margin-top:6px">
+          <input type="number" id="inSegundos" value="45" min="1" max="3600" aria-label="Segundos del temporizador" style="width:52px;text-align:center;font-size:11px;padding:4px;border:2px solid var(--border);background:var(--bg);color:var(--text);border-radius:0">
+          <button class="btn btn-sm" onclick="ctrl.iniciarTimer()">▶ Iniciar</button>
+          <button class="btn btn-sm" onclick="ctrl.pararTimer()">■ Parar</button>
+          <button class="btn btn-sm" onclick="ctrl.reiniciarTimer()">↺ Reset</button>
+        </div>
+      </div>
+      <div class="dashboard-card">
+        <div class="label">⏱️ Timers Adicionales</div>
+        <div class="flex-col" style="gap:6px;">
+          <div class="flex-row" style="align-items:center;gap:6px;">
+            <span class="text-xs text-muted" style="width:50px;">Ronda:</span>
+            <input type="number" id="inRoundTimer" value="120" min="1" max="3600" style="width:50px;text-align:center;font-size:11px;padding:2px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:0">
+            <span class="text-xs" id="roundTimerDisplay">02:00</span>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.startRoundTimer()" style="font-size:10px;padding:2px 6px;">▶</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.stopRoundTimer()" style="font-size:10px;padding:2px 6px;">■</button>
+          </div>
+          <div class="flex-row" style="align-items:center;gap:6px;">
+            <span class="text-xs text-muted" style="width:50px;">Juego:</span>
+            <input type="number" id="inGameTimer" value="3600" min="1" max="7200" style="width:50px;text-align:center;font-size:11px;padding:2px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:0">
+            <span class="text-xs" id="gameTimerDisplay">60:00</span>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.startGameTimer()" style="font-size:10px;padding:2px 6px;">▶</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.stopGameTimer()" style="font-size:10px;padding:2px 6px;">■</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="dashboard-card">
+      <div class="label">Puntajes</div>
+      <canvas id="dashSparkline" height="60" style="width:100%;margin-bottom:8px;"></canvas>
+      <div id="dashScores"></div>
+    </div>
+    <div class="dashboard-card">
+      <div class="label">Ajustar Puntos</div>
+      <div class="puntos-grid" id="dashPuntosGrid"></div>
+    </div>
+    <div class="grid-2">
+      <div class="dashboard-card">
+        <div class="label">Actividad Reciente</div>
+        <div class="activity-log" id="dashActivity"><div class="log-entry text-muted2">Sin actividad</div></div>
+      </div>
+      <div class="dashboard-card">
+        <div class="label">📊 Estadísticas Rápidas</div>
+        <div class="flex-col" style="gap:4px;font-size:11px;">
+          <div class="flex-row justify-between"><span class="text-muted">Preguntas mostradas:</span><span id="dashStatsShown">0</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">Correctas:</span><span id="dashStatsCorrect" style="color:var(--green);">0</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">Incorrectas:</span><span id="dashStatsIncorrect" style="color:var(--red);">0</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">Precisión:</span><span id="dashStatsAccuracy">0%</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">Racha máxima:</span><span id="dashStatsMaxStreak">0</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="dashboard-card">
+        <div class="label">Acciones Rápidas</div>
+        <div class="flex-row justify-center" style="gap:6px;margin-bottom:8px">
+          <span style="font-size:11px;color:var(--muted)">Pts:</span>
+          <input type="number" id="inPuntos" value="10" min="1" max="999" aria-label="Puntos a otorgar" style="width:48px;text-align:center;font-size:11px;padding:4px;border:2px solid var(--border);background:var(--bg);color:var(--text);border-radius:0">
+          <span style="font-size:10px;color:var(--muted)">(teclas 1-9)</span>
+        </div>
+        <div class="quick-actions">
+          <button class="btn btn-red btn-sm" onclick="ctrl.resetTodo()">⚠ Reset Todo</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.salirTodo()">🚪 Salir</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.resetOverlays()">🧹 Overlays</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.toggleKiosko()" id="dashKioskoBtn">🖥 Kiosko</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.toggleBlackScreen()" id="dashBlackBtn">⬛ Black</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.toggleFreeze()" id="dashFreezeBtn">❄️ Freeze</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.toggleClean()" id="dashCleanBtn">🖼️ Clean</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.toggleFinalRound()" id="dashFinalBtn">🏆 Final</button>
+          <button class="btn btn-yellow btn-sm" onclick="ctrl.toggleFinalResults()" id="dashFinalResultsBtn">🏆 Resultados</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.togglePracticeMode()" id="dashPracticeBtn">🎯 Práctica</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.undo()" title="Deshacer (Ctrl+Z)">⬅ Undo</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.redo()" title="Rehacer (Ctrl+Y)">➡ Redo</button>
+        </div>
+        <div class="flex-row justify-center" style="gap:4px;margin-top:4px;flex-wrap:wrap">
+          <span style="font-size:10px;color:var(--muted);width:100%;text-align:center">Tema:</span>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.setTheme('default')" style="font-size:10px;padding:2px 6px">🎨 Default</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.setTheme('dark')" style="font-size:10px;padding:2px 6px">🌙 Oscuro</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.setTheme('fire')" style="font-size:10px;padding:2px 6px">🔥 Fuego</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.setTheme('ocean')" style="font-size:10px;padding:2px 6px">🌊 Océano</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.setTheme('brutalist')" style="font-size:10px;padding:2px 6px;font-family:var(--font);border:2px solid var(--accent)">▦ Brutalista</button>
+        </div>
+      </div>
+    </div>
+    <div class="grid-3">
+      <div class="dashboard-card">
+        <div class="label">Lanzar Modo</div>
+        <div class="quick-actions">
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.lanzarModo('preguntas')">❓ Preguntas</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.lanzarModo('ruleta')">🎰 Ruleta</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.lanzarModo('hangman')">🪢 Ahorcado</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.lanzarModo('verses')">⏱ Tiempo</button>
+        </div>
+      </div>
+      <div class="dashboard-card">
+        <div class="label">Siguiente Ronda</div>
+        <div class="flex-col" style="gap:6px;">
+          <select id="dashNextRound" style="width:100%;padding:6px;font-size:12px;">
+            <option value="">— Seleccionar modo —</option>
+            <option value="preguntas">❓ Preguntas</option>
+            <option value="ruleta">🎰 Ruleta</option>
+            <option value="hangman">🪢 Ahorcado</option>
+            <option value="verses">⏱ Tiempo</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="ctrl.ejecutarSiguienteRonda()">▶ Ejecutar</button>
+        </div>
+      </div>
+      <div class="dashboard-card">
+        <div class="label">Estado del Juego</div>
+        <div class="flex-col" style="gap:4px;font-size:12px;">
+          <div class="flex-row justify-between"><span class="text-muted">Grupos:</span><span id="dashGameGroups">0</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">Preguntas:</span><span id="dashGameQuestions">0</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">Modo:</span><span id="dashGameMode">—</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">Timer:</span><span id="dashGameTimer">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREGUNTAS -->
+  <div class="tab-panel" id="panel-preguntas">
+    <div class="content-header">
+      <h1>Preguntas</h1>
+      <span class="badge" id="qCount">0</span>
+    </div>
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-title">▶ Iniciar Modo Preguntas</div>
+        <div class="flex-col">
+          <div class="flex-row" style="align-items:center;gap:8px;">
+            <span class="text-sm text-muted">Estado:</span>
+            <span class="badge" id="pregModeStatus">Inactivo</span>
+          </div>
+          <button class="btn btn-primary btn-block" onclick="ctrl.iniciarModoPreguntas()" id="btnIniciarModoPreguntas" style="padding:14px;font-size:16px;">▶ INICIAR</button>
+          <div class="text-xs text-muted2 mt-4">Inicia el modo preguntas sin mostrar texto en pantalla. Ideal para proyectar solo números o esperar.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Crear / Editar Pregunta</div>
+        <div class="flex-col">
+          <input type="text" id="inPregunta" placeholder="Pregunta…" />
+          <input type="text" id="inRespuesta" placeholder="Respuesta…" />
+          <div class="flex-row gap-4">
+            <select id="inCategoria" style="flex:1;"><option value="">Sin categoría</option></select>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('catModal').classList.remove('hidden');renderCatModal()" title="Gestionar categorías">⚙</button>
+          </div>
+          <label class="flex-row" style="font-size:10px;cursor:pointer;">
+            <input type="checkbox" id="chkMulti" onchange="ctrl.toggleMultiChoice()" />
+            Opción múltiple (A, B, C)
+          </label>
+          <div id="multiChoiceFields" class="hidden flex-col">
+            <div class="flex-row"><span class="fw-700" style="width:16px;">A</span><input type="text" id="inOptA" placeholder="Opción A…" /><label style="font-size:10px;"><input type="radio" name="rcRadio" value="0" checked onchange="ctrl.onRcChange()" /> Correcta</label></div>
+            <div class="flex-row"><span class="fw-700" style="width:16px;">B</span><input type="text" id="inOptB" placeholder="Opción B…" /><label style="font-size:10px;"><input type="radio" name="rcRadio" value="1" onchange="ctrl.onRcChange()" /> Correcta</label></div>
+            <div class="flex-row"><span class="fw-700" style="width:16px;">C</span><input type="text" id="inOptC" placeholder="Opción C…" /><label style="font-size:10px;"><input type="radio" name="rcRadio" value="2" onchange="ctrl.onRcChange()" /> Correcta</label></div>
+          </div>
+          <div class="flex-row gap-4">
+            <button class="btn btn-primary flex-1" id="btnCrearPregunta" onclick="ctrl.crearPregunta()">+ Agregar</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.limpiarFormularioPregunta()" title="Nueva pregunta">✚ Nueva</button>
+          </div>
+          <hr style="border-color:var(--border);margin:8px 0;">
+          <div class="flex-row">
+            <span class="text-muted flex-1" id="actualLabel">Sin selección</span>
+            <button class="btn btn-primary btn-sm" id="btnProyectar" onclick="ctrl.proyectarActual()" disabled>▶ Proyectar</button>
+          </div>
+          <div class="preview-box hidden" id="actualPreview">
+            <div class="preview-label">Activa</div>
+            <div class="preview-text" id="apTexto"></div>
+            <div class="flex-row mt-4">
+              <span class="text-sm text-muted">Resp:</span>
+              <span class="flex-1" id="apResp" style="color:var(--green);font-weight:600;"></span>
+              <button class="btn btn-green btn-sm hidden" id="btnRevelar" onclick="ctrl.toggleRespuesta(true)">Revelar</button>
+              <button class="btn btn-ghost btn-sm hidden" id="btnOcultar" onclick="ctrl.toggleRespuesta(false)">Ocultar</button>
+              <button class="btn btn-yellow btn-sm hidden" id="btnMostrarOpciones" onclick="ctrl.mostrarOpciones()">📋 Opciones</button>
+            </div>
+            <div id="opcionBtns" class="flex-row mt-4 hidden">
+              <button class="btn flex-1 fw-900" onclick="ctrl.seleccionarOpcion(0)" style="font-size:14px;padding:10px;">A</button>
+              <button class="btn flex-1 fw-900" onclick="ctrl.seleccionarOpcion(1)" style="font-size:14px;padding:10px;">B</button>
+              <button class="btn flex-1 fw-900" onclick="ctrl.seleccionarOpcion(2)" style="font-size:14px;padding:10px;">C</button>
+            </div>
+          </div>
+          <div class="flex-row mt-4">
+            <button class="btn btn-ghost flex-1" onclick="ctrl.irAPreguntaAnterior()">⬅ Anterior</button>
+            <button class="btn btn-ghost flex-1" onclick="ctrl.irAPreguntaSiguiente()">Siguiente →</button>
+          </div>
+          <div class="flex-row mt-4 gap-4" style="border-top:1px solid var(--border);padding-top:8px;">
+            <span class="text-sm text-muted">⏱ Timer:</span>
+            <input type="number" id="inProyectarSegundos" value="30" min="1" max="3600" style="width:50px;text-align:center;font-size:11px;padding:2px 4px;border:2px solid var(--border);background:var(--bg);color:var(--text);border-radius:0">
+            <button class="btn btn-sm" onclick="ctrl.iniciarTimerProyectar()">▶</button>
+            <button class="btn btn-sm" onclick="ctrl.pararTimer()">■</button>
+            <button class="btn btn-sm" onclick="ctrl.reiniciarTimer()">↺</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Banco de Preguntas</div>
+        <div class="flex-col">
+          <div class="flex-row gap-4">
+            <input type="text" id="qSearch" placeholder="Buscar por texto…" oninput="ctrl.filtrarPreguntas()" style="flex:1;" />
+            <select id="filterCategoria" aria-label="Filtrar por categoría" onchange="ctrl.filtrarPreguntas()" style="width:auto;font-size:10px;padding:2px 4px;">
+              <option value="">Todas</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.exportarPreguntas()" title="Exportar">↓</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFile').click()" title="Importar">↑</button>
+            <input type="file" id="importFile" accept=".json" aria-label="Importar preguntas desde archivo" onchange="ctrl.importarPreguntas(event)" />
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('catModal').classList.remove('hidden');renderCatModal()" title="Gestionar categorías">⚙</button>
+          </div>
+          <div class="flex-row justify-between mt-4">
+            <span class="text-sm text-muted" id="qCountFooter">0 total</span>
+            <span class="text-sm text-muted" id="qFilteredCount"></span>
+          </div>
+          <div class="q-list" id="qList" style="max-height:300px;overflow-y:auto;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AHORCADO -->
+  <div class="tab-panel" id="panel-ahorcado">
+    <div class="content-header">
+      <h1>Ahorcado</h1>
+      <span class="badge" id="hangmanStatus">Inactivo</span>
+    </div>
+    <div class="card">
+      <div class="flex-row">
+        <button class="btn btn-primary flex-1" onclick="ctrl.hangmanIniciar()" id="btnHangmanIniciar" style="padding:12px;">🪢 INICIAR AHORCADO</button>
+        <button class="btn btn-ghost hidden" onclick="ctrl.hangmanClose()" id="btnHangmanClose">✕ Cerrar</button>
+      </div>
+      <div class="hangman-word" id="hangmanWordDisplay"></div>
+      <div class="flex-row justify-center mt-4 gap-4 flex-wrap" id="hangmanLetterGrid">
+      </div>
+      <div class="flex-row justify-center mt-2 gap-8">
+        <button class="btn btn-yellow btn-sm" onclick="ctrl.hangmanHint()">💡 Pista</button>
+      </div>
+      <div class="flex-row justify-center mt-4" id="hangmanLettersContainer"></div>
+      <div class="text-center text-muted mt-4" id="hangmanAttempts">Intentos restantes: --</div>
+      <div class="flex-row justify-center mt-3 gap-4" id="hangmanAdminRow" style="display:none;">
+        <span class="text-sm text-muted" id="hangmanPalabraDisplay">Palabra: ???</span>
+        <input type="text" id="hangmanAdminInput" maxlength="1" aria-label="Escribir letra" placeholder="Letra" style="width:50px;text-align:center;text-transform:uppercase;" />
+        <button class="btn btn-primary btn-sm" onclick="ctrl.hangmanAdminSend()">Enviar</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚙ Configuración</div>
+      <div class="flex-row mt-4 gap-8">
+        <span class="text-sm text-muted">Intentos:</span>
+        <input type="number" id="hangmanMaxAttempts" value="6" min="3" max="15" aria-label="Intentos máximos del ahorcado" style="width:50px;" />
+        <span class="text-sm text-muted">Tiempo:</span>
+        <input type="number" id="hangmanTimer" value="60" min="10" max="300" aria-label="Tiempo del ahorcado en segundos" style="width:60px;" />
+        <span class="text-sm text-muted">seg</span>
+      </div>
+      <div class="flex-col mt-4">
+        <span class="text-sm text-muted">Palabras (una por línea):</span>
+        <textarea id="hangmanWordsArea" rows="6" aria-label="Palabras para el ahorcado (una por línea)" style="width:100%;font-family:monospace;margin-top:4px;"></textarea>
+        <div class="flex-row mt-4 gap-4" style="align-self:flex-end;">
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.hangmanExportar()">📤 Exportar</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('hangmanImportFile').click()">📥 Importar</button>
+          <input type="file" id="hangmanImportFile" accept=".json" style="display:none;" onchange="ctrl.hangmanImportar(event)" />
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.hangmanGuardarConfig()">💾 Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- GRUPOS -->
+  <div class="tab-panel" id="panel-grupos">
+    <div class="content-header">
+      <h1>Grupos</h1>
+      <span class="badge" id="gruposCount">0</span>
+    </div>
+    <div class="card">
+      <div id="gruposList"></div>
+      <div class="flex-row mt-4">
+        <button class="btn btn-ghost" onclick="ctrl.addGrupo()" id="btnAddGrupo">+ Añadir grupo</button>
+        <button class="btn btn-primary" onclick="ctrl.guardarGrupos()">💾 Guardar</button>
+        <span id="gruposStatus" class="text-sm" style="color:var(--green);opacity:0;">✓ Guardado</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANTALLA -->
+  <div class="tab-panel" id="panel-temas">
+    <div class="content-header">
+      <h1>Pantalla</h1>
+    </div>
+    <div class="grid-4">
+      <div class="card">
+        <div class="card-title">Tema Visual</div>
+        <div class="flex-col">
+          <button class="btn btn-ghost btn-block" onclick="ctrl.setTheme('default')" id="themeDefaultBtn">🎨 Default (Azul)</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.setTheme('dark')" id="themeDarkBtn">🌙 Oscuro</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.setTheme('fire')" id="themeFireBtn">🔥 Fuego</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.setTheme('ocean')" id="themeOceanBtn">🌊 Océano</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.setTheme('brutalist')" id="themeBrutalistBtn" style="font-family:var(--font);border:2px solid var(--accent)">▦ Brutalista</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🎨 Editor de Tema</div>
+        <div class="flex-col" style="gap:8px;">
+          <div class="flex-row" style="align-items:center;gap:8px;">
+            <span class="text-sm text-muted" style="width:80px;">Primario:</span>
+            <input type="color" id="themePrimary" value="#0038ff" onchange="ctrl.onThemeEditorChange()" style="width:36px;height:28px;border:none;cursor:pointer;">
+            <span class="text-xs" id="themePrimaryHex">#0038ff</span>
+          </div>
+          <div class="flex-row" style="align-items:center;gap:8px;">
+            <span class="text-sm text-muted" style="width:80px;">Secundario:</span>
+            <input type="color" id="themeSecondary" value="#ffffff" onchange="ctrl.onThemeEditorChange()" style="width:36px;height:28px;border:none;cursor:pointer;">
+            <span class="text-xs" id="themeSecondaryHex">#ffffff</span>
+          </div>
+          <div class="flex-row" style="align-items:center;gap:8px;">
+            <span class="text-sm text-muted" style="width:80px;">Acento:</span>
+            <input type="color" id="themeAccent" value="#7C3AED" onchange="ctrl.onThemeEditorChange()" style="width:36px;height:28px;border:none;cursor:pointer;">
+            <span class="text-xs" id="themeAccentHex">#7C3AED</span>
+          </div>
+          <div class="flex-row" style="align-items:center;gap:8px;">
+            <span class="text-sm text-muted" style="width:80px;">Brillo:</span>
+            <input type="range" id="themeBrightness" min="0" max="100" value="70" oninput="ctrl.onThemeEditorChange()" style="flex:1;">
+            <span class="text-xs" id="themeBrightnessVal">70%</span>
+          </div>
+          <div class="flex-row" style="align-items:center;gap:8px;">
+            <span class="text-sm text-muted" style="width:80px;">Saturación:</span>
+            <input type="range" id="themeSaturation" min="0" max="100" value="100" oninput="ctrl.onThemeEditorChange()" style="flex:1;">
+            <span class="text-xs" id="themeSaturationVal">100%</span>
+          </div>
+          <div class="flex-row" style="align-items:center;gap:8px;">
+            <span class="text-sm text-muted" style="width:80px;">Opacidad:</span>
+            <input type="range" id="themeBgOpacity" min="0" max="100" value="100" oninput="ctrl.onThemeEditorChange()" style="flex:1;">
+            <span class="text-xs" id="themeBgOpacityVal">100%</span>
+          </div>
+          <div class="flex-row" style="align-items:center;gap:8px;">
+            <span class="text-sm text-muted" style="width:80px;">Borde:</span>
+            <input type="range" id="themeBorderRadius" min="0" max="50" value="12" oninput="ctrl.onThemeEditorChange()" style="flex:1;">
+            <span class="text-xs" id="themeBorderRadiusVal">12px</span>
+          </div>
+          <div class="flex-row" style="align-items:center;gap:8px;">
+            <span class="text-sm text-muted" style="width:80px;">Velocidad:</span>
+            <input type="range" id="themeAnimSpeed" min="0.5" max="3" step="0.1" value="1" oninput="ctrl.onThemeEditorChange()" style="flex:1;">
+            <span class="text-xs" id="themeAnimSpeedVal">1x</span>
+          </div>
+          <hr style="border-color:var(--border);margin:4px 0;">
+          <div class="text-xs text-muted">Transición:</div>
+          <div class="flex-row gap-4" style="flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.setThemeTransition('fade')" style="font-size:10px;">Fade</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.setThemeTransition('flash')" style="font-size:10px;">Flash</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.setThemeTransition('wave')" style="font-size:10px;">Onda</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.setThemeTransition('glitch')" style="font-size:10px;">Glitch</button>
+          </div>
+          <hr style="border-color:var(--border);margin:4px 0;">
+          <div class="text-xs text-muted">Presets:</div>
+          <div class="flex-row gap-4" style="flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.applyThemePreset('starry')" style="font-size:10px;">🌙 Estrellado</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.applyThemePreset('forest')" style="font-size:10px;">🌲 Bosque</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.applyThemePreset('sunset')" style="font-size:10px;">🌅 Atardecer</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.applyThemePreset('rain')" style="font-size:10px;">🌧 Lluvia</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.applyThemePreset('bluefire')" style="font-size:10px;">🔥 Fuego Azul</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.applyThemePreset('royalty')" style="font-size:10px;">👑 Royalty</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.applyThemePreset('neon')" style="font-size:10px;">💚 Neon</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.applyThemePreset('paper')" style="font-size:10px;">📜 Papel</button>
+          </div>
+          <div class="flex-row gap-4 mt-4">
+            <button class="btn btn-primary flex-1" onclick="ctrl.saveCustomTheme()">💾 Guardar</button>
+            <button class="btn btn-ghost flex-1" onclick="ctrl.resetCustomTheme()">🔄 Reset</button>
+            <button class="btn btn-ghost flex-1" onclick="ctrl.previewCustomTheme()">👁 Preview</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Opciones de Display</div>
+        <div class="flex-col">
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleKiosko()" id="temasKioskoBtn">🖥 Kiosko</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleAnimaciones()" id="temasAnimBtn">⚡ Animaciones</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleClean()" id="temasCleanBtn">🖼️ Clean Mode</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleSoloScores()" id="temasSoloScoresBtn">📊 Solo Scores</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.resetOverlays()">🧹 Reset Overlays</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Fondo de Pantalla</div>
+        <div class="flex-col">
+          <button class="btn btn-ghost btn-block" onclick="ctrl.setBgStyle('default')" id="bgDefaultBtn">🎨 Default</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.setBgStyle('gradient')" id="bgGradientBtn">🌈 Gradient</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.setBgStyle('particles')" id="bgParticlesBtn">✨ Partículas</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.setBgStyle('none')" id="bgNoneBtn">⬛ Sin Fondo</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleDecorations()" id="decorBtn">💎 Decoraciones</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleParticles()" id="particlesBtn">✨ Lluvia</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Display Preview</div>
+        <div class="flex-col">
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleDisplayPreview()" id="btnTogglePreview">📺 Mostrar/Ocultar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Efectos Extra</div>
+        <div class="flex-col">
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleScreenShake()" id="screenShakeBtn">🌊 Screen Shake</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleConfetti()" id="confettiBtn">🎊 Confetti</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleSound()" id="soundBtn">🔊 Sonido</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleScanline()" id="scanlineBtn">📺 Scanline</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleGlowFx()" id="glowFxBtn">✨ Brillo Extra</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleUltraGlow()" id="ultraGlowBtn">🌟 Ultra Glow</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleMicroParticles()" id="microParticlesBtn">✦ Micro Partículas</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleDynamicBg()" id="dynamicBgBtn">🌌 Fondo Dinámico</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleFractalAnimations()" id="fractalAnimBtn">🌀 Fractales</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleVignette()" id="vignetteBtn">🎬 Vignete</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleGlowPulse()" id="glowPulseBtn">✨ Pulso Brillo</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleScoreBreathe()" id="scoreBreatheBtn">💫 Score Animate</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleBgBreath()" id="bgBreathBtn">🌫️ Fondo Respira</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleThemeEffects()" id="themeEffectsBtn">🎨 Efectos de Tema</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">✨ Nuevos Efectos Visuales</div>
+        <div class="flex-col" style="gap:6px;">
+          <div class="text-xs text-muted">Animación de Puntos:</div>
+          <div class="flex-row gap-4" style="flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.setScoreAnim('none')" style="font-size:11px;">🚫 None</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.setScoreAnim('flip')" style="font-size:11px;">🔄 Flip</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.setScoreAnim('bounce')" style="font-size:11px;">🤸 Bounce</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.setScoreAnim('glow')" style="font-size:11px;">✨ Glow</button>
+          </div>
+          <div class="text-xs text-muted">Flash Intensidad:</div>
+          <div class="flex-row gap-4" style="flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.setFlashIntensity(0)" style="font-size:11px;">0 Off</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.setFlashIntensity(1)" style="font-size:11px;">1 Low</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.setFlashIntensity(2)" style="font-size:11px;">2 Medium</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.setFlashIntensity(3)" style="font-size:11px;">3 High</button>
+          </div>
+          <div class="text-xs text-muted">Edge Blending:</div>
+          <div class="flex-row gap-4" style="flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.setEdgeBlend('none')" style="font-size:11px;">🚫 None</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.setEdgeBlend('cinemascope')" style="font-size:11px;">🎬 Cinema</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.setEdgeBlend('vignette')" style="font-size:11px;">🌑 Vignette</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.setEdgeBlend('crt')" style="font-size:11px;">📺 CRT</button>
+          </div>
+          <hr style="border-color:var(--border);margin:4px 0;">
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleCrownLeader()" id="crownLeaderBtn">👑 Corona Líder</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleShowProgress()" id="showProgressBtn">📊 Mostrar Progreso</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleShowVerse()" id="showVerseBtn">📖 Mostrar Verso</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleDynamicBars()" id="dynamicBarsBtn">📊 Barras Dinámicas</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleWelcomeScreen()" id="welcomeScreenBtn">🏠 Pantalla Bienvenida</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🎬 Presets de Escena</div>
+        <div class="flex-col" style="gap:6px;">
+          <div class="text-xs text-muted">Aplica tema + efectos + fondo de una vez:</div>
+          <div class="flex-row gap-4" style="flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.applyScenePreset('sobrio')" style="font-size:11px;">🖤 Sobrio</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.applyScenePreset('fiesta')" style="font-size:11px;">🎉 Fiesta</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.applyScenePreset('epico')" style="font-size:11px;">⚡ Épico</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.applyScenePreset('infantil')" style="font-size:11px;">🎈 Infantil</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.applyScenePreset('solemne')" style="font-size:11px;">🕊 Solemne</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.applyScenePreset('competitivo')" style="font-size:11px;">🏆 Competitivo</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🎲 Tema Sorpresa</div>
+        <div class="flex-col" style="gap:6px;">
+          <button class="btn btn-primary btn-block" onclick="ctrl.themeSorpresa()" id="sorpresaBtn">🎲 ¡Sorpresa!</button>
+          <div class="text-xs text-muted" style="margin-top:2px;">Selecciona un tema aleatorio al instante</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔄 Rotación Automática</div>
+        <div class="flex-col" style="gap:6px;">
+          <div class="flex-row" style="align-items:center;gap:6px;">
+            <span class="text-xs text-muted" style="min-width:50px;">Intervalo:</span>
+            <select id="rotationInterval" style="flex:1;font-size:11px;padding:3px;">
+              <option value="60">1 min</option>
+              <option value="120">2 min</option>
+              <option value="300" selected>5 min</option>
+              <option value="600">10 min</option>
+              <option value="900">15 min</option>
+              <option value="1800">30 min</option>
+              <option value="3600">60 min</option>
+            </select>
+          </div>
+          <div class="flex-row gap-4">
+            <button class="btn btn-ghost flex-1" onclick="ctrl.themeRotationToggle()" id="rotationToggleBtn">▶ Iniciar</button>
+            <button class="btn btn-ghost flex-1" onclick="ctrl.themeRotationNext()" id="rotationNextBtn">⏭ Siguiente</button>
+          </div>
+          <div class="flex-row" style="align-items:center;gap:6px;">
+            <span class="text-xs text-muted">Excluir:</span>
+            <select id="rotationExclude" multiple style="flex:1;font-size:10px;height:60px;">
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">✨ Efectos Gráficos Avanzados</div>
+        <div class="flex-col" style="gap:6px;">
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleAnimatedBackgrounds()" id="animatedBgBtn">🎞️ Fondos Animados</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleDynamicTheme()" id="dynamicThemeBtn">🎭 Tema Dinámico</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleCustomEffects()" id="customEffectsBtn">🎬 Efectos Personalizados</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleHapticFeedback()" id="hapticBtn">🔊 Retroalimentación Háptica</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleTouchEffects()" id="touchEffectsBtn">👆 Efectos Tactiles</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🎯 Efectos Basados en el Contexto</div>
+        <div class="flex-col" style="gap:6px;">
+          <div class="text-xs text-muted">Activos solo en modos específicos:</div>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleQuizModeEffects()" id="quizModeEffectsBtn">❓ Modo Preguntas Effects</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleTimerModeEffects()" id="timerModeEffectsBtn">⏱ Efectos del Timer</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleScoreEffects()" id="scoreEffectsBtn">🏆 Animaciones de Puntos</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleAnswerRevealEffects()" id="answerRevealEffectsBtn">👁 Efectos de Revelado</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🌟 Efectos Ambientales</div>
+        <div class="flex-col" style="gap:6px;">
+          <div class="flex-row gap-4" style="flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.toggleAmbientStars()" style="font-size:11px;">⭐ Estrellas</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.toggleAmbientFog()" style="font-size:11px;">🌫 Niebla</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.toggleAmbientLightning()" style="font-size:11px;">⚡ Rayos</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.toggleAmbientGolden()" style="font-size:11px;">✨ Dorado</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.toggleAmbientConfetti()" style="font-size:11px;">🎊 Confetti</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.toggleAmbientFireworks()" style="font-size:11px;">🎆 Fuegos</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANTALLAS MULTI-SCREEN -->
+  <div class="tab-panel" id="panel-pantallas">
+    <div class="content-header">
+      <h1>🖵 Pantallas Múltiples</h1>
+      <div class="flex-row gap-4">
+        <button class="btn btn-primary btn-sm" onclick="ctrl.addScreen()">+ Nueva Pantalla</button>
+      </div>
+    </div>
+    <div id="screensList" class="flex-col" style="gap:12px;"></div>
+
+      <!-- MAPPING / PROJECTOR COMPOSITOR -->
+      <div class="content-header" style="margin-top:24px;">
+        <h2>🗺️ Mapeo de Proyectores</h2>
+        <div class="flex-row gap-4">
+          <select id="mapScreenSel" class="text-input" onchange="ctrl.selectMapScreen(this.value)"></select>
+          <button class="btn btn-primary btn-sm" onclick="ctrl.mapSaveCurrent()">💾 Guardar</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.mapResetCorners()">↺ Reset Esquinas</button>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">🖼 Lienzo de Mapeo (arrastra las esquinas)</div>
+           <div id="mapCanvas" style="position:relative;width:100%;aspect-ratio:16/9;background:var(--surface);border:2px solid var(--border);border-radius:0;overflow:hidden;touch-action:none;">
+            <div id="mapGroupLabel" style="position:absolute;top:6px;left:8px;font-size:11px;color:var(--accent);z-index:5;"></div>
+          </div>
+          <div class="text-xs text-muted mt-4">
+            Cada pantalla es un cuadrilátero. Arrastra los 4 vértices para hacer keystone real (homografía 3D).
+            Pantallas del mismo <b>grupo</b> se tratan como una superficie continua.
+          </div>
+          <div class="flex-row gap-4 mt-4" style="flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.mapCopyToAll()">📋 Copiar a todas</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.mapToggleGrid()" id="mapGridBtn">▦ Rejilla</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚙️ Transformación y Mezcla</div>
+          <div class="flex-col" style="gap:10px;">
+            <div class="grid-2" style="gap:8px;">
+              <div><label class="text-xs text-muted">Grupo (superficie)</label>
+                <input id="mapGroup" class="text-input" style="width:100%;" placeholder="ej: wall1" onchange="ctrl.mapSetGroup(this.value)"></div>
+              <div><label class="text-xs text-muted">Z (orden)</label>
+                <input id="mapZ" type="number" class="text-input" style="width:100%;" value="0" onchange="ctrl.mapSetField('z',parseInt(this.value)||0)"></div>
+            </div>
+            <div class="grid-2" style="gap:8px;">
+              <div><label class="text-xs text-muted">Rotación (°)</label>
+                <input id="mapRot" type="range" min="-45" max="45" value="0" style="width:100%;" oninput="ctrl.mapSetField('rotation',parseFloat(this.value))"></div>
+              <div><label class="text-xs text-muted">Zoom</label>
+                <input id="mapZoom" type="range" min="0.5" max="2" step="0.01" value="1" style="width:100%;" oninput="ctrl.mapSetField('zoom',parseFloat(this.value))"></div>
+            </div>
+            <div class="grid-2" style="gap:8px;">
+              <div><label class="text-xs text-muted">Offset X (%)</label>
+                <input id="mapOffX" type="range" min="-50" max="50" value="0" style="width:100%;" oninput="ctrl.mapSetField('offset_x',parseFloat(this.value))"></div>
+              <div><label class="text-xs text-muted">Offset Y (%)</label>
+                <input id="mapOffY" type="range" min="-50" max="50" value="0" style="width:100%;" oninput="ctrl.mapSetField('offset_y',parseFloat(this.value))"></div>
+            </div>
+            <div><label class="text-xs text-muted">Perspectiva (px)</label>
+              <input id="mapPersp" type="range" min="400" max="3000" step="50" value="1200" style="width:100%;" oninput="ctrl.mapSetField('perspective',parseFloat(this.value))"></div>
+            <div><label class="text-xs text-muted">Bezel (px)</label>
+              <input id="mapBezel" type="range" min="0" max="120" value="0" style="width:100%;" oninput="ctrl.mapSetField('bezel',parseFloat(this.value))"></div>
+            <div class="text-xs text-muted" style="margin-top:4px;">Edge Blending (plumado de bordes, px):</div>
+            <div class="grid-4" style="gap:8px;">
+              <div><label class="text-xs">↑ Top</label><input id="mapEbTop" type="number" min="0" max="300" value="0" class="text-input" style="width:100%;" onchange="ctrl.mapSetEdge('top',parseInt(this.value)||0)"></div>
+              <div><label class="text-xs">→ Right</label><input id="mapEbRight" type="number" min="0" max="300" value="0" class="text-input" style="width:100%;" onchange="ctrl.mapSetEdge('right',parseInt(this.value)||0)"></div>
+              <div><label class="text-xs">↓ Bottom</label><input id="mapEbBottom" type="number" min="0" max="300" value="0" class="text-input" style="width:100%;" onchange="ctrl.mapSetEdge('bottom',parseInt(this.value)||0)"></div>
+              <div><label class="text-xs">← Left</label><input id="mapEbLeft" type="number" min="0" max="300" value="0" class="text-input" style="width:100%;" onchange="ctrl.mapSetEdge('left',parseInt(this.value)||0)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODE BLENDING -->
+      <div class="card mt-4">
+        <div class="card-title">🔀 Mode Blending (2º modo)</div>
+        <div class="flex-col" style="gap:8px;">
+          <div class="text-xs text-muted">Inicia un segundo modo en paralelo (ej. Ruleta + Ahorcado). Ambos se muestran en el display.</div>
+          <div class="flex-row gap-4">
+            <select id="blendMode" class="text-input flex-1"></select>
+          </div>
+          <div class="flex-row gap-4">
+            <button class="btn btn-primary flex-1" onclick="ctrl.blendIniciar()">▶ Iniciar 2º modo</button>
+            <button class="btn btn-ghost flex-1" onclick="ctrl.blendCerrar()">✕ Cerrar 2º modo</button>
+          </div>
+          <div id="blendStatus" class="text-xs text-muted"></div>
+        </div>
+      </div>
+    <div class="card mt-4">
+      <div class="card-title">ℹ️ Cómo usar</div>
+      <div class="text-sm text-muted">
+        Abre la URL del display con <code>?screen=N</code> en cada proyector
+        (ej. <code>http://host:5000/display?screen=2</code>). Cada pantalla
+        muestra solo los elementos que activas abajo. La pantalla 1 es la
+        principal por defecto.
+      </div>
+    </div>
+  </div>
+
+  <!-- EDITOR DE TEMAS -->
+  <div class="tab-panel" id="panel-editor">
+    <div class="content-header">
+      <h1>🎨 Editor de Temas</h1>
+      <div class="flex-row gap-4">
+        <span class="text-xs text-muted" id="editorStatus"></span>
+      </div>
+    </div>
+    <div class="editor-layout">
+      <div class="editor-sidebar">
+        <div class="card">
+          <div class="card-title">📂 Mis Temas</div>
+          <div id="themeList" class="flex-col" style="gap:4px;max-height:300px;overflow-y:auto;"></div>
+          <hr style="border-color:var(--border);margin:8px 0;">
+          <div class="flex-row gap-4">
+            <button class="btn btn-primary btn-sm flex-1" onclick="ctrl.themeNew()">➕ Nuevo</button>
+            <button class="btn btn-ghost btn-sm flex-1" onclick="ctrl.themeImport()">📥 Importar</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚙️ Acciones</div>
+          <div class="flex-col" style="gap:6px;">
+            <button class="btn btn-primary btn-block" onclick="ctrl.themeSave()" id="btnThemeSave">💾 Guardar</button>
+            <button class="btn btn-yellow btn-block" onclick="ctrl.themePreview()" id="btnThemePreview">👁 Preview</button>
+            <button class="btn btn-ghost btn-block" onclick="ctrl.themeApply()" id="btnThemeApply">📌 Aplicar ahora</button>
+            <div class="flex-row gap-4">
+              <button class="btn btn-ghost btn-sm flex-1" onclick="ctrl.themeDuplicate()" id="btnThemeDup">📋 Duplicar</button>
+              <button class="btn btn-ghost btn-sm flex-1" onclick="ctrl.themeExport()" id="btnThemeExport">📤 Exportar</button>
+            </div>
+            <button class="btn btn-red btn-block" onclick="ctrl.themeDelete()" id="btnThemeDelete">🗑️ Eliminar</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔍 Vista Previa</div>
+          <div id="themeMiniPreview" style="border:2px solid var(--border);border-radius:0;height:160px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--accent);transition:all 0.3s;">
+            <div style="background:rgba(0,0,0,0.4);padding:12px 24px;border-radius:0;text-align:center;">
+              <div style="font:900 20px/1 'Cinzel',serif;color:#ffd700;text-shadow:2px 2px 0 #000;">LQ</div>
+              <div id="miniPreviewColors" style="display:flex;gap:4px;margin-top:8px;justify-content:center;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="editor-main">
+        <div class="card">
+          <div class="card-title" style="cursor:pointer;" onclick="this.nextElementSibling.classList.toggle('hidden')">📝 Identidad ▾</div>
+          <div class="flex-col" style="gap:8px;">
+            <div class="flex-row" style="align-items:center;gap:8px;">
+              <span class="text-sm text-muted" style="width:80px;">Nombre:</span>
+              <input type="text" id="teName" placeholder="Mi Tema" class="flex-1" style="padding:4px 8px;font-size:12px;">
+            </div>
+            <div class="flex-row" style="align-items:center;gap:8px;">
+              <span class="text-sm text-muted" style="width:80px;">Descripción:</span>
+              <input type="text" id="teDesc" placeholder="Breve descripción" class="flex-1" style="padding:4px 8px;font-size:12px;">
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="cursor:pointer;" onclick="this.nextElementSibling.classList.toggle('hidden')">🎨 Colores ▾</div>
+          <div class="flex-col" style="gap:8px;">
+            <div class="grid-3" style="gap:6px;">
+              <div><label class="text-xs text-muted">Primario</label><input type="color" id="teColorPrimary" value="#0038ff" onchange="ctrl.themeEditorChange()" style="width:100%;height:32px;border:none;cursor:pointer;"></div>
+              <div><label class="text-xs text-muted">Secundario</label><input type="color" id="teColorSecondary" value="#ffffff" onchange="ctrl.themeEditorChange()" style="width:100%;height:32px;border:none;cursor:pointer;"></div>
+              <div><label class="text-xs text-muted">Acento</label><input type="color" id="teColorAccent" value="#7C3AED" onchange="ctrl.themeEditorChange()" style="width:100%;height:32px;border:none;cursor:pointer;"></div>
+              <div><label class="text-xs text-muted">Superficie</label><input type="color" id="teColorSurface" value="#ffffff" onchange="ctrl.themeEditorChange()" style="width:100%;height:32px;border:none;cursor:pointer;"></div>
+              <div><label class="text-xs text-muted">Texto</label><input type="color" id="teColorText" value="#000000" onchange="ctrl.themeEditorChange()" style="width:100%;height:32px;border:none;cursor:pointer;"></div>
+              <div><label class="text-xs text-muted">Borde</label><input type="color" id="teColorBorder" value="#000000" onchange="ctrl.themeEditorChange()" style="width:100%;height:32px;border:none;cursor:pointer;"></div>
+            </div>
+            <div class="flex-row" style="align-items:center;gap:8px;">
+              <span class="text-sm text-muted" style="width:80px;">Brillo:</span>
+              <input type="range" id="teBrightness" min="0" max="100" value="70" oninput="ctrl.themeEditorChange()" style="flex:1;">
+              <span class="text-xs" id="teBrightnessVal">70%</span>
+            </div>
+            <div class="flex-row" style="align-items:center;gap:8px;">
+              <span class="text-sm text-muted" style="width:80px;">Saturación:</span>
+              <input type="range" id="teSaturation" min="0" max="100" value="100" oninput="ctrl.themeEditorChange()" style="flex:1;">
+              <span class="text-xs" id="teSaturationVal">100%</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="cursor:pointer;" onclick="this.nextElementSibling.classList.toggle('hidden')">🔤 Tipografía ▾</div>
+          <div class="flex-col" style="gap:8px;">
+            <div class="grid-2" style="gap:6px;">
+              <div><label class="text-xs text-muted">Títulos</label>
+                <select id="teFontHeading" onchange="ctrl.themeEditorChange()" style="width:100%;font-size:12px;padding:4px;">
+                  <option value="Bebas Neue">Bebas Neue</option>
+                  <option value="Cinzel">Cinzel</option>
+                  <option value="Montserrat">Montserrat</option>
+                  <option value="Poppins">Poppins</option>
+                  <option value="Oswald">Oswald</option>
+                  <option value="Inter">Inter</option>
+                  <option value="Space Grotesk">Space Grotesk</option>
+                  <option value="system-ui">System UI</option>
+                </select>
+                </div>
+              <div><label class="text-xs text-muted">Cuerpo</label>
+                <select id="teFontBody" onchange="ctrl.themeEditorChange()" style="width:100%;font-size:12px;padding:4px;">
+                  <option value="Space Grotesk">Space Grotesk</option>
+                  <option value="Inter">Inter</option>
+                  <option value="Montserrat">Montserrat</option>
+                  <option value="Poppins">Poppins</option>
+                  <option value="system-ui">System UI</option>
+                </select>
+                </div>
+              <div><label class="text-xs text-muted">Timer</label>
+                <select id="teFontTimer" onchange="ctrl.themeEditorChange()" style="width:100%;font-size:12px;padding:4px;">
+                  <option value="Bebas Neue">Bebas Neue</option>
+                  <option value="Cinzel">Cinzel</option>
+                  <option value="Oswald">Oswald</option>
+                  <option value="Montserrat">Montserrat</option>
+                  <option value="system-ui">System UI</option>
+                </select>
+                </div>
+              <div><label class="text-xs text-muted">Scores</label>
+                <select id="teFontScore" onchange="ctrl.themeEditorChange()" style="width:100%;font-size:12px;padding:4px;">
+                  <option value="Space Grotesk">Space Grotesk</option>
+                  <option value="Inter">Inter</option>
+                  <option value="Montserrat">Montserrat</option>
+                  <option value="Bebas Neue">Bebas Neue</option>
+                  <option value="system-ui">System UI</option>
+                </select>
+                </div>
+            </div>
+            <div class="flex-row" style="align-items:center;gap:8px;">
+              <span class="text-sm text-muted" style="width:80px;">Escala:</span>
+              <input type="range" id="teFontScale" min="50" max="150" value="100" oninput="ctrl.themeEditorChange()" style="flex:1;">
+              <span class="text-xs" id="teFontScaleVal">100%</span>
+            </div>
+            <div class="flex-row gap-4">
+              <label class="flex-row" style="align-items:center;gap:4px;cursor:pointer;">
+                <input type="checkbox" id="teTextShadow" onchange="ctrl.themeEditorChange()"> <span class="text-xs">Sombra</span>
+              </label>
+              <label class="flex-row" style="align-items:center;gap:4px;cursor:pointer;">
+                <input type="checkbox" id="teTextGlow" onchange="ctrl.themeEditorChange()"> <span class="text-xs">Glow</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="cursor:pointer;" onclick="this.nextElementSibling.classList.toggle('hidden')">⏱ Timer ▾</div>
+          <div class="flex-col" style="gap:8px;">
+            <div class="grid-3" style="gap:6px;">
+              <div><label class="text-xs text-muted">Estilo</label>
+                <select id="teTimerStyle" onchange="ctrl.themeEditorChange()" style="width:100%;font-size:12px;padding:4px;">
+                  <option value="circle">Círculo</option>
+                  <option value="bar">Barra</option>
+                  <option value="digital">Digital</option>
+                  <option value="text">Texto</option>
+                </select>
+                </div>
+              <div><label class="text-xs text-muted">Posición</label>
+                <select id="teTimerPos" onchange="ctrl.themeEditorChange()" style="width:100%;font-size:12px;padding:4px;">
+                  <option value="tr">Top Derecha</option>
+                  <option value="tl">Top Izquierda</option>
+                  <option value="tc">Top Centro</option>
+                  <option value="br">Bottom Derecha</option>
+                  <option value="bl">Bottom Izquierda</option>
+                  <option value="bc">Bottom Centro</option>
+                  <option value="c">Centro</option>
+                </select>
+                </div>
+              <div><label class="text-xs text-muted">Tamaño</label>
+                <select id="teTimerSize" onchange="ctrl.themeEditorChange()" style="width:100%;font-size:12px;padding:4px;">
+                  <option value="small">Pequeño</option>
+                  <option value="medium" selected>Mediano</option>
+                  <option value="large">Grande</option>
+                  <option value="xlarge">Extra Grande</option>
+                </select>
+                </div>
+            </div>
+            <div class="grid-3" style="gap:6px;">
+              <div><label class="text-xs text-muted">Color Fondo</label><input type="color" id="teTimerBg" value="#000000" onchange="ctrl.themeEditorChange()" style="width:100%;height:28px;border:none;cursor:pointer;"></div>
+              <div><label class="text-xs text-muted">Color Texto</label><input type="color" id="teTimerText" value="#ffffff" onchange="ctrl.themeEditorChange()" style="width:100%;height:28px;border:none;cursor:pointer;"></div>
+              <div><label class="text-xs text-muted">Progreso</label><input type="color" id="teTimerProgress" value="#7C3AED" onchange="ctrl.themeEditorChange()" style="width:100%;height:28px;border:none;cursor:pointer;"></div>
+            </div>
+            <div class="flex-row" style="align-items:center;gap:8px;">
+              <span class="text-sm text-muted" style="width:80px;">Opacidad Fondo:</span>
+              <input type="range" id="teTimerBgOpacity" min="0" max="100" value="60" oninput="ctrl.themeEditorChange()" style="flex:1;">
+              <span class="text-xs" id="teTimerBgOpacityVal">60%</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="cursor:pointer;" onclick="this.nextElementSibling.classList.toggle('hidden')">📐 Layout ▾</div>
+          <div class="flex-col" style="gap:8px;">
+            <div class="grid-2" style="gap:6px;">
+              <div><label class="text-xs text-muted">Scores</label>
+                <select id="teLayoutScores" onchange="ctrl.themeEditorChange()" style="width:100%;font-size:12px;padding:4px;">
+                  <option value="bottom">Abajo</option>
+                  <option value="side">Lado</option>
+                  <option value="top">Arriba</option>
+                  <option value="hidden">Oculto</option>
+                </select>
+                </div>
+              <div><label class="text-xs text-muted">Header</label>
+                <select id="teLayoutHeader" onchange="ctrl.themeEditorChange()" style="width:100%;font-size:12px;padding:4px;">
+                  <option value="full">Completo</option>
+                  <option value="minimal">Mínimo</option>
+                  <option value="branded">Marca</option>
+                  <option value="hidden">Oculto</option>
+                </select>
+                </div>
+            </div>
+            <div class="flex-row gap-4">
+              <label class="flex-row" style="align-items:center;gap:4px;cursor:pointer;">
+                <input type="checkbox" id="teLayoutLogo" checked onchange="ctrl.themeEditorChange()"> <span class="text-xs">Logo visible</span>
+              </label>
+              <label class="flex-row" style="align-items:center;gap:4px;cursor:pointer;">
+                <input type="checkbox" id="teLayoutDecor" checked onchange="ctrl.themeEditorChange()"> <span class="text-xs">Decoraciones</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="cursor:pointer;" onclick="this.nextElementSibling.classList.toggle('hidden')">🔷 Formas ▾</div>
+          <div class="flex-col" style="gap:8px;">
+            <div class="grid-3" style="gap:6px;">
+              <div><label class="text-xs text-muted">Frecuencia</label>
+                <select id="teShapeRate" onchange="ctrl.themeEditorChange()" style="width:100%;font-size:12px;padding:4px;">
+                  <option value="5000">Lenta</option>
+                  <option value="2500" selected>Normal</option>
+                  <option value="1200">Rápida</option>
+                  <option value="600">Intensa</option>
+                </select>
+                </div>
+              <div><label class="text-xs text-muted">Máximo</label>
+                <select id="teShapeMax" onchange="ctrl.themeEditorChange()" style="width:100%;font-size:12px;padding:4px;">
+                  <option value="8">Pocas</option>
+                  <option value="15" selected>Normal</option>
+                  <option value="25">Muchas</option>
+                  <option value="40">Máximo</option>
+                </select>
+                </div>
+              <div><label class="text-xs text-muted">Color</label>
+                <select id="teShapeColor" onchange="ctrl.themeEditorChange()" style="width:100%;font-size:12px;padding:4px;">
+                  <option value="team">Equipos</option>
+                  <option value="theme">Tema</option>
+                  <option value="random">Aleatorio</option>
+                  <option value="complementary">Complementario</option>
+                </select>
+                </div>
+            </div>
+            <div class="flex-row" style="align-items:center;gap:8px;">
+              <span class="text-sm text-muted" style="width:80px;">Opacidad:</span>
+              <input type="range" id="teShapeOpacity" min="0" max="100" value="80" oninput="ctrl.themeEditorChange()" style="flex:1;">
+              <span class="text-xs" id="teShapeOpacityVal">80%</span>
+            </div>
+            <div>
+              <label class="text-xs text-muted">Formas activas:</label>
+              <div id="teShapeList" class="flex-row" style="flex-wrap:wrap;gap:4px;margin-top:4px;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="cursor:pointer;" onclick="this.nextElementSibling.classList.toggle('hidden')">✨ Efectos ▾</div>
+          <div class="flex-col" style="gap:8px;">
+            <div class="grid-2" style="gap:6px;">
+              <div><label class="text-xs text-muted">Transición Modo</label>
+                <select id="teEffModeTrans" onchange="ctrl.themeEditorChange()" style="width:100%;font-size:12px;padding:4px;">
+                  <option value="fade">Fade</option>
+                  <option value="flash">Flash</option>
+                  <option value="wave">Onda</option>
+                  <option value="glitch">Glitch</option>
+                  <option value="slide">Slide</option>
+                  <option value="zoom">Zoom</option>
+                </select>
+                </div>
+              <div><label class="text-xs text-muted">Transición Tema</label>
+                <select id="teEffThemeTrans" onchange="ctrl.themeEditorChange()" style="width:100%;font-size:12px;padding:4px;">
+                  <option value="fade">Fade</option>
+                  <option value="flash">Flash</option>
+                  <option value="wave">Onda</option>
+                  <option value="glitch">Glitch</option>
+                </select>
+                </div>
+            </div>
+            <div class="flex-row" style="align-items:center;gap:8px;">
+              <span class="text-sm text-muted" style="width:80px;">Intensidad:</span>
+              <input type="range" id="teEffIntensity" min="0" max="100" value="100" oninput="ctrl.themeEditorChange()" style="flex:1;">
+              <span class="text-xs" id="teEffIntensityVal">100%</span>
+            </div>
+            <div class="flex-row gap-4" style="flex-wrap:wrap;">
+              <label class="flex-row" style="align-items:center;gap:4px;cursor:pointer;">
+                <input type="checkbox" id="teEffShake" checked onchange="ctrl.themeEditorChange()"> <span class="text-xs">Screen Shake</span>
+              </label>
+              <label class="flex-row" style="align-items:center;gap:4px;cursor:pointer;">
+                <input type="checkbox" id="teEffConfetti" checked onchange="ctrl.themeEditorChange()"> <span class="text-xs">Confetti</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <style>
+      .editor-layout { display:flex; gap:16px; align-items:flex-start; }
+      .editor-sidebar { width:280px; flex-shrink:0; display:flex; flex-direction:column; gap:12px; position:sticky; top:16px; }
+      .editor-main { flex:1; display:flex; flex-direction:column; gap:12px; min-width:0; }
+      .editor-main .card-title { font-size:14px; padding:8px 12px; user-select:none; }
+      .editor-main .card-title:hover { background:var(--hover); }
+      #themeList .theme-list-item { padding:6px 10px; border:1px solid var(--border); border-radius:0; cursor:pointer; font-size:11px; transition:all 0.15s; }
+      #themeList .theme-list-item:hover { background:var(--hover); }
+      #themeList .theme-list-item.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+      @media(max-width:900px){ .editor-layout{flex-direction:column;} .editor-sidebar{width:100%;position:static;} }
+    </style>
+  </div>
+
+  <!-- PRESENTADOR -->
+  <div class="tab-panel" id="panel-presentador">
+    <div class="content-header">
+      <h1>🎤 Modo Presentador</h1>
+      <button class="btn btn-red btn-sm" onclick="ctrl.presentadorEmergency()">🚨 EMERGENCIA</button>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Controles Rápidos</div>
+        <div class="flex-col" style="gap:8px;">
+          <div class="flex-row gap-4">
+            <button class="btn btn-primary flex-1" onclick="ctrl.presentadorModoAnterior()" style="padding:16px;font-size:18px;">⬅ Anterior</button>
+            <button class="btn btn-primary flex-1" onclick="ctrl.presentadorModoSiguiente()" style="padding:16px;font-size:18px;">Siguiente ➡</button>
+          </div>
+          <div class="flex-row gap-4">
+            <button class="btn btn-green flex-1" onclick="ctrl.presentadorCorrecto()" style="padding:14px;font-size:16px;">✅ Correcto</button>
+            <button class="btn btn-red flex-1" onclick="ctrl.presentadorIncorrecto()" style="padding:14px;font-size:16px;">❌ Incorrecto</button>
+          </div>
+          <div class="flex-row gap-4">
+            <button class="btn btn-yellow flex-1" onclick="ctrl.presentadorRevelar()" style="padding:14px;font-size:16px;">👁 Revelar</button>
+            <button class="btn btn-ghost flex-1" onclick="ctrl.presentadorPausar()" style="padding:14px;font-size:16px;">⏸ Pausar</button>
+          </div>
+          <hr style="border-color:var(--border);">
+          <div class="flex-row gap-4">
+            <button class="btn btn-ghost" onclick="ctrl.presentadorTimer(30)" style="font-size:12px;">⏱ 30s</button>
+            <button class="btn btn-ghost" onclick="ctrl.presentadorTimer(45)" style="font-size:12px;">⏱ 45s</button>
+            <button class="btn btn-ghost" onclick="ctrl.presentadorTimer(60)" style="font-size:12px;">⏱ 60s</button>
+            <button class="btn btn-ghost" onclick="ctrl.pararTimer()" style="font-size:12px;">⏹ Parar</button>
+            <button class="btn btn-ghost" onclick="ctrl.presentadorTimerCustom()" style="font-size:12px;">⏱ Custom</button>
+          </div>
+          <hr style="border-color:var(--border);">
+          <div class="flex-row gap-4">
+            <button class="btn btn-ghost flex-1" onclick="ctrl.presentadorTeleprompter()">📜 Teleprompter</button>
+            <button class="btn btn-ghost flex-1" onclick="ctrl.presentadorProyectarSiguiente()">⏭ Proyectar Siguiente</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">👁 Siguiente Pregunta (Preview)</div>
+        <div class="flex-col">
+          <div id="presentadorNextQ" class="flex-col" style="gap:6px;min-height:120px;">
+            <span class="text-sm text-muted">Cargando…</span>
+          </div>
+          <button class="btn btn-ghost btn-sm mt-4" onclick="ctrl.presentadorCargarSiguiente()">↻ Actualizar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Preview del Display</div>
+        <div class="flex-col">
+          <div style="border:2px solid var(--border);border-radius:0;overflow:hidden;height:300px;">
+            <iframe src="/display" style="width:100%;height:100%;border:none;" title="Preview display"></iframe>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🎬 Escenas Rápidas</div>
+        <div class="flex-row gap-4" style="flex-wrap:wrap;">
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.applyScenePreset('sobrio')">🖤 Sobrio</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.applyScenePreset('fiesta')">🎉 Fiesta</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.applyScenePreset('epico')">⚡ Épico</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.applyScenePreset('infantil')">🎈 Infantil</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.applyScenePreset('solemne')">🕊 Solemne</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.applyScenePreset('competitivo')">🏆 Competitivo</button>
+        </div>
+      </div>
+
+    </div>
+    <div class="card mt-4">
+      <div class="card-title">Notas del Presentador</div>
+      <div class="flex-col">
+        <textarea id="presentadorNotas" placeholder="Escribe notas aquí... (solo visibles para el presentador)" style="width:100%;min-height:80px;padding:8px;font-size:12px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:0;resize:vertical;"></textarea>
+        <div class="flex-row gap-4 mt-4">
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.guardarNotaPresentador()">💾 Guardar Nota</button>
+          <button class="btn btn-ghost btn-sm" onclick="ctrl.cargarNotaPresentador()">📂 Cargar Nota</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TELEPROMPTER MODAL -->
+  <div id="teleprompterModal" class="teleprompter-modal hidden">
+    <div class="teleprompter-inner">
+      <div class="teleprompter-q" id="teleprompterQ"></div>
+      <div class="teleprompter-a" id="teleprompterA"></div>
+      <div class="teleprompter-actions">
+        <button class="btn btn-yellow" onclick="ctrl.presentadorRevelar();ctrl._tpRefresh()">👁 Revelar Respuesta</button>
+        <button class="btn btn-ghost" onclick="ctrl.cerrarTeleprompter()">✕ Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIG -->
+  <div class="tab-panel" id="panel-config">
+    <div class="content-header">
+      <h1>Configuración</h1>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">🏆 Sistema de Logros</div>
+        <div class="flex-col" style="gap:6px;">
+          <div class="text-xs text-muted">Los logros se muestran en el display cuando se desbloquean.</div>
+          <div id="achievementsList" class="flex-col" style="gap:4px;font-size:11px;"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Modos Disponibles</div>
+        <div id="modesList" class="flex-col mt-4"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Apariencia</div>
+        <div class="flex-col mt-4">
+          <button class="btn btn-ghost btn-block" onclick="ctrl.toggleControlTheme()" id="btnControlTheme">☀️ Tema Claro</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Importar / Exportar</div>
+        <div class="flex-col mt-4">
+          <button class="btn btn-ghost btn-block" onclick="ctrl.exportarJSON()">📥 Exportar Estado (JSON)</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.exportarResultados()">📊 Exportar Resultados (JSON)</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.exportarResultadosCSV()">📈 Exportar CSV</button>
+          <button class="btn btn-ghost btn-block" onclick="window.open(API + '/exportar/resultados/imagen', '_blank')">🖼 Ver Resultados (HTML)</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.exportarPreguntas()">❓ Exportar Preguntas</button>
+          <div style="border-top:1px solid var(--border);margin:8px 0;"></div>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.imprimirResultados()">🖨️ Imprimir Resultados</button>
+          <button class="btn btn-ghost btn-block" onclick="ctrl.generarCertificados()">📜 Certificados (Top 3)</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Atajos de Teclado</div>
+        <div class="flex-col mt-4" style="font-size:11px;gap:4px;">
+          <div class="flex-row justify-between"><span class="text-muted">T</span><span>Iniciar timer</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">Espacio</span><span>Revelar/ocultar respuesta</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">← →</span><span>Navegar preguntas</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">1-9</span><span>+Puntos a grupo</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">K</span><span>Toggle Kiosko</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">B</span><span>Toggle Black Screen</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">F</span><span>Toggle Freeze</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">C</span><span>Toggle Clean</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">S</span><span>Salir todo</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">R</span><span>Reset timer</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">P</span><span>Preview display</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">O</span><span>Reset overlays</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">A</span><span>Toggle animaciones</span></div>
+          <div class="flex-row justify-between"><span class="text-muted">Esc</span><span>Limpiar pregunta</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔊 Audio Personalizado</div>
+        <div class="text-sm text-muted">Sube sonidos (wav, mp3, ogg, m4a, flac) y asígnalos a eventos del juego. Por defecto suena el sonido procedural.</div>
+        <div class="grid-2 mt-4">
+          <div class="card">
+            <div class="card-title">📤 Subir Sonido</div>
+            <div class="flex-col" style="gap:8px;">
+              <input type="file" id="audioFile" accept=".wav,.mp3,.ogg,.m4a,.flac,.webm,.aac,audio/*">
+              <input type="text" id="audioName" placeholder="Nombre (opcional)" class="input">
+              <button class="btn btn-primary btn-block" onclick="ctrl.audioUpload()">Subir y guardar</button>
+              <div class="text-xs text-muted" id="audioUploadMsg"></div>
+            </div>
+            <hr style="border-color:var(--border);margin:10px 0;">
+            <div class="card-title">📚 Biblioteca</div>
+            <div id="audioLibrary" class="flex-col" style="gap:6px;font-size:12px;"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">🎯 Asignación por Evento</div>
+            <div class="flex-row" style="align-items:center;gap:8px;margin-bottom:8px;">
+              <span class="text-sm text-muted">Alcance:</span>
+              <select id="audioScope" class="input" onchange="ctrl.audioRenderEvents()" style="width:auto;">
+                <option value="__global__">Global (todos los modos)</option>
+              </select>
+              <button class="btn btn-ghost btn-sm" onclick="ctrl.audioClearScope()" id="audioClearScopeBtn" style="display:none;">Limpiar override</button>
+            </div>
+            <div id="audioEventRows" class="flex-col" style="gap:4px;font-size:12px;"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">🎵 Música de Fondo</div>
+            <div class="flex-col" style="gap:8px;">
+              <div class="flex-row" style="align-items:center;gap:8px;">
+                <span class="text-sm text-muted" style="width:70px;">Pista:</span>
+                <select id="audioBg" class="input" onchange="ctrl.audioChange()" style="flex:1;"></select>
+              </div>
+              <div class="flex-row" style="align-items:center;gap:8px;">
+                <span class="text-sm text-muted" style="width:70px;">Volumen:</span>
+                <input type="range" id="audioBgVol" min="0" max="1" step="0.05" value="0.5" oninput="ctrl.audioChange()" style="flex:1;">
+                <span class="text-xs" id="audioBgVolVal">0.5</span>
+              </div>
+              <label class="flex-row" style="gap:8px;align-items:center;">
+                <input type="checkbox" id="audioBgLoop" checked onchange="ctrl.audioChange()"> <span class="text-sm text-muted">Repetir en bucle</span>
+              </label>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">🎚 Mezclador</div>
+            <div class="flex-col" style="gap:8px;">
+              <label class="flex-row" style="gap:8px;align-items:center;"><input type="checkbox" id="audioEnabled" checked onchange="ctrl.audioChange()"> <span class="text-sm text-muted">Audio activado</span></label>
+              <label class="flex-row" style="gap:8px;align-items:center;"><input type="checkbox" id="audioMuted" onchange="ctrl.audioChange()"> <span class="text-sm text-muted">Silenciar todo</span></label>
+              <div id="audioChannels" class="flex-col" style="gap:6px;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="flex-row" style="gap:8px;margin-top:12px;">
+          <button class="btn btn-primary" onclick="ctrl.audioSave()">💾 Guardar configuración de audio</button>
+          <button class="btn btn-ghost" onclick="ctrl.audioTest()">▶ Probar eventos</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODOS -->
+  <div class="tab-panel" id="panel-modos">
+    <div class="content-header">
+      <h1>🧩 Modos (Constructor Scratch)</h1>
+      <span class="badge" id="modosStatus">Inactivo</span>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">📥 Importar modo desde el constructor</div>
+        <div class="text-sm text-muted">Pega aquí el JSON exportado desde la página del constructor (<code>/html/modo-builder-v2.html</code>) y guárdalo para usarlo en el display.</div>
+        <textarea id="modosJsonInput" rows="10" class="input mt-4" placeholder='{"type":"scratch-mode","version":"2.1","name":"Mi Modo", ...}' style="width:100%;font-family:monospace;"></textarea>
+        <div class="flex-row gap-4 mt-4">
+          <button class="btn btn-primary" onclick="ctrl.modosImportar()">💾 Guardar modo</button>
+          <button class="btn btn-ghost" onclick="ctrl.modosPegarDesdeBuilder()">🔗 Pegar desde constructor</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('modosFile').click()">📂 Cargar archivo</button>
+          <button class="btn btn-primary" onclick="document.getElementById('modosPaquete').click()">📦 Importar .lkqmode</button>
+          <input type="file" id="modosFile" accept=".json" style="display:none;" onchange="ctrl.modosCargarArchivo(event)">
+          <input type="file" id="modosPaquete" accept=".lkqmode,.zip" style="display:none;" onchange="ctrl.importarModoPaquete(event)">
+        </div>
+        <div class="text-xs text-muted mt-4" id="modosMsg"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📚 Modos guardados</div>
+        <div id="modosList" class="flex-col mt-4" style="gap:8px;"></div>
+      </div>
+    </div>
+    <div class="card mt-4">
+      <div class="card-title">🎬 Ejecución</div>
+      <div class="flex-row gap-4 mt-4">
+        <select id="modosSelect" class="input" style="flex:1;"></select>
+        <button class="btn btn-green" onclick="ctrl.modosEjecutar()">▶ Ejecutar en display</button>
+        <button class="btn btn-yellow" onclick="ctrl.modosInitHead()">⚡ on_mode_init</button>
+        <button class="btn btn-ghost" onclick="ctrl.modosDetener()">⏹ Detener</button>
+      </div>
+      <div class="text-xs text-muted mt-4">El modo corre en un iframe oculto del constructor y emite eventos al display vía WebSocket. El display ya consume <code>display_broadcast_payload</code>.</div>
+    </div>
+    <iframe id="modosEngine" src="/html/modo-builder-v2.html" title="Motor de modos (oculto)"
+            style="width:0;height:0;border:0;position:absolute;left:-9999px;"></iframe>
+  </div>
+
+</main>
+
+  <!-- CANVA Tab Panel - Infinite Canvas / Scratch Builder -->
+  <div class="tab-panel" id="panel-canva">
+    <div class="content-header">
+      <h1>🎨 Infinite Canvas / Scratch Builder</h1>
+      <span class="badge" id="canvaStatus">Inactivo</span>
+    </div>
+    <div style="height: calc(100vh - 180px); min-height: 600px;">
+      <iframe id="canvaIframe" src="/html/modo-builder-v2.html" title="Infinite Canvas / Scratch Builder"
+              style="width:100%;height:100%;border:none;background:var(--bg-primary);"></iframe>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast" role="alert" aria-live="polite"></div>
+
+<!-- Categories Modal -->
+<div class="modal-overlay hidden" id="catModal" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Administrar Categorías</span>
+      <button class="btn btn-ghost btn-sm" onclick="id('catModal').classList.add('hidden')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="catList"></div>
+      <div class="flex-row mt-4 gap-4">
+        <input type="text" id="catModalName" placeholder="Nombre de nueva categoría…" style="flex:1;" />
+        <button class="btn btn-ghost btn-sm" onclick="ctrl.addCategoriaFromModal()">+ Agregar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Display Preview -->
+<div class="display-preview" id="displayPreview">
+  <div class="display-preview-header">
+    <span>📺 Display en vivo</span>
+    <div class="display-preview-actions">
+      <button id="displayPreviewFull" title="Abrir en pestaña real">🔗</button>
+      <button id="displayPreviewInteract" title="Alternar interacción">🖱️</button>
+      <button id="displayPreviewClose" title="Minimizar">—</button>
+    </div>
+  </div>
+  <iframe src="/display" class="display-preview-iframe" title="Vista previa del display en tiempo real"></iframe>
+</div>
+
+<!-- ===== Modal: Personalización Extrema del Panel ===== -->
+<div class="modal-backdrop" id="personalizarBackdrop" style="display:none;">
+  <div class="modal personalizar-modal" role="dialog" aria-label="Personalización">
+    <div class="modal-header">
+      <h2>🎛️ PERSONALIZAR PANEL</h2>
+      <button class="btn btn-ghost btn-sm" id="personalizarCerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="pers-section">
+        <div class="pers-label">Color de acento</div>
+        <div class="pers-swatches" id="persAccentSwatches"></div>
+        <div class="flex-row" style="gap:8px;align-items:center;margin-top:8px;">
+          <input type="color" id="persAccentCustom" value="#2b50ff" style="width:42px;height:32px;border:2px solid var(--border);background:var(--bg);padding:2px;">
+          <span class="text-xs text-muted">Personalizado</span>
+        </div>
+      </div>
+
+      <div class="pers-section">
+        <div class="pers-label">Color secundario</div>
+        <div class="pers-swatches" id="persAccent2Swatches"></div>
+        <div class="flex-row" style="gap:8px;align-items:center;margin-top:8px;">
+          <input type="color" id="persAccent2Custom" value="#ffd400" style="width:42px;height:32px;border:2px solid var(--border);background:var(--bg);padding:2px;">
+          <span class="text-xs text-muted">Personalizado</span>
+        </div>
+      </div>
+
+      <div class="pers-section">
+        <div class="pers-label">Tipografía</div>
+        <select id="persFont" class="input" style="width:100%">
+          <option value="'Space Mono','Courier New',monospace">Space Mono (mono)</option>
+          <option value="'Courier New',monospace">Courier New (mono)</option>
+          <option value="'Inter','Segoe UI',system-ui,sans-serif">Inter (sans)</option>
+          <option value="ui-monospace,'Cascadia Code',monospace">Sistema Mono</option>
+        </select>
+      </div>
+
+      <div class="pers-section">
+        <div class="pers-label">Densidad de interfaz</div>
+        <div class="flex-row" style="gap:8px;">
+          <button class="btn btn-ghost btn-sm" data-density="comfortable">Confort</button>
+          <button class="btn btn-ghost btn-sm" data-density="compact">Compacto</button>
+        </div>
+      </div>
+
+      <div class="pers-section">
+        <div class="pers-label">Acento de fondo (tinte)</div>
+        <input type="range" id="persBgTint" min="0" max="100" value="0" style="width:100%">
+      </div>
+
+      <div class="pers-section">
+        <div class="pers-label">Perfiles de personalización</div>
+        <div class="flex-row" style="gap:6px;">
+          <input type="text" id="persPerfilNombre" placeholder="Nombre del perfil…" class="input" style="flex:1;">
+          <button class="btn btn-ghost btn-sm" id="persPerfilGuardar">💾 Perfil</button>
+        </div>
+        <div class="flex-row" style="gap:6px;margin-top:6px;align-items:center;">
+          <select id="persPerfilSelect" class="input" style="flex:1;"></select>
+          <button class="btn btn-ghost btn-sm" id="persPerfilCargar">Cargar</button>
+          <button class="btn btn-ghost btn-sm" id="persPerfilEliminar">✕</button>
+        </div>
+      </div>
+
+      <div class="pers-section">
+        <div class="pers-label">CSS avanzado (inyección libre)</div>
+        <textarea id="persCss" rows="4" class="input" style="width:100%;font-family:var(--font);font-size:11px;" placeholder="/* CSS personalizado aplicado al panel */&#10;:root{ --radius:0; }"></textarea>
+        <div class="text-xs text-muted mt-1">Se aplica en vivo y se guarda con tu perfil.</div>
+      </div>
+
+      <div class="pers-section">
+        <div class="pers-label">Exportar / Importar</div>
+        <div class="flex-row" style="gap:6px;">
+          <button class="btn btn-ghost btn-sm" id="persExportar">⬇ Exportar JSON</button>
+          <button class="btn btn-ghost btn-sm" id="persImportar">⬆ Importar</button>
+          <input type="file" id="persImportFile" accept="application/json" style="display:none;">
+        </div>
+      </div>
+
+      <div class="flex-row gap-4 mt-4" style="gap:8px;">
+        <button class="btn btn-primary btn-block" id="persGuardar">💾 Guardar</button>
+        <button class="btn btn-ghost btn-block" id="persRestaurar">↺ Restaurar</button>
+      </div>
+      <div class="text-xs text-muted mt-2" id="persMsg"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="/js/sillycontrol-core.js"></script>
+  <script type="module" src="/js/control-personalizar.js"></script>
+  <script type="module" src="/js/buildsilly.js"></script>
+  <script type="module" src="/js/template-gallery.js"></script>
+  <script type="module" src="/js/preview-engine.js"></script>
+  <script type="module" src="/js/dynamic-tabs.js"></script>
+  <script nonce="__NONCE__">
+window.addEventListener('DOMContentLoaded', function() {
+  if (typeof window.ctrl === 'undefined' || !window.ctrl || Object.keys(window.ctrl).length < 5) {
+    var errEl = document.createElement('div');
+    errEl.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#e74c3c;color:#fff;padding:12px 20px;font-size:14px;z-index:99999;text-align:center';
+    errEl.textContent = '⚠ Error: El módulo control-core.js no se cargó correctamente. Revisa la consola (F12).';
+    document.body.prepend(errEl);
+  }
+});
+</script>
+<script>
+  window.toggleLQTheme = function () {
+    var html = document.documentElement;
+    html.classList.toggle('control-light');
+    try {
+      localStorage.setItem('lq-control-theme', html.classList.contains('control-light') ? 'light' : 'dark');
+    } catch (e) {}
+  };
+  (function () {
+    var el = document.getElementById('appHudClock');
+    if (!el) return;
+    function tick() {
+      var d = new Date();
+      var p = function (n) { return (n < 10 ? '0' : '') + n; };
+      el.textContent = p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+    }
+    tick();
+    setInterval(tick, 1000);
+  })();
+
+  // Heartbeat: refleja el estado del servidor y lo que el display está mostrando.
+  (function () {
+    var dot = document.getElementById('appHudDot');
+    var st = document.getElementById('appHudState');
+    function setOnline(on, detail) {
+      if (dot) {
+        dot.className = 'app-hud-dot ' + (on ? 'online' : 'offline');
+        dot.title = 'Servidor: ' + (on ? 'en línea' : 'sin conexión');
+      }
+      if (st) st.textContent = detail || (on ? 'servidor: online' : 'servidor: offline');
+    }
+    function beat() {
+      fetch(location.origin + '/api/estado-actual', { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (d) {
+          var parts = ['servidor: online'];
+          if (d && d.temporizador && d.temporizador.activo) parts.push('⏱ ' + d.temporizador.segundos_restantes + 's');
+          var theme = (d && d.display_config && d.display_config.theme) || 'default';
+          if (theme !== 'default') parts.push('🎨 ' + theme);
+          setOnline(true, parts.join('  ·  '));
+          document.querySelectorAll('button[onclick*="setTheme"]').forEach(function (b) {
+            var m = /setTheme\(['"]([^'"]+)['"]\)/.exec(b.getAttribute('onclick') || '');
+            var t = m ? m[1] : null;
+            b.classList.toggle('theme-active', t === theme);
+          });
+        })
+        .catch(function () { setOnline(false); });
+    }
+    beat();
+    setInterval(beat, 5000);
+  })();
+</script>
+</body>
+</html>

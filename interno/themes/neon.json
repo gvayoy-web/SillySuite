@@ -1,0 +1,93 @@
+{
+  "slug": "neon",
+  "name": "Neon",
+  "description": "Tema cyberpunk neón",
+  "author": "SillyQuiz",
+  "version": 2,
+  "colors": {
+    "primary": "#000000",
+    "secondary": "#00ff00",
+    "accent": "#ff00ff",
+    "surface": "#111111",
+    "text": "#ffffff",
+    "border": "#333333",
+    "glow": "rgba(255,0,255,0.5)",
+    "bg_gradient": [
+      "#0038ff",
+      "#1a1aff"
+    ]
+  },
+  "typography": {
+    "heading_font": "Bebas Neue",
+    "body_font": "Space Grotesk",
+    "timer_font": "Bebas Neue",
+    "score_font": "Space Grotesk",
+    "size_scale": 1.0,
+    "text_shadow": false,
+    "text_glow": false
+  },
+  "timer": {
+    "style": "digital",
+    "position": "tr",
+    "position_x": null,
+    "position_y": null,
+    "size": "medium",
+    "colors": {
+      "background": "rgba(0,0,0,0.6)",
+      "text": "#ffffff",
+      "progress": "#ff00ff",
+      "glow": "rgba(255,0,255,0.6)",
+      "urgent": "#ff4444"
+    },
+    "animation": "pulse"
+  },
+  "layout": {
+    "scores_position": "bottom",
+    "header_style": "full",
+    "question_height": "normal",
+    "logo_visible": true,
+    "decorations_visible": true,
+    "scores_height": 300
+  },
+  "shapes": {
+    "enabled": [
+      "star",
+      "cross",
+      "flame",
+      "cup",
+      "crown",
+      "dove",
+      "heart",
+      "lamp",
+      "wings",
+      "key",
+      "fish",
+      "sword"
+    ],
+    "spawn_rate": 1500,
+    "max_count": 15,
+    "color_source": "theme",
+    "behavior": "pulse",
+    "size": "medium",
+    "opacity": 0.8,
+    "react_to_events": true
+  },
+  "effects": {
+    "default_effects": [
+      "scanline",
+      "vignette"
+    ],
+    "intensity": 1.0,
+    "mode_transition": "fade",
+    "theme_transition": "fade",
+    "screen_shake": true,
+    "confetti": true
+  },
+  "sound": {
+    "pack": "procedural",
+    "volume": 1.0,
+    "events": {}
+  },
+  "modes": {},
+  "created_at": "2026-07-07T10:52:11.174315"
+}

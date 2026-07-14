@@ -1,0 +1,87 @@
+# ====================================================================
+# .GITIGNORE - LOGOSKQUIZ (CAMPEONÍSIMO BÍBLICO)
+# ====================================================================
+
+# --- Entorno virtual y dependencias Python ---
+venv/
+.venv/
+env/
+ENV/
+
+# --- Caché Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# --- Datos runtime y logs locales (no subir) ---
+competencia.log
+backups/
+sounds/
+pym.json
+test_pym.json
+test_server*.log
+*.db
+*.sqlite
+
+# --- Build / PyInstaller ---
+build/
+dist/
+*.spec
+launcher.py
+launcher.pyw
+launcher.exe
+
+# --- Assets sueltos en raíz ---
+icono.ico
+LOGOSKQUIZ.png
+
+# --- Configuración local de IDEs ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Secrets / config local (debe existir, NO subir) ---
+.env
+
+# --- Artefactos de build PyInstaller (se regeneran) ---
+build_tmp/
+interno/build/
+interno/dist/
+
+# --- Datos runtime generados (deben existir, NO subir) ---
+interno/backups/
+interno/logs/
+interno/media/
+interno/.instalado
+interno/modo_templates/compiled/
+
+# --- Logs de launcher / server / sse ---
+interno/launch*.log
+interno/launch*.err
+interno/launch*.out
+interno/launcher.log
+interno/server*.log
+interno/server*.err
+interno/server*.out
+interno/sse_capture.log
+interno/sse_err.log
+
+# --- Agente / herramienta interna ---
+.opencode/
+AGENTS.md
+
+# --- Extras vacíos / marcadores / docs internos ---
+extras/
+.instalado
+plan_mejoras.md

@@ -1,0 +1,177 @@
+/* display-robust.css — conexión, reconexión y pantalla de espera resilientes.
+   Diseñado para no depender de los módulos JS: la pastilla de estado es
+   visible aunque fallen los scripts (ver monitor inline en display.html). */
+
+:root {
+  --robust-accent: #0038ff;
+  --robust-ok: #21d07a;
+  --robust-warn: #ffb020;
+  --robust-bad: #ff3b3b;
+}
+
+/* ── Pastilla de estado de conexión (esquina superior derecha) ── */
+#connPill {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 99999;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  font: 700 12px/1 "Inter", system-ui, sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  background: #11131a;
+  border: 2px solid #2a2e3a;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  user-select: none;
+  pointer-events: none;
+  transition: background 0.25s, border-color 0.25s;
+}
+#connPill .conn-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--robust-warn);
+  box-shadow: 0 0 0 0 rgba(255, 176, 32, 0.6);
+  animation: connPulse 1.4s infinite;
+}
+#connPill.conn-live {
+  border-color: var(--robust-ok);
+  background: #06281c;
+}
+#connPill.conn-live .conn-dot {
+  background: var(--robust-ok);
+  animation: none;
+  box-shadow: 0 0 8px rgba(33, 208, 122, 0.8);
+}
+#connPill.conn-reconnect {
+  border-color: var(--robust-warn);
+  background: #2c2410;
+}
+#connPill.conn-reconnect .conn-dot {
+  background: var(--robust-warn);
+  animation: connPulse 0.9s infinite;
+}
+#connPill.conn-down,
+#connPill.conn-error {
+  border-color: var(--robust-bad);
+  background: #2c1010;
+}
+#connPill.conn-down .conn-dot,
+#connPill.conn-error .conn-dot {
+  background: var(--robust-bad);
+  animation: connPulse 0.7s infinite;
+}
+@keyframes connPulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 176, 32, 0.55); }
+  70% { box-shadow: 0 0 0 8px rgba(255, 176, 32, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 176, 32, 0); }
+}
+
+/* ── Overlay de reconexión / sin conexión ── */
+#reconnectOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+  background: rgba(6, 8, 14, 0.82);
+  backdrop-filter: blur(3px);
+  text-align: center;
+  padding: 24px;
+}
+#reconnectOverlay.show {
+  display: flex;
+}
+#reconnectOverlay .rc-icon {
+  font-size: 46px;
+  animation: rcSpin 1.6s linear infinite;
+}
+#reconnectOverlay .rc-title {
+  font: 800 22px/1.2 "Inter", system-ui, sans-serif;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+#reconnectOverlay .rc-sub {
+  font: 500 14px/1.4 "Inter", system-ui, sans-serif;
+  color: #aeb6c8;
+  max-width: 520px;
+}
+@keyframes rcSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Pantalla de espera (standby) robusta y con marca ── */
+#welcomeOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  gap: 18px;
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(0, 56, 255, 0.18), transparent 60%),
+    linear-gradient(160deg, #070912 0%, #0c1020 60%, #070912 100%);
+  color: #eef2ff;
+  padding: 24px;
+}
+#welcomeOverlay.show {
+  display: flex;
+}
+#welcomeOverlay.hidden {
+  display: none;
+}
+.welcome-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.welcome-logo {
+  font-size: 72px;
+  filter: drop-shadow(0 6px 18px rgba(0, 56, 255, 0.5));
+}
+.welcome-title {
+  font: 900 40px/1 "Inter", system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  background: linear-gradient(90deg, #6f8bff, #ffffff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.welcome-sub {
+  font: 600 16px/1.3 "Inter", system-ui, sans-serif;
+  color: #9fb0d6;
+  letter-spacing: 0.05em;
+}
+.welcome-anim {
+  font-size: 28px;
+  letter-spacing: 6px;
+  color: var(--robust-accent);
+  margin-top: 6px;
+}
+.welcome-anim span {
+  animation: welcomeBlink 1.2s infinite;
+}
+.welcome-anim span:nth-child(2) { animation-delay: 0.2s; }
+.welcome-anim span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes welcomeBlink {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+/* Modo kiosco: ocultar la pastilla y el overlay de reconexión */
+body.kiosko-mode #connPill,
+body.kiosko-mode #reconnectOverlay {
+  display: none !important;
+}

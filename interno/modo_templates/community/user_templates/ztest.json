@@ -1,0 +1,19 @@
+{
+  "id": "ztest",
+  "nombre": "Zombies",
+  "descripcion": "",
+  "icono": "X",
+  "categoria": "custom",
+  "version": "1.0.0",
+  "template_config": {},
+  "componentes": [],
+  "atributos": {},
+  "assets": {
+    "gato": {
+      "file": "/media/x/y.png",
+      "kind": "image",
+      "mime": "image/png",
+      "hash": "abc"
+    }
+  }
+}

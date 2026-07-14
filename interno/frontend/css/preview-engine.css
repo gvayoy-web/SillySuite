@@ -1,0 +1,385 @@
+/* ==========================================
+   PREVIEW ENGINE - Estilos
+   Canvas preview para Modo Builder
+   ========================================== */
+
+.preview-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: var(--bg, #07070e);
+    border: 2px solid var(--border, #1e1e3a);
+    overflow: hidden;
+}
+
+.preview-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--bg, #07070e);
+}
+
+.preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--surface, #0e0e1a);
+    border-bottom: 2px solid var(--border, #1e1e3a);
+}
+
+.preview-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.preview-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg, #07070e);
+    border: 2px solid var(--border, #1e1e3a);
+    padding: 2px;
+    border-radius: 0;
+}
+
+.preview-tab {
+    padding: 6px 12px;
+    background: transparent;
+    border: none;
+    color: var(--muted, #888);
+    font-weight: 600;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 150ms ease;
+}
+
+.preview-tab:hover {
+    color: var(--text, #fff);
+}
+
+.preview-tab.active {
+    background: var(--primary, #0038ff);
+    color: #fff;
+}
+
+.preview-content {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
+}
+
+.preview-tab-panel {
+    display: none;
+}
+
+.preview-tab-panel.active {
+    display: block;
+}
+
+.preview-config {
+    padding: 16px;
+}
+
+.config-section {
+    margin-bottom: 24px;
+}
+
+.config-section h4 {
+    margin: 0 0 12px 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--muted, #888);
+    border-bottom: 1px solid var(--border, #1e1e3a);
+    padding-bottom: 4px;
+}
+
+.config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.config-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.config-item label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--muted, #888);
+}
+
+.config-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text, #fff);
+    background: var(--bg, #07070e);
+    border: 2px solid var(--border, #1e1e3a);
+    padding: 8px 12px;
+}
+
+/* Preview Actions */
+.preview-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    padding: 16px;
+    border-top: 2px solid var(--border, #1e1e3a);
+}
+
+.preview-btn {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+}
+
+.preview-simulation {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 16px;
+    height: calc(100% - 80px);
+}
+
+.simulation-display {
+    background: var(--bg, #07070e);
+    border: 2px solid var(--border, #1e1e3a);
+    border-radius: 0;
+    overflow: hidden;
+}
+
+.simulation-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--surface, #0e0e1a);
+    border-bottom: 2px solid var(--border, #1e1e3a);
+}
+
+.simulation-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.simulation-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.sim-btn {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+}
+
+.simulation-canvas-container {
+    position: relative;
+    width: 100%;
+    height: calc(100% - 50px);
+}
+
+.simulation-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: var(--bg, #07070e);
+}
+
+.simulation-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: var(--surface, #0e0e1a);
+    border: 2px solid var(--border, #1e1e3a);
+    padding: 16px;
+    overflow-y: auto;
+}
+
+.config-panel h5 {
+    margin: 0 0 12px 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--muted, #888);
+    border-bottom: 1px solid var(--border, #1e1e3a);
+    padding-bottom: 4px;
+}
+
+.config-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.config-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.config-item label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--muted, #888);
+}
+
+.config-item input[type="range"] {
+    width: 100%;
+    accent-color: var(--primary, #0038ff);
+}
+
+.config-item select {
+    width: 100%;
+    background: var(--bg, #07070e);
+    border: 2px solid var(--border, #1e1e3a);
+    color: var(--text, #fff);
+    padding: 8px 12px;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+.modo-info-panel h5 {
+    margin: 0 0 12px 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--muted, #888);
+    border-bottom: 1px solid var(--border, #1e1e3a);
+    padding-bottom: 4px.
+}
+
+.info-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.info-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--bg, #07070e);
+    border: 2px solid var(--border, #1e1e3a).
+}
+
+.info-stat .label {
+    font-size: 0.75rem;
+    color: var(--muted, #888).
+}
+
+.info-stat .value {
+    font-size: 0.85rem;
+    font-weight: 700.
+    color: var(--primary, #0038ff).
+}
+
+/* Floating Panels */
+.floating-panel {
+    position: fixed.
+    top: 50%.
+    left: 50%.
+    transform: translate(-50%, -50%).
+    width: 90%.
+    max-width: 600px.
+    max-height: 85vh.
+    background: var(--surface, #0e0e1a).
+    border: 2px solid var(--border, #1e1e3a).
+    box-shadow: 8px 8px 0 var(--primary, #0038ff).
+    z-index: 1000.
+    overflow: hidden.
+    display: flex.
+    flex-direction: column.
+}
+
+.floating-panel.hidden {
+    display: none.
+}
+
+.panel-header {
+    display: flex.
+    align-items: center.
+    justify-content: space-between.
+    padding: 12px 16px.
+    background: var(--bg, #07070e).
+    border-bottom: 2px solid var(--border, #1e1e3a).
+}
+
+.panel-header h4 {
+    margin: 0.
+    font-size: 1rem.
+    font-weight: 700.
+}
+
+.panel-close {
+    background: none.
+    border: 1px solid var(--border, #1e1e3a).
+    color: var(--text, #fff).
+    padding: 4px 8px.
+    cursor: pointer.
+    font-size: 1rem.
+    transition: all 150ms ease.
+}
+
+.panel-close:hover {
+    border-color: var(--red, #f87171).
+    color: var(--red, #f87171).
+}
+
+.panel-content {
+    flex: 1.
+    overflow-y: auto.
+    padding: 16px.
+}
+
+.settings-tabs {
+    display: flex.
+    gap: 4px.
+    background: var(--bg, #07070e).
+    border: 2px solid var(--border, #1e1e3a).
+    padding: 2px.
+    border-radius: 0.
+}
+
+.settings-tab {
+    padding: 6px 12px.
+    background: transparent.
+    border: none.
+    color: var(--muted, #888).
+    font-weight: 600.
+    font-size: 0.75rem.
+    cursor: pointer.
+    transition: all 150ms ease.
+}
+
+.settings-tab:hover {
+    color: var(--text, #fff).
+}
+
+.settings-tab.active {
+    background: var(--primary, #0038ff).
+    color: #fff.
+}
+
+.panel-content {
+    flex: 1.
+    overflow-y: auto.
+    padding: 16px.
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .floating-panel {
+        width: 95%.
+        max-height: 90vh.
+    }
+    
+    .analytics-summary {
+        grid-template-columns: 1fr.
+    }
+}

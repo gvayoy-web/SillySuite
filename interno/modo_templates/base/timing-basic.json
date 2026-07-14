@@ -1,0 +1,67 @@
+{
+  "id": "timing-basic-template",
+  "nombre": "Modo de Tiempo",
+  "descripcion": "Reto cronometrado donde los jugadores responden antes de que se acabe el tiempo",
+  "icono": "⏱️",
+  "autor": "SillyQuiz Community",
+  "categoria": "timing",
+  "tags": ["tiempo", "rápido", "presión", "adrenalina"],
+  "version": "1.0.0",
+  "fecha_creacion": "2024-07-11T16:42:16Z",
+  "descargas": 0,
+  "calificacion_promedio": 0,
+  "preview_image": "/static/images/templates/timing-basic.png",
+  "template_config": {
+    "preguntas": {
+      "source": "baseActual",
+      "categoria": "biblica",
+      "cantidad": 5,
+      "seleccion_aleatoria": true
+    },
+    "gamePlay": {
+      "modo": "countdown",
+      "timer_activo": true,
+      "avance_auto": true,
+      "pista_tiempo_restante": true
+    },
+    "scoring": {
+      "correcto": 15,
+      "incorrecto": -5,
+      "bonus_rapidez": true,
+      "multiplicador_tiempo": 1.5
+    },
+    "timing": {
+      "tiempo_total": 30,
+      "alerta_a_los": 5,
+      "formato": "ss",
+      "tonalidad": "rojo",
+      "parpadear_alerta": true
+    },
+    "visual": {
+      "tema": "timer",
+      "animaciones": ["pulse", "flash"],
+      "overlay": "timer_overlay",
+      "mostrar_tiempo": true
+    },
+    "feedback": {
+      "mostrar_tiempo": true,
+      "alerta_anunciada": true,
+      "animacion_agotamiento": "shake"
+    }
+  },
+  "componentes": [
+    "preguntas",
+    "gamePlay",
+    "scoring",
+    "timing",
+    "visual",
+    "feedback"
+  ],
+  "atributos": {
+    "min_tiempo": 10,
+    "max_tiempo": 60,
+    "min_preguntas": 3,
+    "max_preguntas": 20,
+    "permitirMultiEquipo": true
+  }
+}

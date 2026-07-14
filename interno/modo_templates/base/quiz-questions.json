@@ -1,0 +1,64 @@
+{
+  "id": "quiz-questions-template",
+  "nombre": "Quiz de Preguntas",
+  "descripcion": "Quiz clásico de preguntas y respuestas con opciones múltiples",
+  "icono": "❓",
+  "autor": "SillyQuiz",
+  "categoria": "quiz",
+  "tags": ["quiz", "trivia", "clasico"],
+  "version": "1.2",
+  "dificultad": "principiante",
+  "tiempo_estimado": "5-15 min",
+  "preview_image": "/static/images/templates/quiz-questions.png",
+  "template_config": {
+    "preguntas": {
+      "source": "baseActual",
+      "categoria": "biblica",
+      "cantidad": 10,
+      "dificultad": "mixed"
+    },
+    "gamePlay": {
+      "modo": "multiple_choice",
+      "pistas": true,
+      "retroalimentacion_inmediata": true
+    },
+    "scoring": {
+      "correcto": 10,
+      "incorrecto": -3,
+      "multiplicador_racha": 1.2,
+      "bonus_categoria": true
+    },
+    "timing": {
+      "segundos_por_pregunta": 30,
+      "tiempo_extra_por_categoria": 5,
+      "conteo_regresivo_inicio": true
+    },
+    "feedback": {
+      "sonido_correcto": "success.wav",
+      "sonido_incorrecto": "error.wav",
+      "animacion_revelar": "flash",
+      "particulas_correctas": true
+    },
+    "visual": {
+      "tema_base": "default",
+      "mostrar_barra_tiempo": true,
+      "mostrar_puntuacion": true,
+      "efectos_visuales": "medium",
+      "transiciones": "suave"
+    }
+  },
+  "componentes_configurables": [
+    "preguntas:*",
+    "gamePlay:*",
+    "scoring:*",
+    "timing:*",
+    "feedback:*",
+    "visual:*"
+  ],
+  "atributos_recomendados": {
+    "min_preguntas": 5,
+    "max_preguntas": 50,
+    "tiempo_minimo": 10,
+    "tiempo_maximo": 180
+  }
+}

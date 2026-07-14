@@ -1,0 +1,146 @@
+{
+    "$schema": "./config.schema.json",
+    "brand": {
+        "name": "SILLYQUIZ",
+        "title": "SillyQuiz - Tu Constructor de Juegos",
+        "subtitle": "Crea, Juega, Comparte - Sin Límites",
+        "favicon": "favicon.ico"
+    },
+    "game": {
+        "default_timer": 45,
+        "min_groups": 2,
+        "max_groups": 12,
+        "default_points": 10,
+        "final_round_multiplier": 2
+    },
+    "groups": {
+        "default": []
+    },
+    "question_categories": {},
+    "roulette": {
+        "enabled": true,
+        "subconjunto_size": 20,
+        "timer": 15,
+        "repesca_chance": 0.01,
+        "categories": {
+            "cat1": {
+                "name": "Diversión",
+                "color": "#FF5500",
+                "items": []
+            },
+            "cat2": {
+                "name": "Locura",
+                "color": "#FF00FF",
+                "items": []
+            },
+            "cat3": {
+                "name": "Caos",
+                "color": "#00AAFF",
+                "items": []
+            }
+        },
+        "icon": "🎲"
+    },
+    "modes": {
+        "questions": {
+            "enabled": true,
+            "icon": "❓"
+        },
+        "verses": {
+            "enabled": true,
+            "icon": "📖"
+        },
+        "roulette": {
+            "enabled": true,
+            "icon": "🎰",
+            "timer": 15,
+            "categories": {
+                "cat1": {
+                    "name": "Diversión",
+                    "color": "#FF5500",
+                    "items": []
+                },
+                "cat2": {
+                    "name": "Locura",
+                    "color": "#FF00FF",
+                    "items": []
+                },
+                "cat3": {
+                    "name": "Caos",
+                    "color": "#00AAFF",
+                    "items": []
+                }
+            }
+        },
+        "hangman": {
+            "enabled": true,
+            "icon": "🪢",
+            "max_attempts": 6,
+            "timer": 60,
+            "words": [
+                "SILLY",
+                "QUIZ",
+                "GAME",
+                "FUN",
+                "PLAY",
+                "CODE",
+                "BUILD",
+                "CREATE",
+                "SHARE",
+                "JOY",
+                "MAGIC",
+                "SPARK",
+                "DREAM",
+                "WILD",
+                "FREE",
+                "EPIC",
+                "LEGEND",
+                "HERO",
+                "BOSS",
+                "LEVEL"
+            ]
+        },
+        "memory": {
+            "enabled": true,
+            "icon": "🧠",
+            "grid_size": 4,
+            "total_pairs": 8,
+            "content_type": "images",
+            "categories": []
+        }
+    },
+    "display": {
+        "themes": [
+            "silly",
+            "neon",
+            "retro",
+            "dark",
+            "pastel"
+        ],
+        "default_theme": "silly",
+        "fonts": {
+            "title": "Bangers",
+            "body": "Comic Neue"
+        }
+    },
+    "theme_rotation": {
+        "interval_seconds": 180,
+        "enabled": true,
+        "excluded_themes": [],
+        "seed": null
+    },
+    "silly": {
+        "port_http": 8080,
+        "port_ws": 8081,
+        "qr_enabled": true,
+        "qr_size": 256,
+        "extension": ".silly",
+        "media_formats": {
+            "images": ["webp", "png", "jpg", "gif"],
+            "audio": ["mp3", "ogg", "wav"],
+            "video": ["mp4", "webm"]
+        },
+        "max_file_size_mb": 50,
+        "compression": "deflate"
+    }
+}

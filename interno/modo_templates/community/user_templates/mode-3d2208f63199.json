@@ -1,0 +1,19 @@
+{
+  "id": "mode-3d2208f63199",
+  "nombre": "Zombies",
+  "descripcion": "",
+  "icono": "X",
+  "categoria": "custom",
+  "version": "1.0.0",
+  "template_config": {},
+  "componentes": [],
+  "atributos": {},
+  "assets": {
+    "gato": {
+      "file": "/media/mode-3d2208f63199/0c1d818fa8dc53920f12ea864488609449a2abe9.png",
+      "kind": "image",
+      "mime": "image/png",
+      "hash": "0c1d818fa8dc53920f12ea864488609449a2abe9"
+    }
+  }
+}

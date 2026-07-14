@@ -1,0 +1,57 @@
+{
+  "id": "story-mode-template",
+  "nombre": "Historia",
+  "descripcion": "Modo narrativo que cuenta historias paso a paso con decisiones que afectan el desenlace.",
+  "icono": "📖",
+  "autor": "SillyQuiz Community",
+  "categoria": "story",
+  "tags": ["narrativo", "historia", "decisiones", "biblico", "inmersivo"],
+  "version": "1.0.0",
+  "fecha_creacion": "2024-01-15T10:00:00Z",
+  "descargas": 800,
+  "calificacion_promedio": 4.7,
+  "preview_image": "/static/images/templates/story-mode.png",
+  "template_config": {
+    "story": {
+      "book": "genesis",
+      "chapters": [1, 2, 3, 6, 7, 8, 12, 15, 17, 22],
+      "branching": true,
+      "choices_per_chapter": 2
+    },
+    "narrative": {
+      "voice_narration": true,
+      "text_speed": "normal",
+      "auto_advance": false,
+      "highlight_keywords": true
+    },
+    "choices": {
+      "impact_on_story": true,
+      "multiple_endings": 3,
+      "show_consequences": true
+    },
+    "visual": {
+      "theme": "default",
+      "illustrations": true,
+      "transitions": ["fade", "page_turn"],
+      "background_music": "ancient-scroll.mp3"
+    },
+    "progress": {
+      "save_progress": true,
+      "chapter_select": true,
+      "completion_percentage": true
+    }
+  },
+  "componentes": [
+    "story",
+    "narrative",
+    "choices",
+    "visual",
+    "progress"
+  ],
+  "atributos": {
+    "max_chapters": 20,
+    "min_choices_per_chapter": 1,
+    "max_choices_per_chapter": 4,
+    "permitirMultiEquipo": false
+  }
+}

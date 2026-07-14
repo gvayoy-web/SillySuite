@@ -1,0 +1,167 @@
+.mem-overlay {
+    position: fixed; inset: 0; z-index: 4000;
+    display: none; flex-direction: column; align-items: center;
+    background: linear-gradient(135deg, #0b0b1a, #1a1a3e);
+    padding: 50px 20px 20px;
+    gap: 10px;
+    perspective: 1200px;
+}
+.mem-title {
+    font-size: clamp(1rem,2vw,1.5rem); font-weight: 900; color: #00ff88;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    text-shadow: 0 0 30px rgba(0,255,136,0.5), 0 0 60px rgba(0,255,136,0.2);
+    flex-shrink: 0;
+}
+.mem-grid {
+    display: grid; gap: clamp(8px, 1.2vw, 14px);
+    max-width: 94vw;
+    flex: 1;
+    align-content: center;
+    justify-content: center;
+}
+.mem-card {
+    position: relative;
+    background: linear-gradient(145deg, #1e3a5f, #2a4a7a);
+    border: 2px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    cursor: default;
+    min-height: clamp(80px, 12vw, 150px);
+    padding: clamp(6px, 1vw, 14px);
+    overflow: hidden;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                box-shadow 0.6s ease, border-color 0.6s ease;
+}
+.mem-card::before {
+    content: ''; position: absolute; inset: 0; border-radius: 12px;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%);
+    background-size: 200% 200%; pointer-events: none;
+    animation: foilShine 3s ease-in-out infinite;
+    z-index: 1;
+}
+@keyframes foilShine {
+    0% { background-position: 200% 200%; }
+    100% { background-position: -200% -200%; }
+}
+.mem-card-hidden {
+    font-size: clamp(2rem, 5vw, 4rem);
+    color: rgba(255,255,255,0.3);
+    text-shadow: 0 0 30px rgba(0,255,136,0.15);
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+.mem-card:not(.flipped):hover {
+    border-color: rgba(0,255,136,0.3);
+    box-shadow: 0 4px 30px rgba(0,255,136,0.15), 0 8px 40px rgba(0,0,0,0.4);
+    transform: translateY(-2px) scale(1.02);
+}
+.mem-card:not(.flipped):hover .mem-card-hidden {
+    color: rgba(0,255,136,0.6);
+    text-shadow: 0 0 40px rgba(0,255,136,0.3);
+}
+.mem-card:not(.flipped) {
+    animation: cardBreathe 3s ease-in-out infinite;
+}
+@keyframes cardBreathe {
+    0%, 100% { box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    50% { box-shadow: 0 4px 30px rgba(0,255,136,0.1), 0 0 40px rgba(0,255,136,0.05); }
+}
+.mem-card.flipped {
+    background: linear-gradient(145deg, #0d2a1a, #1a4a2a);
+    border-color: #00ff88;
+    box-shadow: 0 0 30px rgba(0,255,136,0.25), 0 0 60px rgba(0,255,136,0.1);
+    transform: rotateY(360deg) scale(1.03);
+    animation: cardRevealPulse 0.8s ease-out;
+}
+@keyframes cardRevealPulse {
+    0% { box-shadow: 0 0 0px rgba(0,255,136,0); }
+    30% { box-shadow: 0 0 60px rgba(0,255,136,0.5), 0 0 120px rgba(0,255,136,0.2); }
+    100% { box-shadow: 0 0 30px rgba(0,255,136,0.25), 0 0 60px rgba(0,255,136,0.1); }
+}
+.mem-card.flipped::before { opacity: 0.1; }
+.mem-card.matched {
+    animation: cardMatchCelebrate 0.7s ease-out forwards;
+    border-color: #00ff88;
+}
+@keyframes cardMatchCelebrate {
+    0% { box-shadow: 0 0 30px rgba(0,255,136,0.25); transform: rotateY(360deg) scale(1.03); }
+    30% { box-shadow: 0 0 80px rgba(0,255,136,0.6), 0 0 160px rgba(0,255,136,0.2); transform: rotateY(360deg) scale(1.1); }
+    60% { box-shadow: 0 0 50px rgba(0,255,136,0.4); transform: rotateY(360deg) scale(1.05); }
+    100% { box-shadow: 0 0 20px rgba(0,255,136,0.2); transform: rotateY(360deg) scale(1); }
+}
+.mem-card-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+}
+.mem-card-text {
+    font-size: clamp(0.7rem, 1.3vw, 1.1rem);
+    font-weight: 600; color: #fff;
+    word-break: break-word;
+    line-height: 1.3;
+    max-height: 100%;
+    overflow-y: auto;
+    width: 100%;
+    scrollbar-width: thin;
+}
+.mem-card-text.long { font-size: clamp(0.55rem, 1vw, 0.9rem); }
+.mem-card-ans {
+    font-size: clamp(0.55rem, 1vw, 0.85rem);
+    color: #00ff88;
+    font-weight: 700;
+    margin-top: 3px;
+    padding: 2px 8px;
+    background: rgba(0,255,136,0.1);
+    border-radius: 6px;
+    display: inline-block;
+}
+.mem-card-cat {
+    font-size: clamp(0.45rem, 0.7vw, 0.65rem);
+    color: rgba(0,255,136,0.5);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+.mem-status-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 600px;
+}
+.mem-status-text {
+    font-size: clamp(0.7rem,1.2vw,1rem);
+    font-weight: 700; color: rgba(255,255,255,0.5);
+    white-space: nowrap;
+}
+.mem-progress-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.mem-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00ff88, #00cc6a);
+    border-radius: 3px;
+    transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 0 10px rgba(0,255,136,0.3);
+}
+
+html.no-animations .mem-card { transition: none !important; animation: none !important; }
+html.no-animations .mem-card.flipped { transition: none !important; animation: none !important; }
+html.no-animations .mem-progress-fill { transition: none !important; }

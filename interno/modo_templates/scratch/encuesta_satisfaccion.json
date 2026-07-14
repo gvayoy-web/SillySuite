@@ -1,0 +1,156 @@
+{
+  "id": "encuesta_satisfaccion",
+  "title": "Encuesta de Satisfaccion",
+  "description": "Encuesta de satisfaccion multi-pregunta con estadisticas en vivo.",
+  "tags": [
+    "encuesta",
+    "feedback",
+    "opiniones"
+  ],
+  "difficulty": "media",
+  "heads": {
+    "on_mode_init": [
+      {
+        "opcode": "set_custom_theme",
+        "args": {
+          "BG": "#0d1117",
+          "TXT": "#c9d1d9",
+          "ACC": "#58a6ff",
+          "FNT": "system-ui"
+        },
+        "next": {
+          "opcode": "state_init_memory_key",
+          "args": {
+            "KEY": "total_respuestas",
+            "DEF": 0
+          },
+          "next": {
+            "opcode": "state_init_memory_key",
+            "args": {
+              "KEY": "suma_puntos",
+              "DEF": 0
+            },
+            "next": {
+              "opcode": "state_init_memory_key",
+              "args": {
+                "KEY": "pregunta_actual",
+                "DEF": 1
+              },
+              "next": {
+                "opcode": "state_init_memory_key",
+                "args": {
+                  "KEY": "total_preguntas",
+                  "DEF": 5
+                },
+                "next": {
+                  "opcode": "show_variable",
+                  "args": {
+                    "VAR": "total_respuestas",
+                    "DISP": "display-principal"
+                  },
+                  "next": {
+                    "opcode": "set_text_smooth",
+                    "args": {
+                      "COMP": "titulo-principal",
+                      "TXT": "ENCUESTA DE SATISFACCION"
+                    },
+                    "next": {
+                      "opcode": "set_text_smooth",
+                      "args": {
+                        "COMP": "subtitulo",
+                        "TXT": "Tu opinion nos ayuda a mejorar"
+                      },
+                      "next": {
+                        "opcode": "play_bg_music",
+                        "args": {
+                          "FILE": "ambient-calm.mp3",
+                          "VOL": 25,
+                          "LOOP": true
+                        },
+                        "next": {
+                          "opcode": "set_text_smooth",
+                          "args": {
+                            "COMP": "footer",
+                            "TXT": "5 preguntas rapidas - Tu voto cuenta"
+                          },
+                          "next": {
+                            "opcode": "spawn_particle_emitter",
+                            "args": {
+                              "KIND": "gold",
+                              "X": 50,
+                              "Y": 10
+                            },
+                            "next": {
+                              "opcode": "play_sfx",
+                              "args": {
+                                "FILE": "bell.mp3",
+                                "VOL": 50,
+                                "PITCH": false
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_player_answer": [
+      {
+        "opcode": "quiz_verify_player_answer",
+        "args": {
+          "PLAYER": "current"
+        },
+        "next": {
+          "opcode": "state_increment_memory",
+          "args": {
+            "KEY": "total_respuestas",
+            "BY": 1
+          },
+          "next": {
+            "opcode": "state_increment_memory",
+            "args": {
+              "KEY": "suma_puntos",
+              "BY": 1
+            },
+            "next": {
+              "opcode": "set_text_smooth",
+              "args": {
+                "COMP": "subtitulo",
+                "TXT": "Respuesta registrada!"
+              },
+              "next": {
+                "opcode": "play_sfx",
+                "args": {
+                  "FILE": "pop.mp3",
+                  "VOL": 50,
+                  "PITCH": false
+                },
+                "next": {
+                  "opcode": "spawn_particle_emitter",
+                  "args": {
+                    "KIND": "confetti",
+                    "X": 50,
+                    "Y": 30
+                  },
+                  "next": {
+                    "opcode": "play_css_animation",
+                    "args": {
+                      "COMP": "titulo-principal",
+                      "ANIM": "flash"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

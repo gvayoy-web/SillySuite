@@ -1,0 +1,570 @@
+{
+  "id": "neon_cyber_quiz",
+  "title": "Neon Cyber Quiz",
+  "description": "Estilo futurista con neon, glitch effects, particulas cyberpunk, gradientes extremos y animaciones de camara.",
+  "tags": [
+    "neon",
+    "cyber",
+    "futurista",
+    "glitch",
+    "gaming"
+  ],
+  "difficulty": "experto",
+  "heads": {
+    "on_mode_init": [
+      {
+        "opcode": "set_custom_theme",
+        "args": {
+          "BG": "#0a0014",
+          "TXT": "#00ff88",
+          "ACC": "#ff00ff",
+          "FNT": "'Courier New', monospace"
+        },
+        "next": {
+          "opcode": "set_gradient_bg",
+          "args": {
+            "DIR": "↘",
+            "C1": "#0a0014",
+            "C2": "#001a2e"
+          },
+          "next": {
+            "opcode": "set_filter",
+            "args": {
+              "COMP": "fondo",
+              "FILTER": "brightness"
+            },
+            "next": {
+              "opcode": "create_overlay",
+              "args": {
+                "ID": "scanlines",
+                "X": 0,
+                "Y": 0,
+                "W": 100,
+                "H": 100
+              },
+              "next": {
+                "opcode": "set_text_shadow",
+                "args": {
+                  "COMP": "titulo-principal",
+                  "X": 0,
+                  "Y": 0,
+                  "BLR": 20,
+                  "CLR": "#00ff88"
+                },
+                "next": {
+                  "opcode": "set_border",
+                  "args": {
+                    "COMP": "titulo-principal",
+                    "W": 2,
+                    "STY": "dashed",
+                    "CLR": "#00ff88"
+                  },
+                  "next": {
+                    "opcode": "set_rounded_corners",
+                    "args": {
+                      "COMP": "titulo-principal",
+                      "R": 4
+                    },
+                    "next": {
+                      "opcode": "quiz_init_engine",
+                      "args": {
+                        "N": 20,
+                        "CAT": "mix"
+                      },
+                      "next": {
+                        "opcode": "db_query_filter_difficulty",
+                        "args": {
+                          "D": "media"
+                        },
+                        "next": {
+                          "opcode": "db_query_shuffle_answers",
+                          "args": {},
+                          "next": {
+                            "opcode": "players_set_active_slots",
+                            "args": {
+                              "N": 4
+                            },
+                            "next": {
+                              "opcode": "state_init_memory_key",
+                              "args": {
+                                "KEY": "credits",
+                                "DEF": 0
+                              },
+                              "next": {
+                                "opcode": "state_init_memory_key",
+                                "args": {
+                                  "KEY": "nivel_actual",
+                                  "DEF": 1
+                                },
+                                "next": {
+                                  "opcode": "state_init_memory_key",
+                                  "args": {
+                                    "KEY": "aciertos",
+                                    "DEF": 0
+                                  },
+                                  "next": {
+                                    "opcode": "show_variable",
+                                    "args": {
+                                      "VAR": "credits",
+                                      "DISP": "display-principal"
+                                    },
+                                    "next": {
+                                      "opcode": "show_variable",
+                                      "args": {
+                                        "VAR": "nivel_actual",
+                                        "DISP": "display-principal"
+                                      },
+                                      "next": {
+                                        "opcode": "play_bg_music",
+                                        "args": {
+                                          "FILE": "cyberpunk-beat.mp3",
+                                          "VOL": 35,
+                                          "LOOP": true
+                                        },
+                                        "next": {
+                                          "opcode": "play_sfx",
+                                          "args": {
+                                            "FILE": "glitch-start.mp3",
+                                            "VOL": 60,
+                                            "PITCH": false
+                                          },
+                                          "next": {
+                                            "opcode": "set_text_smooth",
+                                            "args": {
+                                              "COMP": "titulo-principal",
+                                              "TXT": "CYBER QUIZ"
+                                            },
+                                            "next": {
+                                              "opcode": "play_css_animation",
+                                              "args": {
+                                                "COMP": "titulo-principal",
+                                                "ANIM": "flash"
+                                              },
+                                              "next": {
+                                                "opcode": "spawn_particle_emitter",
+                                                "args": {
+                                                  "KIND": "gold",
+                                                  "X": 50,
+                                                  "Y": 30
+                                                },
+                                                "next": {
+                                                  "opcode": "wait_seconds",
+                                                  "args": {
+                                                    "SEC": 1
+                                                  },
+                                                  "next": {
+                                                    "opcode": "set_text_smooth",
+                                                    "args": {
+                                                      "COMP": "titulo-principal",
+                                                      "TXT": "[ SISTEMA ONLINE ]"
+                                                    },
+                                                    "next": {
+                                                      "opcode": "play_sfx",
+                                                      "args": {
+                                                        "FILE": "boot-up.mp3",
+                                                        "VOL": 50,
+                                                        "PITCH": false
+                                                      },
+                                                      "next": {
+                                                        "opcode": "set_text_smooth",
+                                                        "args": {
+                                                          "COMP": "subtitulo",
+                                                          "TXT": "Cargando base de datos..."
+                                                        },
+                                                        "next": {
+                                                          "opcode": "wait_seconds",
+                                                          "args": {
+                                                            "SEC": 1
+                                                          },
+                                                          "next": {
+                                                            "opcode": "set_text_smooth",
+                                                            "args": {
+                                                              "COMP": "subtitulo",
+                                                              "TXT": "Inicializando modulos..."
+                                                            },
+                                                            "next": {
+                                                              "opcode": "wait_seconds",
+                                                              "args": {
+                                                                "SEC": 1
+                                                              },
+                                                              "next": {
+                                                                "opcode": "set_text_smooth",
+                                                                "args": {
+                                                                  "COMP": "subtitulo",
+                                                                  "TXT": ">> LISTO <<"
+                                                                },
+                                                                "next": {
+                                                                  "opcode": "play_sfx",
+                                                                  "args": {
+                                                                    "FILE": "success-beep.mp3",
+                                                                    "VOL": 60,
+                                                                    "PITCH": false
+                                                                  },
+                                                                  "next": {
+                                                                    "opcode": "spawn_particle_emitter",
+                                                                    "args": {
+                                                                      "KIND": "confetti",
+                                                                      "X": 50,
+                                                                      "Y": 50
+                                                                    },
+                                                                    "next": {
+                                                                      "opcode": "set_text_smooth",
+                                                                      "args": {
+                                                                        "COMP": "footer",
+                                                                        "TXT": "MODO CYBER ACTIVADO"
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_question_load": [
+      {
+        "opcode": "trigger_scene_wipe",
+        "args": {
+          "WIPE": "glitch"
+        },
+        "next": {
+          "opcode": "play_sfx",
+          "args": {
+            "FILE": "data-transfer.mp3",
+            "VOL": 40,
+            "PITCH": false
+          },
+          "next": {
+            "opcode": "set_gradient_bg",
+            "args": {
+              "DIR": "↗",
+              "C1": "#0a0014",
+              "C2": "#1a002e"
+            },
+            "next": {
+              "opcode": "set_text_smooth",
+              "args": {
+                "COMP": "titulo-principal",
+                "TXT": ""
+              },
+              "next": {
+                "opcode": "set_text_smooth",
+                "args": {
+                  "COMP": "subtitulo",
+                  "TXT": ""
+                },
+                "next": {
+                  "opcode": "set_text_smooth",
+                  "args": {
+                    "COMP": "pregunta-texto",
+                    "TXT": ""
+                  },
+                  "next": {
+                    "opcode": "set_text_smooth",
+                    "args": {
+                      "COMP": "footer",
+                      "TXT": ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_question_start": [
+      {
+        "opcode": "quiz_fetch_next_question",
+        "args": {},
+        "next": {
+          "opcode": "set_text_smooth",
+          "args": {
+            "COMP": "titulo-principal",
+            "TXT": "[ NUEVO DESAFIO ]"
+          },
+          "next": {
+            "opcode": "play_sfx",
+            "args": {
+              "FILE": "alert.mp3",
+              "VOL": 55,
+              "PITCH": false
+            },
+            "next": {
+              "opcode": "set_text_smooth",
+              "args": {
+                "COMP": "subtitulo",
+                "TXT": "Procesando datos..."
+              },
+              "next": {
+                "opcode": "wait_seconds",
+                "args": {
+                  "SEC": 2
+                },
+                "next": {
+                  "opcode": "set_text_smooth",
+                  "args": {
+                    "COMP": "titulo-principal",
+                    "TXT": ""
+                  },
+                  "next": {
+                    "opcode": "set_text_smooth",
+                    "args": {
+                      "COMP": "pregunta-texto",
+                      "TXT": "Pregunta de nivel cyber"
+                    },
+                    "next": {
+                      "opcode": "play_css_animation",
+                      "args": {
+                        "COMP": "pregunta-texto",
+                        "ANIM": "elastic-in"
+                      },
+                      "next": {
+                        "opcode": "set_gradient_bg",
+                        "args": {
+                          "DIR": "↓",
+                          "C1": "#1a002e",
+                          "C2": "#0a0014"
+                        },
+                        "next": {
+                          "opcode": "play_sfx",
+                          "args": {
+                            "FILE": "countdown-start.mp3",
+                            "VOL": 50,
+                            "PITCH": false
+                          },
+                          "next": {
+                            "opcode": "spawn_particle_emitter",
+                            "args": {
+                              "KIND": "fire",
+                              "X": 50,
+                              "Y": 85
+                            },
+                            "next": {
+                              "opcode": "wait_seconds",
+                              "args": {
+                                "SEC": 10
+                              },
+                              "next": {
+                                "opcode": "quiz_lock_answers",
+                                "args": {},
+                                "next": {
+                                  "opcode": "play_sfx",
+                                  "args": {
+                                    "FILE": "shutdown.mp3",
+                                    "VOL": 75,
+                                    "PITCH": false
+                                  },
+                                  "next": {
+                                    "opcode": "set_text_smooth",
+                                    "args": {
+                                      "COMP": "titulo-principal",
+                                      "TXT": "[ BLOQUEADO ]"
+                                    },
+                                    "next": {
+                                      "opcode": "play_css_animation",
+                                      "args": {
+                                        "COMP": "titulo-principal",
+                                        "ANIM": "shake"
+                                      },
+                                      "next": {
+                                        "opcode": "set_gradient_bg",
+                                        "args": {
+                                          "DIR": "→",
+                                          "C1": "#2e0a0a",
+                                          "C2": "#0a0014"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_player_answer": [
+      {
+        "opcode": "quiz_verify_player_answer",
+        "args": {
+          "PLAYER": "current"
+        },
+        "next": {
+          "opcode": "quiz_add_score_to_player",
+          "args": {
+            "PLAYER": "current",
+            "PTS": 20
+          },
+          "next": {
+            "opcode": "state_increment_memory",
+            "args": {
+              "KEY": "credits",
+              "BY": 20
+            },
+            "next": {
+              "opcode": "state_increment_memory",
+              "args": {
+                "KEY": "aciertos",
+                "BY": 1
+              },
+              "next": {
+                "opcode": "set_text_smooth",
+                "args": {
+                  "COMP": "titulo-principal",
+                  "TXT": "[ ACCESO CONCEDIDO ]"
+                },
+                "next": {
+                  "opcode": "play_sfx",
+                  "args": {
+                    "FILE": "access-granted.mp3",
+                    "VOL": 70,
+                    "PITCH": false
+                  },
+                  "next": {
+                    "opcode": "set_gradient_bg",
+                    "args": {
+                      "DIR": "↓",
+                      "C1": "#002e00",
+                      "C2": "#0a0014"
+                    },
+                    "next": {
+                      "opcode": "spawn_particle_emitter",
+                      "args": {
+                        "KIND": "gold",
+                        "X": 50,
+                        "Y": 25
+                      },
+                      "next": {
+                        "opcode": "play_css_animation",
+                        "args": {
+                          "COMP": "titulo-principal",
+                          "ANIM": "flash"
+                        },
+                        "next": {
+                          "opcode": "set_text_smooth",
+                          "args": {
+                            "COMP": "subtitulo",
+                            "TXT": "+20 CREDITS"
+                          },
+                          "next": {
+                            "opcode": "play_sfx",
+                            "args": {
+                              "FILE": "coin.mp3",
+                              "VOL": 55,
+                              "PITCH": false
+                            },
+                            "next": {
+                              "opcode": "spawn_particle_emitter",
+                              "args": {
+                                "KIND": "confetti",
+                                "X": 50,
+                                "Y": 15
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_timer_expire": [
+      {
+        "opcode": "set_text_smooth",
+        "args": {
+          "COMP": "titulo-principal",
+          "TXT": "[ TIMEOUT ]"
+        },
+        "next": {
+          "opcode": "play_sfx",
+          "args": {
+            "FILE": "alarm.mp3",
+            "VOL": 80,
+            "PITCH": false
+          },
+          "next": {
+            "opcode": "set_gradient_bg",
+            "args": {
+              "DIR": "↘",
+              "C1": "#2e0a00",
+              "C2": "#0a0014"
+            },
+            "next": {
+              "opcode": "play_css_animation",
+              "args": {
+                "COMP": "titulo-principal",
+                "ANIM": "shake"
+              },
+              "next": {
+                "opcode": "spawn_particle_emitter",
+                "args": {
+                  "KIND": "fire",
+                  "X": 50,
+                  "Y": 50
+                },
+                "next": {
+                  "opcode": "set_text_smooth",
+                  "args": {
+                    "COMP": "subtitulo",
+                    "TXT": "Tiempo de respuesta agotado"
+                  },
+                  "next": {
+                    "opcode": "wait_seconds",
+                    "args": {
+                      "SEC": 2
+                    },
+                    "next": {
+                      "opcode": "trigger_scene_wipe",
+                      "args": {
+                        "WIPE": "glitch"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

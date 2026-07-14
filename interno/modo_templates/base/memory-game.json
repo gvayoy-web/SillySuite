@@ -1,0 +1,62 @@
+{
+  "id": "memory-game-template",
+  "nombre": "Juego de Memoria",
+  "descripcion": "Juego de memoria con tarjetas parejas. Encuentra las parejas coincidentes antes de que se acabe el tiempo.",
+  "icono": "🧠",
+  "autor": "SillyQuiz Community",
+  "categoria": "memory",
+  "tags": ["memoria", "parejas", "cartas", "velocidad"],
+  "version": "1.0.0",
+  "fecha_creacion": "2024-01-15T10:00:00Z",
+  "descargas": 1200,
+  "calificacion_promedio": 4.5,
+  "preview_image": "/static/images/templates/memory-game.png",
+  "template_config": {
+    "cards": {
+      "total_cards": 16,
+      "pairs": 8,
+      "card_type": "mixed",
+      "difficulty": "medium",
+      "tiempo_inicio": 120
+    },
+    "gamePlay": {
+      "modo": "memory_match",
+      "seleccion_multiple": false,
+      "pistas_automaticas": false,
+      "contador_movimientos": true
+    },
+    "scoring": {
+      "base_points": 100,
+      "points_by_difficulty": {"facil": 1.0, "medio": 0.8, "dificil": 0.5},
+      "bonus_movimiento": -10,
+      "medalla_bronce": 50,
+      "medalla_plata": 100,
+      "medalla_oro": 150
+    },
+    "feedback": {
+      "sonido_emparejamiento": "flip.wav",
+      "sonido_correcto": "match.wav",
+      "sonido_incorrecto": "wrong.wav",
+      "indicador_correccion": true
+    },
+    "visual": {
+      "tema_tarjetas": "default",
+      "animacion_volteo": "3d",
+      "mostrar_movimientos": true,
+      "cronometro": true,
+      "fondo_animado": true
+    }
+  },
+  "componentes": [
+    "cards",
+    "gamePlay",
+    "scoring",
+    "feedback",
+    "visual"
+  ],
+  "atributos": {
+    "min_tarjetas": 8,
+    "max_tarjetas": 32,
+    "tiempo_maximo": 300
+  }
+}

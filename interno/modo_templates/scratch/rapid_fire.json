@@ -1,0 +1,361 @@
+{
+  "id": "rapid_fire",
+  "title": "Rapid Fire Challenge",
+  "description": "Rafaga de preguntas rapidas contra el cronometro. Sistema de combos y scoring progresivo.",
+  "tags": [
+    "rapido",
+    "contrarreloj",
+    "rafaga",
+    "combo"
+  ],
+  "difficulty": "dificil",
+  "heads": {
+    "on_mode_init": [
+      {
+        "opcode": "set_gradient_bg",
+        "args": {
+          "DIR": "↘",
+          "C1": "#0a0a2e",
+          "C2": "#2e0a0a"
+        },
+        "next": {
+          "opcode": "set_custom_theme",
+          "args": {
+            "BG": "transparent",
+            "TXT": "#00ff88",
+            "ACC": "#ff00ff",
+            "FNT": "monospace"
+          },
+          "next": {
+            "opcode": "quiz_init_engine",
+            "args": {
+              "N": 25,
+              "CAT": "mix"
+            },
+            "next": {
+              "opcode": "db_query_filter_difficulty",
+              "args": {
+                "D": "facil"
+              },
+              "next": {
+                "opcode": "db_query_shuffle_answers",
+                "args": {},
+                "next": {
+                  "opcode": "players_set_active_slots",
+                  "args": {
+                    "N": 4
+                  },
+                  "next": {
+                    "opcode": "state_init_memory_key",
+                    "args": {
+                      "KEY": "pregunta_actual",
+                      "DEF": 1
+                    },
+                    "next": {
+                      "opcode": "state_init_memory_key",
+                      "args": {
+                        "KEY": "total_preguntas",
+                        "DEF": 25
+                      },
+                      "next": {
+                        "opcode": "state_init_memory_key",
+                        "args": {
+                          "KEY": "combo_actual",
+                          "DEF": 0
+                        },
+                        "next": {
+                          "opcode": "state_init_memory_key",
+                          "args": {
+                            "KEY": "puntos_ronda",
+                            "DEF": 0
+                          },
+                          "next": {
+                            "opcode": "show_variable",
+                            "args": {
+                              "VAR": "combo_actual",
+                              "DISP": "display-principal"
+                            },
+                            "next": {
+                              "opcode": "show_variable",
+                              "args": {
+                                "VAR": "puntos_ronda",
+                                "DISP": "display-principal"
+                              },
+                              "next": {
+                                "opcode": "set_text_smooth",
+                                "args": {
+                                  "COMP": "titulo-principal",
+                                  "TXT": "RAPID FIRE"
+                                },
+                                "next": {
+                                  "opcode": "set_text_smooth",
+                                  "args": {
+                                    "COMP": "subtitulo",
+                                    "TXT": "25 preguntas - 5 segundos - Velocidad extrema!"
+                                  },
+                                  "next": {
+                                    "opcode": "play_bg_music",
+                                    "args": {
+                                      "FILE": "intense-beat.mp3",
+                                      "VOL": 50,
+                                      "LOOP": true
+                                    },
+                                    "next": {
+                                      "opcode": "spawn_particle_emitter",
+                                      "args": {
+                                        "KIND": "fire",
+                                        "X": 50,
+                                        "Y": 10
+                                      },
+                                      "next": {
+                                        "opcode": "play_sfx",
+                                        "args": {
+                                          "FILE": "whoosh.mp3",
+                                          "VOL": 65,
+                                          "PITCH": false
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_question_start": [
+      {
+        "opcode": "quiz_fetch_next_question",
+        "args": {},
+        "next": {
+          "opcode": "state_increment_memory",
+          "args": {
+            "KEY": "pregunta_actual",
+            "BY": 1
+          },
+          "next": {
+            "opcode": "set_text_smooth",
+            "args": {
+              "COMP": "pregunta-texto",
+              "TXT": "Pregunta rapida"
+            },
+            "next": {
+              "opcode": "set_text_smooth",
+              "args": {
+                "COMP": "titulo-principal",
+                "TXT": "GO!"
+              },
+              "next": {
+                "opcode": "play_sfx",
+                "args": {
+                  "FILE": "whoosh.mp3",
+                  "VOL": 60,
+                  "PITCH": false
+                },
+                "next": {
+                  "opcode": "spawn_particle_emitter",
+                  "args": {
+                    "KIND": "fire",
+                    "X": 50,
+                    "Y": 30
+                  },
+                  "next": {
+                    "opcode": "wait_seconds",
+                    "args": {
+                      "SEC": 5
+                    },
+                    "next": {
+                      "opcode": "quiz_lock_answers",
+                      "args": {},
+                      "next": {
+                        "opcode": "play_sfx",
+                        "args": {
+                          "FILE": "buzzer.mp3",
+                          "VOL": 80,
+                          "PITCH": false
+                        },
+                        "next": {
+                          "opcode": "set_text_smooth",
+                          "args": {
+                            "COMP": "titulo-principal",
+                            "TXT": "FUERA DE TIEMPO!"
+                          },
+                          "next": {
+                            "opcode": "play_css_animation",
+                            "args": {
+                              "COMP": "titulo-principal",
+                              "ANIM": "shake"
+                            },
+                            "next": {
+                              "opcode": "spawn_particle_emitter",
+                              "args": {
+                                "KIND": "fire",
+                                "X": 50,
+                                "Y": 40
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_player_answer": [
+      {
+        "opcode": "quiz_verify_player_answer",
+        "args": {
+          "PLAYER": "current"
+        },
+        "next": {
+          "opcode": "state_increment_memory",
+          "args": {
+            "KEY": "combo_actual",
+            "BY": 1
+          },
+          "next": {
+            "opcode": "quiz_add_score_to_player",
+            "args": {
+              "PLAYER": "current",
+              "PTS": 5
+            },
+            "next": {
+              "opcode": "state_increment_memory",
+              "args": {
+                "KEY": "puntos_ronda",
+                "BY": 5
+              },
+              "next": {
+                "opcode": "set_text_smooth",
+                "args": {
+                  "COMP": "subtitulo",
+                  "TXT": "CORRECTO! +5 pts"
+                },
+                "next": {
+                  "opcode": "play_sfx",
+                  "args": {
+                    "FILE": "correct.mp3",
+                    "VOL": 75,
+                    "PITCH": false
+                  },
+                  "next": {
+                    "opcode": "play_css_animation",
+                    "args": {
+                      "COMP": "titulo-principal",
+                      "ANIM": "flash"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_player_buzz": [
+      {
+        "opcode": "players_strike_penalize",
+        "args": {
+          "PLAYER": "current"
+        },
+        "next": {
+          "opcode": "state_set_memory",
+          "args": {
+            "KEY": "combo_actual",
+            "VAL": 0
+          },
+          "next": {
+            "opcode": "set_text_smooth",
+            "args": {
+              "COMP": "subtitulo",
+              "TXT": "STRIKE! Combo perdido"
+            },
+            "next": {
+              "opcode": "play_sfx",
+              "args": {
+                "FILE": "wrong.mp3",
+                "VOL": 80,
+                "PITCH": false
+              },
+              "next": {
+                "opcode": "play_css_animation",
+                "args": {
+                  "COMP": "titulo-principal",
+                  "ANIM": "shake"
+                },
+                "next": {
+                  "opcode": "spawn_particle_emitter",
+                  "args": {
+                    "KIND": "fire",
+                    "X": 50,
+                    "Y": 50
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_timer_expire": [
+      {
+        "opcode": "state_set_memory",
+        "args": {
+          "KEY": "combo_actual",
+          "VAL": 0
+        },
+        "next": {
+          "opcode": "play_sfx",
+          "args": {
+            "FILE": "alarm.mp3",
+            "VOL": 85,
+            "PITCH": false
+          },
+          "next": {
+            "opcode": "set_text_smooth",
+            "args": {
+              "COMP": "titulo-principal",
+              "TXT": "FUERA DE TIEMPO!"
+            },
+            "next": {
+              "opcode": "play_css_animation",
+              "args": {
+                "COMP": "titulo-principal",
+                "ANIM": "shake"
+              },
+              "next": {
+                "opcode": "set_text_smooth",
+                "args": {
+                  "COMP": "subtitulo",
+                  "TXT": "Combo perdido - Siguiente pregunta..."
+                },
+                "next": {
+                  "opcode": "spawn_particle_emitter",
+                  "args": {
+                    "KIND": "fire",
+                    "X": 50,
+                    "Y": 40
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "version": "2.1",
+  "type": "scratch-mode",
+  "name": "Quiz TV + NDI (Multi-Display)",
+  "description": "Modo de quiz show que envía escenas al piso NDI y sincroniza pantallas vía WebSocket. 100% offline.",
+  "heads": {
+    "on_mode_init": {
+      "opcode": "on_mode_init",
+      "args": {},
+      "next": {
+        "opcode": "ndi_start_discovery_worker",
+        "args": {},
+        "next": {
+          "opcode": "display_register_setup",
+          "args": { "GRID": "2x1" },
+          "next": {
+            "opcode": "state_init_memory_key",
+            "args": { "KEY": "round", "DEF": 1 },
+            "next": {
+              "opcode": "state_init_memory_key",
+              "args": { "KEY": "strikes", "DEF": 0 },
+              "next": null
+            }
+          }
+        }
+      },
+      "_id": 1
+    },
+    "on_question_load": {
+      "opcode": "on_question_load",
+      "args": {},
+      "next": {
+        "opcode": "quiz_fetch_next_question",
+        "args": {},
+        "next": {
+          "opcode": "ndi_send_canvas_scene",
+          "args": { "SCENE": "question", "A": 255 },
+          "next": {
+            "opcode": "display_broadcast_payload",
+            "args": { "DISP": "tv_main", "ACT": "show_question", "DATA": "{}" },
+            "next": {
+              "opcode": "display_broadcast_payload",
+              "args": { "DISP": "tv_buzzer", "ACT": "reset", "DATA": "{}" },
+              "next": null
+            }
+          }
+        }
+      },
+      "_id": 10
+    },
+    "on_question_start": {
+      "opcode": "on_question_start",
+      "args": {},
+      "next": {
+        "opcode": "display_sync_clocks",
+        "args": {},
+        "next": {
+          "opcode": "play_bg_music",
+          "args": { "FILE": "round", "VOL": 0.6, "LOOP": false },
+          "next": null
+        }
+      },
+      "_id": 20
+    },
+    "on_player_buzz": {
+      "opcode": "on_player_buzz",
+      "args": { "PLAYER": "p1" },
+      "next": {
+        "opcode": "players_toggle_lockout",
+        "args": { "PLAYER": "p1", "ON": false },
+        "next": {
+          "opcode": "display_broadcast_payload",
+          "args": { "DISP": "tv_buzzer", "ACT": "buzz", "DATA": "{}" },
+          "next": null
+        }
+      },
+      "_id": 30
+    },
+    "on_player_answer": {
+      "opcode": "on_player_answer",
+      "args": { "PLAYER": "p1" },
+      "next": {
+        "opcode": "quiz_verify_player_answer",
+        "args": { "PLAYER": "p1" },
+        "next": {
+          "opcode": "quiz_add_score_to_player",
+          "args": { "PLAYER": "p1", "PTS": 100 },
+          "next": null
+        }
+      },
+      "_id": 40
+    },
+    "on_timer_expire": {
+      "opcode": "on_timer_expire",
+      "args": {},
+      "next": {
+        "opcode": "quiz_lock_answers",
+        "args": {},
+        "next": {
+          "opcode": "ndi_toggle_failover_image",
+          "args": { "IMG": "timeout", "ON": true },
+          "next": {
+            "opcode": "display_broadcast_payload",
+            "args": { "DISP": "all", "ACT": "timeup", "DATA": "{}" },
+            "next": null
+          }
+        }
+      },
+      "_id": 50
+    },
+    "on_hardware_disconnect": {
+      "opcode": "on_hardware_disconnect",
+      "args": {},
+      "next": {
+        "opcode": "system_replicate_state_to_node",
+        "args": {},
+        "next": {
+          "opcode": "display_broadcast_payload",
+          "args": { "DISP": "all", "ACT": "failover", "DATA": "{}" },
+          "next": null
+        }
+      },
+      "_id": 60
+    }
+  }
+}

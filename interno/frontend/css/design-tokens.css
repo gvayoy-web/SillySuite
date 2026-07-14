@@ -1,0 +1,216 @@
+/**
+ * design-tokens.css — Sistema unificado de variables de diseño para SillyQuiz.
+ * Consolidación de las 3 definiciones :root fragmentadas en un solo lugar.
+ *
+ * Uso: importar este archivo PRIMERO en todos los CSS:
+ *   @import url('design-tokens.css');
+ *
+ * Temas: dark, fire, ocean se aplican con clases en <html>:
+ *   <html class="theme-dark"> o <html class="theme-fire">
+ */
+
+:root {
+  /* =========================================================================
+   * 1. COLORES BASE (sin tema)
+   * ========================================================================= */
+  --lzq-bg: #0b0b0b;
+  --lzq-surface: #1a1a2e;
+  --lzq-surface-raised: #16213e;
+  --lzq-border: #333355;
+  --lzq-text: #e0e0e0;
+  --lzq-text-muted: #888;
+  --lzq-text-dim: #555;
+  --lzq-accent: #FF5E3A;
+  --lzq-accent-hover: #ff7a5c;
+  --lzq-success: #10b981;
+  --lzq-danger: #ef4444;
+  --lzq-warning: #f59e0b;
+  --lzq-info: #3b82f6;
+
+  /* Grupos */
+  --lzq-jovenes: #ff00ff;
+  --lzq-damas: #ffcc00;
+  --lzq-caball: #ff5500;
+  --lzq-ninos: #00ff55;
+
+  /* =========================================================================
+   * 2. SOMBRAS
+   * ========================================================================= */
+  --lzq-shadow-sm: 2px 2px 0px rgba(0,0,0,0.4);
+  --lzq-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+  --lzq-shadow-lg: 0 8px 40px rgba(0,0,0,0.55);
+  --lzq-shadow-glow: 0 0 20px var(--lzq-accent);
+
+  /* =========================================================================
+   * 3. TIPOGRAFÍA
+   * ========================================================================= */
+  --lzq-font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --lzq-font-heading: Georgia, 'Times New Roman', serif;
+  --lzq-font-mono: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  --lzq-font-size-xs: 0.7rem;
+  --lzq-font-size-sm: 0.85rem;
+  --lzq-font-size-base: 1rem;
+  --lzq-font-size-lg: 1.2rem;
+  --lzq-font-size-xl: 1.5rem;
+  --lzq-font-size-2xl: 2rem;
+  --lzq-font-size-3xl: 3rem;
+
+  /* =========================================================================
+   * 4. ESPACIADO
+   * ========================================================================= */
+  --lzq-space-xs: 4px;
+  --lzq-space-sm: 8px;
+  --lzq-space-md: 16px;
+  --lzq-space-lg: 24px;
+  --lzq-space-xl: 32px;
+  --lzq-space-2xl: 48px;
+
+  /* =========================================================================
+   * 5. BORDES
+   * ========================================================================= */
+  --lzq-radius-sm: 4px;
+  --lzq-radius-md: 8px;
+  --lzq-radius-lg: 12px;
+  --lzq-radius-xl: 16px;
+  --lzq-radius-full: 9999px;
+
+  /* =========================================================================
+   * 6. TRANSICIONES
+   * ========================================================================= */
+  --lzq-ease: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --lzq-ease-out: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --lzq-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --lzq-ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --lzq-ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  --lzq-transition-fast: 150ms var(--lzq-ease-smooth);
+  --lzq-transition-base: 250ms var(--lzq-ease-smooth);
+  --lzq-transition-slow: 400ms var(--lzq-ease-smooth);
+
+  /* =========================================================================
+   * 7. TIMERS & SCORES
+   * ========================================================================= */
+  --lzq-timer-bg: #1a1a2e;
+  --lzq-timer-text: #FF5E3A;
+  --lzq-timer-critical: #ef4444;
+  --lzq-score-bg: rgba(0,0,0,0.6);
+  --lzq-score-text: #f4f2ec;
+  --lzq-score-accent: #FFD700;
+
+  /* =========================================================================
+   * 8. SHAPES
+   * ========================================================================= */
+  --lzq-shape-square: 0;
+  --lzq-shape-rounded: 8px;
+  --lzq-shape-pill: 9999px;
+  --lzq-shape-circle: 50%;
+
+  /* =========================================================================
+   * 9. TEXTURES
+   * ========================================================================= */
+  --lzq-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  --lzq-dot-pattern: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='10' cy='10' r='0.8' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E");
+}
+
+/* =========================================================================
+ * TEMA: DARK (default)
+ * ========================================================================= */
+html.theme-dark,
+html:not(.theme-fire):not(.theme-ocean):not(.theme-light) {
+  --lzq-bg: #001144;
+  --lzq-surface: #001a66;
+  --lzq-surface-raised: #002288;
+  --lzq-border: #0033aa;
+  --lzq-text: #89b3ff;
+  --lzq-text-muted: #5577aa;
+  --lzq-accent: #7C3AED;
+}
+
+/* =========================================================================
+ * TEMA: FIRE
+ * ========================================================================= */
+html.theme-fire {
+  --lzq-bg: #1a0000;
+  --lzq-surface: #330000;
+  --lzq-surface-raised: #4d0000;
+  --lzq-border: #660000;
+  --lzq-text: #ff9966;
+  --lzq-text-muted: #cc8866;
+  --lzq-accent: #ff4400;
+  --lzq-success: #00ff00;
+  --lzq-danger: #ff0000;
+  --lzq-warning: #ffa500;
+  --lzq-jovenes: #ff4400;
+  --lzq-damas: #ffbb00;
+  --lzq-caball: #ff6600;
+  --lzq-ninos: #ff0000;
+}
+
+/* =========================================================================
+ * TEMA: OCEAN
+ * ========================================================================= */
+html.theme-ocean {
+  --lzq-bg: #001122;
+  --lzq-surface: #002244;
+  --lzq-surface-raised: #003366;
+  --lzq-border: #004488;
+  --lzq-text: #66ccff;
+  --lzq-text-muted: #4499cc;
+  --lzq-accent: #00aaff;
+  --lzq-success: #00ffcc;
+  --lzq-danger: #ff4466;
+  --lzq-warning: #ffaa00;
+  --lzq-jovenes: #66ffff;
+  --lzq-damas: #66ccff;
+  --lzq-caball: #3399ff;
+  --lzq-ninos: #00ff99;
+}
+
+/* =========================================================================
+ * TEMA: LIGHT
+ * ========================================================================= */
+html.theme-light {
+  --lzq-bg: #f8f9fa;
+  --lzq-surface: #ffffff;
+  --lzq-surface-raised: #f0f0f0;
+  --lzq-border: #dee2e6;
+  --lzq-text: #212529;
+  --lzq-text-muted: #6c757d;
+  --lzq-accent: #0d6efd;
+  --lzq-accent-hover: #0b5ed7;
+  --lzq-success: #198754;
+  --lzq-danger: #dc3545;
+  --lzq-warning: #ffc107;
+  --lzq-info: #0dcaf0;
+  --lzq-shadow-sm: 2px 2px 0px rgba(0,0,0,0.1);
+  --lzq-shadow: 4px 4px 0px rgba(0,0,0,0.15);
+  --lzq-shadow-lg: 0 8px 40px rgba(0,0,0,0.1);
+}
+
+/* =========================================================================
+ * COMPAT: Variables legacy (deprecated, migrar a --lzq-*)
+ * ========================================================================= */
+:root {
+  /* Legacy aliases — usar --lzq-* en código nuevo */
+  --bg: var(--lzq-bg);
+  --surface: var(--lzq-surface);
+  --border: var(--lzq-border);
+  --text: var(--lzq-text);
+  --accent: var(--lzq-accent);
+  --jovenes: var(--lzq-jovenes);
+  --damas: var(--lzq-damas);
+  --caball: var(--lzq-caball);
+  --ninos: var(--lzq-ninos);
+  --shadow: var(--lzq-shadow);
+  --shadow-sm: var(--lzq-shadow-sm);
+  --shadow-lg: var(--lzq-shadow-lg);
+  --ease: var(--lzq-ease);
+  --ease-out: var(--lzq-ease-out);
+  --ease-in: var(--lzq-ease-in);
+  --ease-smooth: var(--lzq-ease-smooth);
+  --ease-bounce: var(--lzq-ease-bounce);
+
+  /* Scratch builder compat */
+  --paper: var(--lzq-surface);
+  --ink: var(--lzq-text);
+  --primary: var(--lzq-accent);
+}

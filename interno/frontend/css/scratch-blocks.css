@@ -1,0 +1,319 @@
+/* ==========================================================================
+   SCRATCH BLOCKS — Brutalist + forma auténtica de Scratch (muesca/encastre)
+   SillyQuiz · Infinite Canvas Builder v3.0
+   ========================================================================== */
+
+:root {
+  /* Paleta brutalista (papel / tinta) */
+  --paper:        #ECEAE3;
+  --paper-2:      #E2DFD6;
+  --surface:      #F4F2EC;
+  --ink:          #0a0a0a;
+  --line:         #0a0a0a;
+  --muted:        #6b6b6b;
+  --hard:         4px 4px 0 var(--ink);
+  --hard-lg:      6px 6px 0 var(--ink);
+  --hard-xl:      8px 8px 0 var(--ink);
+  --hard-xxl:     12px 12px 0 var(--ink);
+
+  /* Reasignación de tokens heredados -> brutalista claro */
+  --bg-primary:   #ECEAE3;
+  --bg-secondary: #F4F2EC;
+  --bg-tertiary:  #E2DFD6;
+  --bg-hover:     #d6d3ca;
+  --text-primary: #0a0a0a;
+  --text-muted:   #6b6b6b;
+  --border-primary: #0a0a0a;
+  --border-secondary: #0a0a0a;
+
+  /* Tipografía estructural brutalista */
+  --font-mono:    'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
+  --font-display: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-body:    'Inter', 'Segoe UI', system-ui, sans-serif;
+  --fw-black:     900;
+  --fw-bold:      700;
+  --fw-medium:    500;
+
+  /* Espaciado brutalista */
+  --space-xs:     4px;
+  --space-sm:     8px;
+  --space-md:     16px;
+  --space-lg:     24px;
+  --space-xl:     32px;
+
+  /* Colores de categoría (planos, tipo Scratch) */
+  --cat-events: #FFB000;
+  --cat-control: #FF5E3A;
+  --cat-looks: #9B6BFF;
+  --cat-sound: #D24BD2;
+  --cat-ndi: #00B894;
+  --cat-displays: #FF8C1A;
+  --cat-motion: #3C8DFF;
+  --cat-variables: #FF9E3D;
+  --cat-operators: #36B6E0;
+  --cat-custom: #FF6B9D;
+  --cat-players: #3C8DFF;
+  --cat-db: #B5793A;
+  --cat-runtime: #FF6B9D;
+  --cat-engine: #00B894;
+  --cat-sprites: #FF6B00;
+
+  --port-number: #36B6E0;
+  --port-string: #9B6BFF;
+  --port-boolean: #00B894;
+  --port-color: #D24BD2;
+  --port-ndi: #00B894;
+  --port-display: #FF8C1A;
+  --port-any: #6b6b6b;
+}
+
+/* ---- Forma base de bloque (muesca arriba + saliente abajo) ---- */
+.scratch-block {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 10px 14px 14px;
+  margin: 0;
+  background: var(--ink); /* color de borde */
+  color: var(--block-text, var(--ink));
+  font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: grab;
+  user-select: none;
+  border: none;
+  /* Muesca arriba + saliente abajo ANCLADOS a la izquierda (offset fijo), no al
+     centro: así bloques de distinto ancho encastran perfecto uno sobre otro. */
+  clip-path: polygon(
+    0 0,
+    16px 0, 16px 6px, 30px 6px, 30px 0,
+    100% 0,
+    100% calc(100% - 6px),
+    30px calc(100% - 6px), 30px 100%,
+    16px 100%, 16px calc(100% - 6px),
+    0 calc(100% - 6px)
+  );
+  filter: drop-shadow(var(--hard));
+  transition: transform 70ms cubic-bezier(0.34, 1.56, 0.64, 1), filter 120ms ease, box-shadow 150ms ease;
+}
+/* Relleno del bloque (sigue la forma, 3px más pequeño -> deja ver el borde) */
+.scratch-block::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  background: var(--block-fill, var(--bg-tertiary));
+  clip-path: polygon(
+    0 0,
+    16px 0, 16px 6px, 30px 6px, 30px 0,
+    100% 0,
+    100% calc(100% - 6px),
+    30px calc(100% - 6px), 30px 100%,
+    16px 100%, 16px calc(100% - 6px),
+    0 calc(100% - 6px)
+  );
+  transition: background 150ms ease;
+  z-index: -1;
+}
+.scratch-block:hover {
+  transform: translate(-2px, -2px);
+  filter: drop-shadow(var(--hard-lg));
+}
+.scratch-block:active {
+  transform: translate(1px, 1px);
+  filter: drop-shadow(2px 2px 0 var(--ink));
+  cursor: grabbing;
+}
+.scratch-block.block-dragging {
+  opacity: 0.92;
+  transform: rotate(1.5deg) scale(1.03);
+  filter: drop-shadow(var(--hard-xl));
+  cursor: grabbing;
+  z-index: 1000;
+}
+
+/* Bloques por categoría: relleno plano + texto de contraste */
+.block-events    { --block-fill: var(--cat-events);   --block-text: #0a0a0a; }
+.block-control   { --block-fill: var(--cat-control);  --block-text: #0a0a0a; }
+.block-looks     { --block-fill: var(--cat-looks);    --block-text: #fff; }
+.block-audio     { --block-fill: var(--cat-sound);    --block-text: #fff; }
+.block-ndi       { --block-fill: var(--cat-ndi);      --block-text: #0a0a0a; }
+.block-displays  { --block-fill: var(--cat-displays); --block-text: #0a0a0a; }
+.block-quiz      { --block-fill: var(--cat-motion);   --block-text: #fff; }
+.block-state     { --block-fill: var(--cat-variables);--block-text: #0a0a0a; }
+.block-operators { --block-fill: var(--cat-operators);--block-text: #0a0a0a; }
+.block-custom    { --block-fill: var(--cat-custom);   --block-text: #fff; }
+.block-players   { --block-fill: var(--cat-players);  --block-text: #fff; }
+.block-db        { --block-fill: var(--cat-db);       --block-text: #fff; }
+.block-runtime   { --block-fill: var(--cat-runtime);  --block-text: #fff; }
+.block-engine     { --block-fill: var(--cat-engine);   --block-text: #0a0a0a; }
+.block-sprites    { --block-fill: var(--cat-sprites);  --block-text: #0a0a0a; }
+
+/* Tipos de forma */
+.block-hat {
+  clip-path: polygon(
+    0 0, 100% 0,
+    100% calc(100% - 6px),
+    30px calc(100% - 6px), 30px 100%,
+    16px 100%, 16px calc(100% - 6px),
+    0 calc(100% - 6px)
+  );
+}
+.block-hat::after {
+  clip-path: polygon(
+    0 0, 100% 0,
+    100% calc(100% - 6px),
+    30px calc(100% - 6px), 30px 100%,
+    16px 100%, 16px calc(100% - 6px),
+    0 calc(100% - 6px)
+  );
+}
+.block-reporter {
+  padding: 4px 18px;
+  clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 12px 100%, 0 50%);
+  border-radius: 0;
+}
+.block-reporter::after {
+  clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 12px 100%, 0 50%);
+}
+.block-boolean {
+  padding: 4px 20px;
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%);
+  border-radius: 0;
+}
+.block-boolean::after {
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%);
+}
+.block-cap { /* bloque final: sin saliente abajo */
+  clip-path: polygon(
+    0 0,
+    calc(50% - 9px) 0, calc(50% - 9px) 6px, calc(50% + 9px) 6px, calc(50% + 9px) 0,
+    100% 0, 100% 100%, 0 100%
+  );
+}
+.block-cap::after {
+  clip-path: polygon(
+    0 0,
+    calc(50% - 9px) 0, calc(50% - 9px) 6px, calc(50% + 9px) 6px, calc(50% + 9px) 0,
+    100% 0, 100% 100%, 0 100%
+  );
+}
+
+/* Inputs dentro del bloque */
+.scratch-block input, .scratch-block select, .scratch-block textarea {
+  background: rgba(255,255,255,0.85);
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  color: var(--ink);
+  font: inherit; font-weight: 700;
+  padding: 2px 6px; outline: none;
+}
+.scratch-block input:focus, .scratch-block select:focus, .scratch-block textarea:focus {
+  background: #fff; box-shadow: 2px 2px 0 var(--ink);
+}
+.scratch-block input[type="range"] { padding: 0; width: 96px; accent-color: var(--ink); }
+.scratch-block .arg { margin: 0 2px; }
+
+/* Puertos de conexión tipados */
+.port-dot {
+  display: inline-block; width: 11px; height: 11px; border-radius: 0;
+  background: var(--port-color, var(--port-any));
+  border: 2px solid var(--ink); vertical-align: middle; margin-left: 4px;
+}
+.port-number { --port-color: var(--port-number); }
+.port-string { --port-color: var(--port-string); }
+.port-boolean { --port-color: var(--port-boolean); }
+.port-ndi { --port-color: var(--port-ndi); }
+.port-display { --port-color: var(--port-display); }
+.port-any { --port-color: var(--port-any); }
+
+/* ---- Stepper en vivo: animaciones y feedback visual ---- */
+.scratch-block.block-active {
+  filter: drop-shadow(var(--hard-lg));
+  background: #fff;
+  animation: block-pulse 0.8s ease-in-out infinite;
+}
+@keyframes block-pulse {
+  0%, 100% { filter: drop-shadow(var(--hard-lg)); }
+  50% { filter: drop-shadow(0 0 8px rgba(255,94,58,0.6)); }
+}
+.scratch-block.block-error {
+  filter: drop-shadow(4px 4px 0 #b00020);
+  background: #ff3b30;
+  color: #fff;
+  animation: block-shake 0.3s ease-in-out;
+}
+@keyframes block-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* ---- C-block Body Zones (nested drop zones) ---- */
+.scratch-block-body-zone {
+  margin: 4px 0;
+  padding: 6px 8px;
+  background: rgba(0,0,0,0.03);
+  border: 2px dashed var(--border-secondary, #484f58);
+  border-left: 4px solid var(--block-fill, var(--cat-control));
+  min-height: 32px;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+}
+.scratch-block-body-zone:hover {
+  background: rgba(0,0,0,0.06);
+  box-shadow: inset 0 0 0 1px rgba(10,10,10,0.1);
+}
+.scratch-block-body-label {
+  font-size: 0.6rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted, #8b949e);
+  margin-bottom: 2px;
+  pointer-events: none;
+}
+.scratch-block-body-content {
+  min-height: 20px;
+  padding: 2px 0;
+  transition: background 0.2s ease, outline 0.2s ease;
+}
+.scratch-block-body-content.body-drop-active {
+  background: rgba(255,94,58,0.15);
+  outline: 2px dashed var(--cat-control, #FF5E3A);
+  outline-offset: 2px;
+  animation: drop-zone-pulse 1s ease-in-out infinite;
+}
+@keyframes drop-zone-pulse {
+  0%, 100% { outline-color: var(--cat-control, #FF5E3A); }
+  50% { outline-color: rgba(255,94,58,0.5); }
+}
+.scratch-block-body-content .scratch-block {
+  margin: 2px 0;
+}
+.scratch-block-body-placeholder {
+  font-size: 0.7rem;
+  font-style: italic;
+  color: var(--text-muted, #8b949e);
+  padding: 4px 0;
+  pointer-events: none;
+}
+
+/* ---- C-block "arms" visual (embracing shape) ---- */
+.scratch-block[data-type="c"]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 8px;
+  background: var(--block-fill, var(--cat-control));
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scratch-block { transition: none; }
+}

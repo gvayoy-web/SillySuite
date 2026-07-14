@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Constructor de Modos — Tutorial Completo</title>
+<style>
+  :root { --bg:#0d0f12; --panel:#161a1f; --ink:#f4f2ec; --muted:#9aa0a6; --accent:#00B894; --accent2:#FF5E3A; --line:#2a2f36; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 'Segoe UI',system-ui,sans-serif; }
+  header { padding:28px 24px; border-bottom:3px solid var(--ink); background:var(--panel); }
+  header h1 { margin:0; font-size:1.5rem; letter-spacing:.02em; }
+  header p { margin:6px 0 0; color:var(--muted); }
+  main { max-width:920px; margin:0 auto; padding:28px 24px 80px; }
+  h2 { margin-top:38px; border-left:6px solid var(--accent); padding-left:12px; font-size:1.25rem; }
+  h3 { margin-top:26px; color:var(--accent); }
+  h4 { margin-top:18px; color:var(--accent2); }
+  code { background:#000; border:1px solid var(--line); padding:2px 6px; border-radius:0; font-family:'Consolas',monospace; font-size:0.9em; }
+  pre { background:#000; border:1px solid var(--line); padding:14px; overflow:auto; font-size:0.85rem; }
+  .block { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border:3px solid var(--ink); border-radius:0;
+    font-weight:800; box-shadow:4px 4px 0 var(--ink); margin:4px 0; font-size:0.85rem; }
+  .cat-event { background:#FFB000; color:#000; }
+  .cat-control { background:#FF5E3A; color:#000; }
+  .cat-looks { background:#9B6BFF; color:#fff; }
+  .cat-audio { background:#D24BD2; color:#fff; }
+  .cat-quiz { background:#3C8DFF; color:#fff; }
+  .cat-state { background:#FF9E3D; color:#000; }
+  .cat-operators { background:#36B6E0; color:#000; }
+  .cat-players { background:#3C8DFF; color:#fff; }
+  ul, ol { margin:8px 0; padding-left:20px; }
+  li { margin:6px 0; }
+  .tip { background:var(--panel); border:2px solid var(--accent); padding:12px 16px; margin:16px 0; }
+  .warn { background:var(--panel); border:2px solid #f59e0b; padding:12px 16px; margin:16px 0; }
+  table { width:100%; border-collapse:collapse; margin:14px 0; }
+  th, td { border:1px solid var(--line); padding:8px 10px; text-align:left; }
+  th { background:var(--panel); font-weight:800; }
+  a { color:var(--accent); }
+  .kbd { border:2px solid var(--ink); padding:1px 7px; font-weight:800; }
+  .toc { background:var(--panel); border:2px solid var(--line); padding:16px; margin:20px 0; }
+  .toc a { text-decoration:none; display:block; padding:3px 0; }
+  .toc a:hover { color:var(--accent); }
+  .section-divider { border:none; border-top:2px solid var(--line); margin:30px 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Constructor de Modos — Tutorial Completo</h1>
+  <p>Crea modos interactivos visualmente con bloques, sin escribir código.</p>
+</header>
+<main>
+
+<!-- ÍNDICE -->
+<div class="toc">
+  <strong>Contenido</strong>
+  <a href="#que-es">1. ¿Qué es el Constructor?</a>
+  <a href="#interfaz">2. La Interfaz</a>
+  <a href="#eventos">3. Bloques de Eventos (Hat)</a>
+  <a href="#looks">4. Bloques Visuales / Looks</a>
+  <a href="#media">5. Bloques de Medios (Imagen, Video, Fuentes)</a>
+  <a href="#temas">6. Bloques de Temas y Estilos</a>
+  <a href="#audio">7. Bloques de Audio</a>
+  <a href="#quiz">8. Bloques de Quiz / Juego</a>
+  <a href="#estado">9. Bloques de Estado</a>
+  <a href="#control">10. Bloques de Control</a>
+  <a href="#operadores">11. Operadores</a>
+  <a href="#concursantes">12. Bloques de Concursantes</a>
+  <a href="#drag-drop">13. Arrastrar y Soltar</a>
+  <a href="#preview">14. Vista Previa en Tiempo Real</a>
+  <a href="#export">15. Exportar / Importar</a>
+  <a href="#plantillas">16. Plantillas</a>
+  <a href="#atajos">17. Atajos de Teclado</a>
+  <a href="#darkmode">18. Modo Oscuro</a>
+  <a href="#powerpack">19. Power Pack — Bloques de Potencia ⚡</a>
+  <a href="#ejemplos">20. Ejemplos Paso a Paso</a>
+</div>
+
+<hr class="section-divider">
+
+<!-- 1 -->
+<h2 id="que-es">1. ¿Qué es el Constructor de Modos?</h2>
+<p>Es un editor visual tipo <b>Scratch</b>. Arrastras bloques desde la paleta al lienzo para definir
+la lógica de tu modo. Cada bloque es una acción: mostrar texto, cambiar colores, reproducir sonidos,
+gestionar preguntas, controlar concursantes, etc.</p>
+<p>El constructor compila tus bloques a un formato <b>AOT</b> (Ahead-Of-Time) que el backend ejecuta
+de forma segura y determinista durante el show en vivo.</p>
+
+<!-- 2 -->
+<h2 id="interfaz">2. La Interfaz</h2>
+<ul>
+  <li><b>Paleta (izquierda):</b> catálogo de bloques por categoría. Arrástralos o haz clic para añadirlos.</li>
+  <li><b>Lienzo (centro):</b> aquí construyes tus pilas de bloques. Cada evento tiene su propia pestaña.</li>
+  <li><b>Inspector (derecha):</b> muestra detalles del bloque seleccionado.</li>
+  <li><b>Consola (abajo):</b> muestra el stepper en vivo durante la ejecución.</li>
+  <li><b>Vista previa:</b> pulsa <b>Vista</b> para ver en tiempo real cómo quedará en pantalla.</li>
+  <li><b>Dark mode:</b> pulsa 🌓 para alternar entre modo claro y oscuro.</li>
+</ul>
+
+<!-- 3 -->
+<h2 id="eventos">3. Bloques de Eventos (Hat) — Amarillo</h2>
+<p>Todo modo empieza con un bloque <b>Hat</b> (sombrero) que indica el evento que dispara la cadena.</p>
+
+<table>
+  <tr><th>Bloque</th><th>Opcode</th><th>Descripción</th></tr>
+  <tr><td><span class="block cat-event">Al iniciar el modo</span></td><td><code>on_mode_init</code></td><td>Se ejecuta una vez al arrancar el modo. Ideal para configuración inicial.</td></tr>
+  <tr><td><span class="block cat-event">Al precargar pregunta</span></td><td><code>on_question_load</code></td><td>Cuando se carga una pregunta en memoria (antes de mostrarla).</td></tr>
+  <tr><td><span class="block cat-event">Cuando cronómetro inicia</span></td><td><code>on_question_start</code></td><td>Cuando el cronómetro empieza a correr en vivo.</td></tr>
+  <tr><td><span class="block cat-event">Al pulsar concursante</span></td><td><code>on_player_buzz</code></td><td>Cuando un jugador pulsa su buzzer.</td></tr>
+  <tr><td><span class="block cat-event">Al confirmar respuesta</span></td><td><code>on_player_answer</code></td><td>Cuando un jugador envía su respuesta.</td></tr>
+  <tr><td><span class="block cat-event">Al llegar a cero</span></td><td><code>on_timer_expire</code></td><td>Cuando el cronómetro llega a cero.</td></tr>
+  <tr><td><span class="block cat-event">Si nodo pierde red</span></td><td><code>on_hardware_disconnect</code></td><td>Cuando un nodo local se desconecta.</td></tr>
+  <tr><td><span class="block cat-event">Al recibir señal</span></td><td><code>on_custom_signal</code></td><td>Cuando se recibe una señal personalizada.</td></tr>
+</table>
+
+<div class="tip">
+  <b>Consejo:</b> usa <code>on_mode_init</code> para configurar el tema, inicializar variables y
+  establecer el estado inicial. Usa <code>on_question_start</code> para el flujo principal del quiz.
+</div>
+
+<!-- 4 -->
+<h2 id="looks">4. Bloques Visuales / Looks — Púrpura</h2>
+<p>Controlan la apariencia visual de los displays.</p>
+
+<table>
+  <tr><th>Bloque</th><th>Opcode</th><th>Qué hace</th></tr>
+  <tr><td>Aplicar tema</td><td><code>set_theme</code></td><td>Aplica un tema predefinido: neon, retro, oscuro, etc.</td></tr>
+  <tr><td>Texto de componente</td><td><code>set_text_smooth</code></td><td>Cambia el texto de un componente visual.</td></tr>
+  <tr><td>Mostrar componente</td><td><code>show_ui_component</code></td><td>Muestra un componente en un display.</td></tr>
+  <tr><td>Ocultar componente</td><td><code>hide_ui_component</code></td><td>Oculta un componente.</td></tr>
+  <tr><td>Fijar propiedad</td><td><code>set_component_property</code></td><td>Cambia font, opacidad, tamaño o color de un componente.</td></tr>
+  <tr><td>Inyectar CSS</td><td><code>inject_css_raw</code></td><td>Inyección directa de CSS en un display (avanzado).</td></tr>
+  <tr><td>Animar componente</td><td><code>play_css_animation</code></td><td>elastic-in, shake, flash, fade.</td></tr>
+  <tr><td>Partículas</td><td><code>spawn_particle_emitter</code></td><td>confetti, fire, gold en coordenadas X/Y.</td></tr>
+  <tr><td>Pantalla completa</td><td><code>toggle_fullscreen_layer</code></td><td>Activa/desactiva pantalla completa en un display.</td></tr>
+  <tr><td>Transición de escena</td><td><code>trigger_scene_wipe</code></td><td>fade, glitch, slide entre escenas.</td></tr>
+</table>
+
+<!-- 5 -->
+<h2 id="media">5. Bloques de Medios — Imagen, Video, Fuentes</h2>
+<p>Bloques para contenido multimedia en los displays.</p>
+
+<table>
+  <tr><th>Bloque</th><th>Opcode</th><th>Qué hace</th></tr>
+  <tr><td>Mostrar imagen</td><td><code>show_image</code></td><td>Muestra una imagen en un display específico.</td></tr>
+  <tr><td>Reproducir video</td><td><code>show_video</code></td><td>Reproduce un video con opción de loop.</td></tr>
+  <tr><td>Fondo con imagen</td><td><code>set_background_image</code></td><td>Establece una imagen como fondo de pantalla.</td></tr>
+  <tr><td>Cargar fuente</td><td><code>load_font</code></td><td>Carga una fuente personalizada desde una URL (Google Fonts, etc).</td></tr>
+</table>
+
+<div class="tip">
+  <b>Ejemplo — Mostrar imagen:</b><br>
+  <code>show_image</code> con <code>SRC: "logo.png"</code> y <code>DISP: "main"</code>
+</div>
+
+<!-- 6 -->
+<h2 id="temas">6. Bloques de Temas y Estilos</h2>
+<p>Personaliza completamente la apariencia sin código.</p>
+
+<table>
+  <tr><th>Bloque</th><th>Opcode</th><th>Qué hace</th></tr>
+  <tr><td>Tema custom</td><td><code>set_custom_theme</code></td><td>Define colores de fondo, texto, acento y fuente personalizados.</td></tr>
+  <tr><td>Fondo gradiente</td><td><code>set_gradient_bg</code></td><td>Crea un gradiente de dos colores con dirección.</td></tr>
+  <tr><td>Sombra de texto</td><td><code>set_text_shadow</code></td><td>Añade sombra con offset X/Y, blur y color.</td></tr>
+  <tr><td>Borde</td><td><code>set_border</code></td><td>Establece borde con grosor, estilo (solid/dashed/dotted/double) y color.</td></tr>
+  <tr><td>Esquinas redondeadas</td><td><code>set_rounded_corners</code></td><td>Radio de esquinas en píxeles.</td></tr>
+  <tr><td>Opacidad</td><td><code>set_opacity_block</code></td><td>Controla la opacidad de un componente (0-100%).</td></tr>
+  <tr><td>Rotar</td><td><code>set_rotation</code></td><td>Rota un componente en grados.</td></tr>
+  <tr><td>Escalar</td><td><code>set_scale</code></td><td>Cambia el tamaño de un componente (100% = normal).</td></tr>
+  <tr><td>Filtro</td><td><code>set_filter</code></td><td>Aplica filtros CSS: blur, grayscale, sepia, invert, brightness, contrast, saturate, hue-rotate.</td></tr>
+</table>
+
+<h4>Ejemplo — Tema personalizado desde cero</h4>
+<pre>
+Tema custom:
+  BG: #1a0533     (fondo morado oscuro)
+  TXT: #e0c3fc    (texto lila claro)
+  ACC: #ff6b6b    (acento rosa)
+  FNT: "Poppins"  (fuente personalizada)
+
+Fondo gradiente:
+  DIR: ↘
+  C1: #1a0533
+  C2: #0c0c1d
+
+Borde:
+  COMP: titulo-principal
+  Grosor: 3
+  Estilo: solid
+  Color: #ff6b6b
+
+Esquinas redondeadas:
+  COMP: titulo-principal
+  Radio: 12
+</pre>
+
+<!-- 7 -->
+<h2 id="audio">7. Bloques de Audio — Rosa Fucsia</h2>
+
+<table>
+  <tr><th>Bloque</th><th>Opcode</th><th>Qué hace</th></tr>
+  <tr><td>Música de fondo</td><td><code>play_bg_music</code></td><td>Reproduce un archivo con volumen y loop.</td></tr>
+  <tr><td>Fundir música</td><td><code>stop_bg_music_fade</code></td><td>Fade out de la música en N segundos.</td></tr>
+  <tr><td>Efecto de sonido</td><td><code>play_sfx</code></td><td>Reproduce un SFX con volumen y pitch.</td></tr>
+  <tr><td>Volumen por categoría</td><td><code>set_audio_category_volume</code></td><td>Controla volumen de master, sfx o music.</td></tr>
+  <tr><td>Ducking</td><td><code>trigger_audio_ducking</code></td><td>Reduce volumen un % durante N segundos.</td></tr>
+  <tr><td>Silenciar todo</td><td><code>stop_all_sounds</code></td><td>Detiene todos los sonidos.</td></tr>
+</table>
+
+<!-- 8 -->
+<h2 id="quiz">8. Bloques de Quiz / Juego — Azul</h2>
+
+<table>
+  <tr><th>Bloque</th><th>Opcode</th><th>Qué hace</th></tr>
+  <tr><td>Init quiz engine</td><td><code>quiz_init_engine</code></td><td>Inicializa el motor con N preguntas de una categoría.</td></tr>
+  <tr><td>Siguiente pregunta</td><td><code>quiz_fetch_next_question</code></td><td>Carga la siguiente pregunta de la DB.</td></tr>
+  <tr><td>Bloquear respuestas</td><td><code>quiz_lock_answers</code></td><td>Cierra la ventana de respuestas.</td></tr>
+  <tr><td>Verificar respuesta</td><td><code>quiz_verify_player_answer</code></td><td>Evalúa si la respuesta del jugador es correcta.</td></tr>
+  <tr><td>Sumar puntos</td><td><code>quiz_add_score_to_player</code></td><td>Añade puntos a un jugador.</td></tr>
+  <tr><td>Texto pregunta</td><td><code>quiz_get_current_question_text</code></td><td>Devuelve el texto de la pregunta actual (reporter).</td></tr>
+  <tr><td>Texto respuesta</td><td><code>quiz_get_answer_text</code></td><td>Devuelve el texto de una opción (A/B/C/D).</td></tr>
+  <tr><td>Leaderboard JSON</td><td><code>quiz_get_leaderboard_json</code></td><td>Devuelve la clasificación en JSON.</td></tr>
+</table>
+
+<!-- 9 -->
+<h2 id="estado">9. Bloques de Estado — Rojo/Verde</h2>
+
+<table>
+  <tr><th>Bloque</th><th>Opcode</th><th>Qué hace</th></tr>
+  <tr><td>Init clave</td><td><code>state_init_memory_key</code></td><td>Crea una variable en RAM con valor por defecto.</td></tr>
+  <tr><td>Asignar valor</td><td><code>state_set_memory</code></td><td>Asigna un valor a una variable.</td></tr>
+  <tr><td>Incrementar</td><td><code>state_increment_memory</code></td><td>Incrementa una variable en N.</td></tr>
+  <tr><td>Leer valor</td><td><code>state_get_memory_value</code></td><td>Devuelve el valor de una variable (reporter).</td></tr>
+  <tr><td>Commit SQLite</td><td><code>state_commit_to_sqlite</code></td><td>Guarda el estado en la DB persistente.</td></tr>
+  <tr><td>Limpiar caché</td><td><code>state_clear_volatile_cache</code></td><td>Limpia toda la RAM volátil.</td></tr>
+</table>
+
+<!-- 10 -->
+<h2 id="control">10. Bloques de Control — Naranja</h2>
+
+<table>
+  <tr><th>Bloque</th><th>Opcode</th><th>Qué hace</th></tr>
+  <tr><td>Esperar N segundos</td><td><code>wait_seconds</code></td><td>Pausa la ejecución N segundos.</td></tr>
+  <tr><td>Si... entonces</td><td><code>if_then</code></td><td>Ejecuta el cuerpo solo si la condición es verdadera.</td></tr>
+  <tr><td>Si... sino...</td><td><code>if_then_else</code></td><td> bifurcación con cuerpo alternativo.</td></tr>
+  <tr><td>Repetir N veces</td><td><code>repeat_times</code></td><td>Bucle con contador fijo.</td></tr>
+  <tr><td>Repetir hasta que</td><td><code>repeat_until</code></td><td>Bucle hasta que se cumpla una condición.</td></tr>
+  <tr><td>Intentar / Si falla</td><td><code>try_catch_fallback</code></td><td>Manejo de errores con cuerpo de respaldo.</td></tr>
+  <tr><td>Interrumpir pila</td><td><code>break_stack</code></td><td>Detiene la ejecución de la cadena actual.</td></tr>
+  <tr><td>Reset global</td><td><code>global_panic_reset</code></td><td>Detiene todos los hilos (emergencia).</td></tr>
+</table>
+
+<!-- 11 -->
+<h2 id="operadores">11. Operadores — Verde Claro</h2>
+
+<table>
+  <tr><th>Bloque</th><th>Opcode</th><th>Qué hace</th></tr>
+  <tr><td>Math calc</td><td><code>math_calc</code></td><td>Operaciones: +, -, *, ÷</td></tr>
+  <tr><td>Comparar</td><td><code>logic_compare</code></td><td>==, >, <</td></tr>
+  <tr><td>AND / OR</td><td><code>logic_and_or</code></td><td>Lógica booleana.</td></tr>
+  <tr><td>NOT</td><td><code>logic_not</code></td><td>Invierte un valor booleano.</td></tr>
+  <tr><td>Random</td><td><code>get_random_number</code></td><td>Número aleatorio entre MIN y MAX.</td></tr>
+  <tr><td>Concatenar</td><td><code>string_join</code></td><td>Une dos strings.</td></tr>
+  <tr><td>Contiene</td><td><code>string_contains</code></td><td>Verifica si un string contiene otro.</td></tr>
+  <tr><td>JSON key</td><td><code>parse_json_key</code></td><td>Extrae un valor de un objeto JSON.</td></tr>
+</table>
+
+<!-- 12 -->
+<h2 id="concursantes">12. Bloques de Concursantes — Azul Eléctrico</h2>
+
+<table>
+  <tr><th>Bloque</th><th>Opcode</th><th>Qué hace</th></tr>
+  <tr><td>Slots activos</td><td><code>players_set_active_slots</code></td><td>Define cuántos jugadores pueden participar.</td></tr>
+  <tr><td>Strike</td><td><code>players_strike_penalize</code></td><td>Penaliza a un jugador con un strike.</td></tr>
+  <tr><td>Intercambiar</td><td><code>players_swap_positions</code></td><td>Intercambia posiciones de dos jugadores.</td></tr>
+  <tr><td>Más rápido</td><td><code>players_get_fastest_buzzer</code></td><td>Devuelve quién pulsó primero.</td></tr>
+  <tr><td>Lockout</td><td><code>players_toggle_lockout</code></td><td>Activa/desactiva lockout de un jugador.</td></tr>
+  <tr><td>Nombre</td><td><code>players_get_name</code></td><td>Devuelve el nombre de un jugador.</td></tr>
+  <tr><td>Avatar</td><td><code>players_set_avatar</code></td><td>Asigna una imagen de avatar.</td></tr>
+  <tr><td>¿Está vivo?</td><td><code>players_is_alive</code></td><td>Verifica si un jugador sigue activo.</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<!-- 13 -->
+<h2 id="drag-drop">13. Arrastrar y Soltar</h2>
+<ul>
+  <li>Arrastra un bloque de la <b>paleta</b> al lienzo para crear una pila nueva.</li>
+  <li>Arrastra un bloque del lienzo <b>sobre otro</b> para insertarlo encima (mitad superior) o debajo (mitad inferior).</li>
+  <li>Puedes tener <b>varias pilas sueltas</b>: suéltalas en un área vacía del lienzo.</li>
+  <li>Selecciona un bloque y pulsa <span class="kbd">Supr</span> para borrarlo.</li>
+</ul>
+
+<!-- 14 -->
+<h2 id="preview">14. Vista Previa en Tiempo Real</h2>
+<p>Pulsa <b>Vista</b> para abrir un panel que simula cómo se verá tu modo en pantalla.</p>
+<ul>
+  <li><b>Temas:</b> el preview aplica los colores del tema seleccionado (neon, retro, oscuro, custom).</li>
+  <li><b>Texto:</b> los bloques <code>set_text_smooth</code> muestran su contenido.</li>
+  <li><b>Imágenes/Video:</b> se muestran como placeholders con el nombre del archivo.</li>
+  <li><b>Efectos:</b> partículas, animaciones, filtros se listan como indicadores visuales.</li>
+  <li><b>Gradientes:</b> se renderizan como fondo de la pantalla de preview.</li>
+</ul>
+
+<!-- 15 -->
+<h2 id="export">15. Exportar / Importar</h2>
+<p>Guarda y carga tus creaciones:</p>
+<ul>
+  <li><b>💾 Exportar</b> — descarga un archivo <code>.json</code> con tu modo.</li>
+  <li><b>📂 Importar</b> — carga un archivo <code>.json</code> previamente exportado.</li>
+  <li><b>⬇ Guardar</b> — guarda el borrador en el navegador (localStorage).</li>
+  <li><b>⬆ Cargar</b> — restaura el último borrador guardado.</li>
+  <li><b>Auto-save:</b> el builder guarda automáticamente en cada cambio. Al recargar la página, se restaura.</li>
+</ul>
+
+<div class="tip">
+  <b>Formato JSON del export:</b><br>
+  <pre>{
+  "version": 1,
+  "type": "scratch-mode",
+  "heads": {
+    "on_mode_init": [
+      { "opcode": "set_theme", "args": {"THEME": "neon"}, "next": { ... } }
+    ]
+  }
+}</pre>
+</div>
+
+<!-- 16 -->
+<h2 id="plantillas">16. Plantillas</h2>
+<p>Abre el <b>Centro de ayuda (❓)</b> → pestaña <b>Plantillas</b> para ver las plantillas disponibles:</p>
+<ul>
+  <li><b>Bienvenida con Color</b> — Plantilla básica de bienvenida.</li>
+  <li><b>Quiz de Capitales</b> — Quiz completo con engine y verificación.</li>
+  <li><b>Trivia Si / No</b> — Trivia rápida de verdadero/falso.</li>
+  <li><b>Encuesta de Satisfacción</b> — Recopila opiniones.</li>
+  <li><b>Modo Supervivencia</b> — Eliminación progresiva.</li>
+  <li><b>Batalla 1v1</b> — Duelo directo entre dos jugadores.</li>
+  <li><b>Quiz Show TV</b> — Estilo programa de televisión.</li>
+  <li><b>Rapid Fire Challenge</b> — Ráfaga de preguntas rápidas.</li>
+</ul>
+
+<!-- 17 -->
+<h2 id="atajos">17. Atajos de Teclado</h2>
+<table>
+  <tr><th>Atajo</th><th>Acción</th></tr>
+  <tr><td><span class="kbd">Ctrl</span>+<span class="kbd">Z</span></td><td>Deshacer</td></tr>
+  <tr><td><span class="kbd">Ctrl</span>+<span class="kbd">S</span></td><td>Guardar borrador</td></tr>
+  <tr><td><span class="kbd">Ctrl</span>+<span class="kbd">O</span></td><td>Importar archivo</td></tr>
+  <tr><td><span class="kbd">Ctrl</span>+<span class="kbd">E</span></td><td>Exportar archivo</td></tr>
+  <tr><td><span class="kbd">Supr</span></td><td>Borrar bloque seleccionado</td></tr>
+  <tr><td><span class="kbd">Ctrl</span>+<span class="kbd">Rueda</span></td><td>Zoom del lienzo</td></tr>
+</table>
+
+<!-- 18 -->
+<h2 id="darkmode">18. Modo Oscuro</h2>
+<p>Pulsa el botón 🌓 en la barra superior para alternar entre modo claro y oscuro.
+La preferencia se guarda automáticamente en el navegador.</p>
+
+<!-- 19 -->
+<h2 id="powerpack">19. Power Pack — Bloques de Potencia ⚡</h2>
+<p>El <b>Power Pack</b> añade capacidades de <b>potencia extrema</b> al constructor: matemáticas
+avanzadas, manipulación real de strings, iteración sobre listas, bucles con rango, control de salida,
+ranking y persistencia en vivo. Todos estos bloques están incluidos en la whitelist del backend
+(<code>_security.py</code>) y se ejecutan de forma determinista en el runtime AOT.</p>
+
+<h3>19.1 Operadores Avanzados</h3>
+<table>
+  <tr><th>Bloque</th><th>Opcode</th><th>Qué hace</th></tr>
+  <tr><td>Unario matemático</td><td><code>math_unary</code></td><td><code>sqrt, abs, round, floor, ceil, sin, cos, tan, ln, log10</code> de un valor.</td></tr>
+  <tr><td>Binario matemático</td><td><code>math_binary</code></td><td><code>pow</code> (potencia), <code>mod</code> (módulo), <code>min</code>, <code>max</code>.</td></tr>
+  <tr><td>Longitud string</td><td><code>string_length</code></td><td>Nº de caracteres de un texto (reporter).</td></tr>
+  <tr><td>Mayús/Minús/Título</td><td><code>string_case</code></td><td>Convierte mayúsculas, minúsculas o tipo título.</td></tr>
+  <tr><td>Reemplazar</td><td><code>string_replace</code></td><td>Cambia todas las ocurrencias de un substring.</td></tr>
+  <tr><td>Substring</td><td><code>string_slice</code></td><td>Extrae desde <code>START</code> hasta <code>END</code> (END negativo = hasta el final).</td></tr>
+  <tr><td>Empieza / Termina con</td><td><code>string_starts_with</code> / <code>string_ends_with</code></td><td>Booleanos de prefijo/sufijo.</td></tr>
+  <tr><td>O-exclusiva / Rango</td><td><code>logic_xor</code> / <code>logic_between</code></td><td>XOR lógico; <code>MIN ≤ VAL ≤ MAX</code>.</td></tr>
+</table>
+
+<h3>19.2 Listas Pro — Iteración y agregación</h3>
+<table>
+  <tr><th>Bloque</th><th>Opcode</th><th>Qué hace</th></tr>
+  <tr><td>Para cada item</td><td><code>for_each_in_list</code></td><td><b>Contenedor</b>: itera cada ítem de la lista y lo expone en la variable <code>VAR</code> dentro del cuerpo.</td></tr>
+  <tr><td>Índice de</td><td><code>list_index_of</code></td><td>Posición (1-based) de un valor; 0 si no existe.</td></tr>
+  <tr><td>Ítem aleatorio</td><td><code>list_get_random_item</code></td><td>Elige un elemento al azar de la lista.</td></tr>
+  <tr><td>Fijar ítem</td><td><code>list_set_item</code></td><td>Asigna valor a la posición <code>IDX</code>.</td></tr>
+  <tr><td>Barajar / Ordenar</td><td><code>list_shuffle</code> / <code>list_sort</code></td><td>Aleatoriza o ordena asc/desc la lista.</td></tr>
+  <tr><td>Unir / Contar</td><td><code>list_join</code> / <code>list_count</code></td><td>Concatena con separador; cuenta ocurrencias de un valor.</td></tr>
+</table>
+
+<h3>19.3 Control Avanzado</h3>
+<table>
+  <tr><th>Bloque</th><th>Opcode</th><th>Qué hace</th></tr>
+  <tr><td>Bucle con rango</td><td><code>repeat_for_range</code></td><td><b>Contenedor</b>: desde <code>FROM</code> hasta <code>TO</code> con <code>STEP</code>, exponiendo el valor en <code>VAR</code>.</td></tr>
+  <tr><td>Salir del bucle</td><td><code>exit_loop</code></td><td>Equivalente a <code>break</code>: abandona el bucle contenedor actual.</td></tr>
+  <tr><td>Siguiente iteración</td><td><code>continue_loop</code></td><td>Equivalente a <code>continue</code>: salta al final de la iteración actual.</td></tr>
+</table>
+
+<h3>19.4 Quiz Pro, Concursantes Pro y Persistencia</h3>
+<table>
+  <tr><th>Bloque</th><th>Opcode</th><th>Qué hace</th></tr>
+  <tr><td>Fijar pregunta</td><td><code>quiz_set_question</code></td><td>Sustituye el texto de la pregunta actual.</td></tr>
+  <tr><td>Revelar respuesta</td><td><code>quiz_reveal_answer</code></td><td>Muestra la respuesta correcta en pantalla.</td></tr>
+  <tr><td>Puntos / Puesto</td><td><code>quiz_get_score</code> / <code>quiz_get_player_rank</code></td><td>Reporteros de puntuación y ranking en vivo.</td></tr>
+  <tr><td>Reset / Opciones</td><td><code>quiz_reset_scores</code> / <code>quiz_shuffle_options</code> / <code>quiz_get_option_count</code></td><td>Reinicia marcadores, baraja A/B/C/D, nº de opciones.</td></tr>
+  <tr><td>Concursantes Pro</td><td><code>players_get_points</code>, <code>players_get_count</code>, <code>players_get_all_names</code>, <code>players_eliminate</code>, <code>players_revive</code>, <code>players_get_rank</code></td><td>Métricas, eliminación/revivir y ranking en vivo.</td></tr>
+  <tr><td>Persistencia</td><td><code>state_set_persistent</code> / <code>state_get_persistent</code> / <code>state_load_persistent</code></td><td>Guarda/carga claves en SQLite y las rehidrata en RAM.</td></tr>
+</table>
+
+<h3>19.5 Efectos, Audio y Runtime Pro</h3>
+<table>
+  <tr><th>Bloque</th><th>Opcode</th><th>Qué hace</th></tr>
+  <tr><td>Destello / Sacudida</td><td><code>screen_flash</code> / <code>screen_shake</code></td><td>Efectos de pantalla en vivo (color/intensidad).</td></tr>
+  <tr><td>Anuncio / Timer</td><td><code>announce</code> / <code>display_set_timer</code></td><td>Texto grande temporal; fija el timer de un display.</td></tr>
+  <tr><td>SFX / Master</td><td><code>play_sfx_by_name</code> / <code>set_master_volume</code></td><td>SFX por nombre; volumen master global.</td></tr>
+  <tr><td>Debug / Export</td><td><code>runtime_debug_log</code> / <code>runtime_export_json</code></td><td>Log de depuración y volcado JSON del estado.</td></tr>
+</table>
+
+<div class="tip">
+  <b>Ejemplo Power Pack — ranking en vivo:</b><br>
+  <code>on_question_start</code> → <code>quiz_fetch_next_question</code> →
+  <code>for_each_in_list</code> (VAR: p, NAME: jugadores) → dentro:
+  <code>if</code> <code>logic_compare</code> (<code>players_get_points(p)</code> &gt; 0) →
+  <code>announce</code> "Líder: " + <code>players_get_name(p)</code>.
+</div>
+
+<h3>19.6 Extensiones — Cronómetro, Datos y Tiempo</h3>
+<table>
+  <tr><th>Bloque</th><th>Opcode</th><th>Qué hace</th></tr>
+  <tr><td>Timer restante / Fijar</td><td><code>get_timer_remaining</code> / <code>set_timer_duration</code></td><td>Lee o fija el cronómetro en segundos.</td></tr>
+  <tr><td>Pausar / Reanudar timer</td><td><code>timer_pause</code> / <code>timer_resume</code></td><td>Controla la pausa del cronómetro.</td></tr>
+  <tr><td>Metadata quiz</td><td><code>quiz_get_correct_option</code>, <code>quiz_get_question_image</code>, <code>quiz_get_difficulty</code>, <code>quiz_get_total_questions</code></td><td>Opción correcta, imagen, dificultad y total.</td></tr>
+  <tr><td>Ranking concursantes</td><td><code>players_sort_by_score</code>, <code>players_get_top_n</code>, <code>players_award_bonus</code></td><td>Ordena por puntos, top-N en JSON y bonus.</td></tr>
+  <tr><td>Listas extra</td><td><code>list_pop</code>, <code>list_reverse</code>, <code>list_unique</code>, <code>list_to_json</code></td><td>Saca último, invierte, deduplica y serializa.</td></tr>
+  <tr><td>Strings / Math / JSON</td><td><code>string_trim</code>, <code>string_repeat</code>, <code>string_split</code>, <code>string_to_number</code>, <code>string_matches</code>, <code>math_const</code>, <code>math_round_to</code>, <code>json_parse</code>, <code>json_stringify</code>, <code>random_choice</code></td><td>Recorte/repetición/partición de texto, regex, constantes (π/e/τ/φ), redondeo decimal, parseo y serialización JSON, elección aleatoria.</td></tr>
+  <tr><td>Tiempo / Runtime</td><td><code>get_timestamp</code>, <code>get_current_time</code></td><td>Epoch en ms y hora formateada (HH:MM:SS, HH:MM, DD/MM).</td></tr>
+</table>
+
+<!-- 20 -->
+<h2 id="ejemplos">20. Ejemplos Paso a Paso</h2>
+
+<h3>Ejemplo 1: Pantalla de bienvenida</h3>
+<ol>
+  <li>En la pestaña <b>on_mode_init</b>, arrastra <code>set_theme</code> y selecciona "neon".</li>
+  <li>Añade <code>set_text_smooth</code> con COMP: "titulo" y TXT: "¡Bienvenidos!".</li>
+  <li>Añade <code>play_sfx</code> con FILE: "welcome.mp3".</li>
+  <li>Pulsa <b>Vista</b> para ver el resultado.</li>
+</ol>
+
+<h3>Ejemplo 2: Quiz con tema custom</h3>
+<ol>
+  <li>En <b>on_mode_init</b>: <code>set_custom_theme</code> con BG: "#1a0533", TXT: "#e0c3fc", ACC: "#ff6b6b", FNT: "Poppins".</li>
+  <li>Añade <code>set_gradient_bg</code> con DIR: "↘", C1: "#1a0533", C2: "#0c0c1d".</li>
+  <li>Añade <code>quiz_init_engine</code> con N: 20, CAT: "mixed".</li>
+  <li>En <b>on_question_start</b>: <code>quiz_fetch_next_question</code> → <code>set_text_smooth</code> → <code>wait_seconds</code> → <code>quiz_lock_answers</code>.</li>
+  <li>En <b>on_player_answer</b>: <code>quiz_verify_player_answer</code> → <code>quiz_add_score_to_player</code>.</li>
+</ol>
+
+<h3>Ejemplo 3: Mostrar imagen de fondo</h3>
+<ol>
+  <li>En <b>on_mode_init</b>: <code>set_background_image</code> con SRC: "background.jpg".</li>
+  <li>Añade <code>set_text_smooth</code> con el texto superpuesto.</li>
+  <li>Añade <code>set_text_shadow</code> para que el texto sea legible sobre la imagen.</li>
+</ol>
+
+<div class="tip">
+  <b>Consejo:</b> empieza siempre por el bloque <i>on_mode_init</i> y construye de arriba
+  hacia abajo. Usa la <b>Vista previa</b> a menudo para verificar el resultado.
+</div>
+
+<div class="warn">
+  <b>Importante:</b> los bloques de tipo <i>contenedor</i> (si/entonces, repetir, intentar/si falla)
+  aún no soportan cuerpos anidados en el editor visual. Están planeados para una futura versión.
+</div>
+
+<p><a href="/docs/modo-builder">← Volver al centro de soporte</a></p>
+</main>
+</body>
+</html>

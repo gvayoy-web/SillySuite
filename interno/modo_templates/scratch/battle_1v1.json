@@ -1,0 +1,270 @@
+{
+  "id": "battle_1v1",
+  "title": "Batalla 1v1",
+  "description": "Duelo directo entre dos jugadores con alternancia de turnos y marcador en vivo.",
+  "tags": [
+    "batalla",
+    "1v1",
+    "duelo",
+    "competitivo"
+  ],
+  "difficulty": "dificil",
+  "heads": {
+    "on_mode_init": [
+      {
+        "opcode": "set_gradient_bg",
+        "args": {
+          "DIR": "→",
+          "C1": "#0a0a2e",
+          "C2": "#2d0a0a"
+        },
+        "next": {
+          "opcode": "set_custom_theme",
+          "args": {
+            "BG": "transparent",
+            "TXT": "#e0e0e0",
+            "ACC": "#ff4444",
+            "FNT": "Impact, sans-serif"
+          },
+          "next": {
+            "opcode": "quiz_init_engine",
+            "args": {
+              "N": 20,
+              "CAT": "mix"
+            },
+            "next": {
+              "opcode": "db_query_filter_difficulty",
+              "args": {
+                "D": "media"
+              },
+              "next": {
+                "opcode": "players_set_active_slots",
+                "args": {
+                  "N": 2
+                },
+                "next": {
+                  "opcode": "state_init_memory_key",
+                  "args": {
+                    "KEY": "turno",
+                    "DEF": 1
+                  },
+                  "next": {
+                    "opcode": "state_init_memory_key",
+                    "args": {
+                      "KEY": "puntos_j1",
+                      "DEF": 0
+                    },
+                    "next": {
+                      "opcode": "state_init_memory_key",
+                      "args": {
+                        "KEY": "puntos_j2",
+                        "DEF": 0
+                      },
+                      "next": {
+                        "opcode": "show_variable",
+                        "args": {
+                          "VAR": "puntos_j1",
+                          "DISP": "display-principal"
+                        },
+                        "next": {
+                          "opcode": "show_variable",
+                          "args": {
+                            "VAR": "puntos_j2",
+                            "DISP": "display-principal"
+                          },
+                          "next": {
+                            "opcode": "set_text_smooth",
+                            "args": {
+                              "COMP": "titulo-principal",
+                              "TXT": "BATALLA 1v1"
+                            },
+                            "next": {
+                              "opcode": "set_text_smooth",
+                              "args": {
+                                "COMP": "subtitulo",
+                                "TXT": "Jugador 1 vs Jugador 2 - Que gane el mejor!"
+                              },
+                              "next": {
+                                "opcode": "play_bg_music",
+                                "args": {
+                                  "FILE": "battle-theme.mp3",
+                                  "VOL": 40,
+                                  "LOOP": true
+                                },
+                                "next": {
+                                  "opcode": "spawn_particle_emitter",
+                                  "args": {
+                                    "KIND": "fire",
+                                    "X": 20,
+                                    "Y": 30
+                                  },
+                                  "next": {
+                                    "opcode": "spawn_particle_emitter",
+                                    "args": {
+                                      "KIND": "fire",
+                                      "X": 80,
+                                      "Y": 30
+                                    },
+                                    "next": {
+                                      "opcode": "play_sfx",
+                                      "args": {
+                                        "FILE": "sword-clash.mp3",
+                                        "VOL": 70,
+                                        "PITCH": false
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_question_start": [
+      {
+        "opcode": "quiz_fetch_next_question",
+        "args": {},
+        "next": {
+          "opcode": "state_increment_memory",
+          "args": {
+            "KEY": "turno",
+            "BY": 1
+          },
+          "next": {
+            "opcode": "set_text_smooth",
+            "args": {
+              "COMP": "pregunta-texto",
+              "TXT": "Pregunta de duelo"
+            },
+            "next": {
+              "opcode": "play_sfx",
+              "args": {
+                "FILE": "sword-clash.mp3",
+                "VOL": 65,
+                "PITCH": false
+              },
+              "next": {
+                "opcode": "wait_seconds",
+                "args": {
+                  "SEC": 12
+                },
+                "next": {
+                  "opcode": "quiz_lock_answers",
+                  "args": {},
+                  "next": {
+                    "opcode": "play_sfx",
+                    "args": {
+                      "FILE": "buzzer.mp3",
+                      "VOL": 70,
+                      "PITCH": false
+                    },
+                    "next": {
+                      "opcode": "set_text_smooth",
+                      "args": {
+                        "COMP": "titulo-principal",
+                        "TXT": "TIEMPO! - Punto perdido"
+                      },
+                      "next": {
+                        "opcode": "play_css_animation",
+                        "args": {
+                          "COMP": "titulo-principal",
+                          "ANIM": "shake"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_player_answer": [
+      {
+        "opcode": "quiz_verify_player_answer",
+        "args": {
+          "PLAYER": "current"
+        },
+        "next": {
+          "opcode": "quiz_add_score_to_player",
+          "args": {
+            "PLAYER": "current",
+            "PTS": 10
+          },
+          "next": {
+            "opcode": "set_text_smooth",
+            "args": {
+              "COMP": "subtitulo",
+              "TXT": "Jugador anota +10!"
+            },
+            "next": {
+              "opcode": "play_sfx",
+              "args": {
+                "FILE": "correct.mp3",
+                "VOL": 80,
+                "PITCH": false
+              },
+              "next": {
+                "opcode": "spawn_particle_emitter",
+                "args": {
+                  "KIND": "gold",
+                  "X": 50,
+                  "Y": 40
+                },
+                "next": {
+                  "opcode": "play_css_animation",
+                  "args": {
+                    "COMP": "titulo-principal",
+                    "ANIM": "flash"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_timer_expire": [
+      {
+        "opcode": "set_text_smooth",
+        "args": {
+          "COMP": "titulo-principal",
+          "TXT": "TIEMPO! - Punto perdido"
+        },
+        "next": {
+          "opcode": "play_sfx",
+          "args": {
+            "FILE": "miss.mp3",
+            "VOL": 75,
+            "PITCH": false
+          },
+          "next": {
+            "opcode": "play_css_animation",
+            "args": {
+              "COMP": "titulo-principal",
+              "ANIM": "shake"
+            },
+            "next": {
+              "opcode": "spawn_particle_emitter",
+              "args": {
+                "KIND": "fire",
+                "X": 50,
+                "Y": 50
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

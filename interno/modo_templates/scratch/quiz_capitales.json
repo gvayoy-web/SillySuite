@@ -1,0 +1,367 @@
+{
+  "id": "quiz_capitales",
+  "title": "Quiz de Capitales",
+  "description": "Quiz completo con engine de preguntas, leaderboard en vivo, scoring por velocidad.",
+  "tags": [
+    "quiz",
+    "trivia",
+    "completo",
+    "leaderboard"
+  ],
+  "difficulty": "dificil",
+  "heads": {
+    "on_mode_init": [
+      {
+        "opcode": "set_custom_theme",
+        "args": {
+          "BG": "#0b0b0b",
+          "TXT": "#f4f2ec",
+          "ACC": "#FF5E3A",
+          "FNT": "system-ui"
+        },
+        "next": {
+          "opcode": "set_text_shadow",
+          "args": {
+            "COMP": "titulo-principal",
+            "X": 3,
+            "Y": 3,
+            "BLR": 6,
+            "CLR": "#000000"
+          },
+          "next": {
+            "opcode": "quiz_init_engine",
+            "args": {
+              "N": 20,
+              "CAT": "mix"
+            },
+            "next": {
+              "opcode": "db_query_filter_difficulty",
+              "args": {
+                "D": "media"
+              },
+              "next": {
+                "opcode": "db_query_exclude_last_questions",
+                "args": {
+                  "N": 5
+                },
+                "next": {
+                  "opcode": "db_query_shuffle_answers",
+                  "args": {},
+                  "next": {
+                    "opcode": "players_set_active_slots",
+                    "args": {
+                      "N": 4
+                    },
+                    "next": {
+                      "opcode": "state_init_memory_key",
+                      "args": {
+                        "KEY": "pregunta_actual",
+                        "DEF": 1
+                      },
+                      "next": {
+                        "opcode": "state_init_memory_key",
+                        "args": {
+                          "KEY": "total_preguntas",
+                          "DEF": 20
+                        },
+                        "next": {
+                          "opcode": "state_init_memory_key",
+                          "args": {
+                            "KEY": "puntos_ronda",
+                            "DEF": 0
+                          },
+                          "next": {
+                            "opcode": "state_init_memory_key",
+                            "args": {
+                              "KEY": "aciertos_ronda",
+                              "DEF": 0
+                            },
+                            "next": {
+                              "opcode": "state_init_memory_key",
+                              "args": {
+                                "KEY": "fallos_ronda",
+                                "DEF": 0
+                              },
+                              "next": {
+                                "opcode": "show_variable",
+                                "args": {
+                                  "VAR": "pregunta_actual",
+                                  "DISP": "display-principal"
+                                },
+                                "next": {
+                                  "opcode": "show_variable",
+                                  "args": {
+                                    "VAR": "aciertos_ronda",
+                                    "DISP": "display-principal"
+                                  },
+                                  "next": {
+                                    "opcode": "set_text_smooth",
+                                    "args": {
+                                      "COMP": "titulo-principal",
+                                      "TXT": "QUIZ DE CAPITALES"
+                                    },
+                                    "next": {
+                                      "opcode": "set_text_smooth",
+                                      "args": {
+                                        "COMP": "subtitulo",
+                                        "TXT": "20 preguntas de conocimiento general"
+                                      },
+                                      "next": {
+                                        "opcode": "play_bg_music",
+                                        "args": {
+                                          "FILE": "quiz-theme.mp3",
+                                          "VOL": 30,
+                                          "LOOP": true
+                                        },
+                                        "next": {
+                                          "opcode": "spawn_particle_emitter",
+                                          "args": {
+                                            "KIND": "confetti",
+                                            "X": 50,
+                                            "Y": 15
+                                          },
+                                          "next": {
+                                            "opcode": "set_text_smooth",
+                                            "args": {
+                                              "COMP": "footer",
+                                              "TXT": "4 jugadores - Puntuacion segun velocidad"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_question_load": [
+      {
+        "opcode": "state_set_memory",
+        "args": {
+          "KEY": "puntos_ronda",
+          "VAL": 0
+        },
+        "next": {
+          "opcode": "state_set_memory",
+          "args": {
+            "KEY": "aciertos_ronda",
+            "VAL": 0
+          },
+          "next": {
+            "opcode": "state_set_memory",
+            "args": {
+              "KEY": "fallos_ronda",
+              "VAL": 0
+            },
+            "next": {
+              "opcode": "set_text_smooth",
+              "args": {
+                "COMP": "titulo-principal",
+                "TXT": ""
+              },
+              "next": {
+                "opcode": "set_text_smooth",
+                "args": {
+                  "COMP": "pregunta-texto",
+                  "TXT": ""
+                },
+                "next": {
+                  "opcode": "trigger_scene_wipe",
+                  "args": {
+                    "WIPE": "glitch"
+                  },
+                  "next": {
+                    "opcode": "play_sfx",
+                    "args": {
+                      "FILE": "whoosh.mp3",
+                      "VOL": 35,
+                      "PITCH": false
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_question_start": [
+      {
+        "opcode": "quiz_fetch_next_question",
+        "args": {},
+        "next": {
+          "opcode": "state_increment_memory",
+          "args": {
+            "KEY": "pregunta_actual",
+            "BY": 1
+          },
+          "next": {
+            "opcode": "set_text_smooth",
+            "args": {
+              "COMP": "pregunta-texto",
+              "TXT": "Pregunta de conocimiento"
+            },
+            "next": {
+              "opcode": "play_sfx",
+              "args": {
+                "FILE": "bell.mp3",
+                "VOL": 55,
+                "PITCH": false
+              },
+              "next": {
+                "opcode": "spawn_particle_emitter",
+                "args": {
+                  "KIND": "gold",
+                  "X": 50,
+                  "Y": 30
+                },
+                "next": {
+                  "opcode": "wait_seconds",
+                  "args": {
+                    "SEC": 12
+                  },
+                  "next": {
+                    "opcode": "quiz_lock_answers",
+                    "args": {},
+                    "next": {
+                      "opcode": "play_sfx",
+                      "args": {
+                        "FILE": "buzzer.mp3",
+                        "VOL": 70,
+                        "PITCH": false
+                      },
+                      "next": {
+                        "opcode": "set_text_smooth",
+                        "args": {
+                          "COMP": "titulo-principal",
+                          "TXT": "TIEMPO!"
+                        },
+                        "next": {
+                          "opcode": "play_css_animation",
+                          "args": {
+                            "COMP": "titulo-principal",
+                            "ANIM": "shake"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_player_answer": [
+      {
+        "opcode": "quiz_verify_player_answer",
+        "args": {
+          "PLAYER": "current"
+        },
+        "next": {
+          "opcode": "state_increment_memory",
+          "args": {
+            "KEY": "aciertos_ronda",
+            "BY": 1
+          },
+          "next": {
+            "opcode": "quiz_add_score_to_player",
+            "args": {
+              "PLAYER": "current",
+              "PTS": 10
+            },
+            "next": {
+              "opcode": "state_increment_memory",
+              "args": {
+                "KEY": "puntos_ronda",
+                "BY": 10
+              },
+              "next": {
+                "opcode": "set_text_smooth",
+                "args": {
+                  "COMP": "subtitulo",
+                  "TXT": "CORRECTO! +10 pts"
+                },
+                "next": {
+                  "opcode": "play_sfx",
+                  "args": {
+                    "FILE": "correct.mp3",
+                    "VOL": 75,
+                    "PITCH": false
+                  },
+                  "next": {
+                    "opcode": "spawn_particle_emitter",
+                    "args": {
+                      "KIND": "gold",
+                      "X": 50,
+                      "Y": 40
+                    },
+                    "next": {
+                      "opcode": "play_css_animation",
+                      "args": {
+                        "COMP": "titulo-principal",
+                        "ANIM": "flash"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_timer_expire": [
+      {
+        "opcode": "state_increment_memory",
+        "args": {
+          "KEY": "fallos_ronda",
+          "BY": 1
+        },
+        "next": {
+          "opcode": "set_text_smooth",
+          "args": {
+            "COMP": "titulo-principal",
+            "TXT": "TIEMPO AGOTADO!"
+          },
+          "next": {
+            "opcode": "play_sfx",
+            "args": {
+              "FILE": "alarm.mp3",
+              "VOL": 75,
+              "PITCH": false
+            },
+            "next": {
+              "opcode": "play_css_animation",
+              "args": {
+                "COMP": "titulo-principal",
+                "ANIM": "shake"
+              },
+              "next": {
+                "opcode": "spawn_particle_emitter",
+                "args": {
+                  "KIND": "fire",
+                  "X": 50,
+                  "Y": 50
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

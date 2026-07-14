@@ -1,0 +1,7 @@
+customtkinter
+flask
+flask-cors
+Pillow
+waitress
+websockets
+jsonschema

@@ -1,0 +1,35 @@
+name: Compile Modes
+
+on:
+  push:
+    paths: ['interno/modo_templates/**']
+  schedule:
+    - cron: '0 2 * * *'  # Medianoche
+  workflow_dispatch:
+
+jobs:
+  compile:
+    name: Validate & compile modes
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install jsonschema
+
+      - name: Compile and validate all modes
+        run: python scripts/compile_modes.py
+
+      - name: Upload compiled artifacts
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: compiled-modes
+          path: interno/modo_templates/compiled/
+          retention-days: 30

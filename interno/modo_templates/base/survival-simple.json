@@ -1,0 +1,68 @@
+{
+  "id": "survival-simple-template",
+  "nombre": "Supervivencia",
+  "descripcion": "Eliminación progresiva - el último equipo en pie gana",
+  "icono": "💀",
+  "autor": "SillyQuiz Community",
+  "categoria": "survival",
+  "tags": ["eliminación", "supervivencia", "equipos", "progresivo"],
+  "version": "1.0.0",
+  "fecha_creacion": "2024-07-11T16:42:16Z",
+  "descargas": 0,
+  "calificacion_promedio": 0,
+  "preview_image": "/static/images/templates/survival-simple.png",
+  "template_config": {
+    "preguntas": {
+      "source": "baseActual",
+      "categoria": "biblica",
+      "cantidad": 5,
+      "seleccion_aleatoria": true
+    },
+    "gamePlay": {
+      "modo": "survival",
+      "tipo": "progresivo",
+      "eliminado_por_ronda": 1,
+      "final_round_bonus": 2,
+      "mostrar_lista_vivos": true
+    },
+    "scoring": {
+      "correcto": 10,
+      "incorrecto": 0,
+      "bonus_survivir": true,
+      "last_standing_bonus": 50
+    },
+    "timing": {
+      "tiempo_por_pregunta": 25,
+      "alerta_a_los": 5,
+      "formato": "ss",
+      "conteo_regresivo_inicio": true
+    },
+    "visual": {
+      "tema": "survival",
+      "animaciones": ["eliminate", "glow"],
+      "overlay": "alive_list",
+      "mostrar_lista_vivos": true
+    },
+    "feedback": {
+      "mostrar_eliminado": true,
+      "tiempo_mostrar": 2,
+      "animacion_eliminar": "shake"
+    }
+  },
+  "componentes": [
+    "preguntas",
+    "gamePlay",
+    "scoring",
+    "timing",
+    "visual",
+    "feedback"
+  ],
+  "atributos": {
+    "min_tiempo": 15,
+    "max_tiempo": 60,
+    "min_preguntas": 5,
+    "max_preguntas": 20,
+    "permitirMultiEquipo": true,
+    "max_equipos": 8
+  }
+}

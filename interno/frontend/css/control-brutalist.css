@@ -1,0 +1,198 @@
+/* ============================================================
+   control-brutalist.css
+   Overrides brutalistas GLOBALES para todo el panel de control
+   (SILLYQUIZ). Cargado AL ÚLTIMO para vencer a los CSS
+   auxiliares (modo-builder, template-gallery, preview-engine,
+   dynamic-tabs). Objetivo: alto contraste, monoespaciado,
+   esquinas cuadradas, sombras duras, cero glow ni degradados.
+   ============================================================ */
+
+/* ─── Esquinas cuadradas en TODA la UI del control ─── */
+.sidebar, .content, .tab-panel, .btn, .card, .dashboard-card,
+.modal, .modal-content, .display-preview, input, select, textarea,
+.dropdown, .tooltip, .badge, .tab-btn, .panel-header, .panel-tab,
+.component-palette, .builder-canvas, .builder-component,
+.template-card, .preview-modal, .floating-panel, .filter-btn,
+.settings-tab, .metric-card, .card-title, .info-stat, .save-panel {
+  border-radius: 0 !important;
+}
+
+/* ─── Tipografía monoespaciada coherente en controles nativos ───
+   (los inputs/buttons usan fuente del sistema por defecto y rompen
+   la estética brutalista) ─── */
+body, button, input, select, textarea, .btn, .dashboard-card,
+.content-header h1, .card-title, .label, .badge, .tab-btn, .modal h1,
+.modal h2, .modal h3, .text-xs, .text-sm, .text-muted {
+  font-family: var(--font) !important;
+}
+
+/* ─── Personalización extrema (modal 🎛️) ─── */
+#personalizarBackdrop {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.72);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.personalizar-modal {
+  width: min(460px, 96vw);
+  max-height: 92vh; overflow-y: auto;
+  background: var(--surface);
+  border: 4px solid var(--accent);
+  box-shadow: 10px 10px 0 #000;
+}
+.personalizar-modal .modal-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 3px solid var(--border);
+  background: var(--accent); color: #fff;
+}
+.personalizar-modal .modal-header h2 {
+  font-family: var(--font); font-size: 1rem; letter-spacing: 1px; margin: 0; text-transform: uppercase;
+}
+.pers-section { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+.pers-label {
+  font-family: var(--font); font-weight: 700; font-size: 0.78rem;
+  text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px;
+}
+.pers-swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+.pers-swatch {
+  width: 30px; height: 30px; border: 2px solid var(--border2);
+  cursor: pointer; padding: 0; box-shadow: 2px 2px 0 #000;
+}
+.pers-swatch.active { outline: 3px solid #fff; outline-offset: 1px; border-color: #000; }
+.mt-2 { margin-top: 8px; } .mt-4 { margin-top: 16px; }
+
+/* Densidad compacta: reduce padding en tarjetas y botones */
+body.density-compact .dashboard-card,
+body.density-compact .card { padding: 8px !important; }
+body.density-compact .btn { padding: 5px 10px !important; font-size: 0.82rem !important; }
+body.density-compact .content-header { padding: 10px 14px !important; }
+body.density-compact .tab-panel { padding: 10px 14px !important; }
+
+/* ─── Quitar blur/glow de cristal de los paneles flotantes ─── */
+.display-preview,
+.floating-panel,
+.modal-content,
+.component-properties,
+.builder-header {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background-image: none !important;
+}
+
+/* ─── Scrollbars brutalistas (monitor de carga / listas) ─── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) var(--bg);
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: var(--bg); }
+*::-webkit-scrollbar-thumb {
+  background: var(--border2);
+  border: 2px solid var(--bg);
+}
+
+/* ─── Forzar esquinas cuadradas en todos los paneles (builder) ─── */
+.modo-builder-app,
+.component-palette,
+.builder-canvas,
+.builder-component,
+.component-properties,
+.palette-item,
+.builder-header,
+.builder-toolbar,
+.template-gallery-container,
+.gallery-header,
+.gallery-filters,
+.filter-btn,
+.template-card,
+.template-card-header,
+.template-card-footer,
+.preview-modal,
+.preview-header,
+.preview-tab,
+.info-stat,
+.save-panel,
+.save-form .checkbox-group,
+.floating-panel,
+.panel-header,
+.panel-tab,
+.settings-tab,
+.preview-display,
+.metric-card,
+.mode-builder-header,
+.mode-tab-header,
+.mode-preview-canvas,
+.control-item input,
+.control-item select,
+.mode-badge,
+.template-gallery {
+  border-radius: 0 !important;
+}
+
+/* ─── Template gallery: header con degradado → sólido ─── */
+.template-card-header {
+  background: var(--accent) !important;
+  color: #fff !important;
+}
+.template-category {
+  background: rgba(0, 0, 0, 0.25) !important;
+  color: #fff !important;
+}
+.feature-tag {
+  background: var(--bg) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--muted) !important;
+}
+.template-card:hover {
+  box-shadow: 6px 6px 0 var(--accent) !important;
+  transform: translate(-2px, -2px) !important;
+}
+
+/* ─── Quitar anillos glow del trigger del builder ─── */
+.mode-builder-trigger {
+  animation: none !important;
+  box-shadow: 4px 4px 0 var(--bg) !important;
+}
+.mode-builder-badge {
+  animation: none !important;
+}
+
+/* ─── Paneles flotantes: sombra dura coherente ─── */
+.floating-panel {
+  box-shadow: 8px 8px 0 var(--accent) !important;
+}
+
+/* ─── Preview engine / dynamic tabs acentos coherentes ─── */
+.preview-tab.active,
+.settings-tab.active,
+.panel-tab.active,
+.preview-btn.active,
+.filter-btn.active {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff !important;
+}
+
+/* ─── Tipografía monoespaciada en etiquetas de config ─── */
+.config-item label,
+.control-item label,
+.form-field label,
+.palette-section-title,
+.card-title,
+.content-header h1 {
+  font-family: var(--font-display) !important;
+}
+
+/* ─── Modo claro: mantener sombras duras en negro ─── */
+html.control-light .template-card:hover { box-shadow: 6px 6px 0 #111 !important; }
+html.control-light .floating-panel { box-shadow: 8px 8px 0 #111 !important; }
+html.control-light .mode-builder-trigger { box-shadow: 4px 4px 0 var(--bg) !important; }
+html.control-light .preview-tab.active,
+html.control-light .settings-tab.active,
+html.control-light .panel-tab.active,
+html.control-light .preview-btn.active,
+html.control-light .filter-btn.active {
+  background: var(--accent) !important;
+  color: #fff !important;
+}

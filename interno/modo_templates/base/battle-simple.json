@@ -1,0 +1,67 @@
+{
+  "id": "battle-simple-template",
+  "nombre": "Batalla 1v1",
+  "descripcion": "Competencia uno contra uno con puntuación por respuestas correctas",
+  "icono": "⚔️",
+  "autor": "SillyQuiz Community",
+  "categoria": "battle",
+  "tags": ["competitivo", "1v1", "rápido", "puntos"],
+  "version": "1.0.0",
+  "fecha_creacion": "2024-07-11T16:42:16Z",
+  "descargas": 0,
+  "calificacion_promedio": 0,
+  "preview_image": "/static/images/templates/battle-simple.png",
+  "template_config": {
+    "preguntas": {
+      "source": "baseActual",
+      "categoria": "biblica",
+      "cantidad": 10,
+      "seleccion_aleatoria": true
+    },
+    "gamePlay": {
+      "modo": "battle_1v1",
+      "equipo1": "Jugador 1",
+      "equipo2": "Jugador 2",
+      "alternar_turnos": true,
+      "mostrar_nombres": true
+    },
+    "scoring": {
+      "correcto": 10,
+      "incorrecto": 0,
+      "bonus_rapidez": false,
+      "multiplicador_racha": 1.2
+    },
+    "timing": {
+      "segundos_por_pregunta": 20,
+      "alerta_a_los": 3,
+      "formato": "ss",
+      "reves": false
+    },
+    "visual": {
+      "tema": "battle",
+      "animaciones": ["flash", "confetti"],
+      "overlay": "battle_overlay",
+      "mostrar_barra_tiempo": true
+    },
+    "feedback": {
+      "mostrar_resultado": true,
+      "tiempo_mostrar": 3,
+      "animacion_final": "confetti"
+    }
+  },
+  "componentes": [
+    "preguntas",
+    "gamePlay",
+    "scoring",
+    "timing",
+    "visual",
+    "feedback"
+  ],
+  "atributos": {
+    "min_tiempo": 10,
+    "max_tiempo": 30,
+    "min_preguntas": 5,
+    "max_preguntas": 20,
+    "permitirMultiEquipo": false
+  }
+}

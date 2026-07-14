@@ -1,0 +1,103 @@
+{
+    "preguntas": [
+        {
+            "texto": "test",
+            "respuesta": "lol",
+            "id": 1,
+            "opciones": [
+                "lo",
+                "ol",
+                "lol"
+            ],
+            "respuesta_correcta": 0
+        }
+    ],
+    "puntos": {},
+    "display_config": {
+        "kiosko": false,
+        "animations_disabled": false,
+        "overlay_reset": 0,
+        "black_screen": false,
+        "frozen": false,
+        "clean": false,
+        "eliminados": [],
+        "final_round": false,
+        "final_results": false,
+        "grupos_config": [],
+        "default_timer": 45,
+        "bg_style": "default",
+        "decorations": true,
+        "particles": false,
+        "theme": "default",
+        "screen_shake": true,
+        "confetti": true,
+        "sound": true,
+        "scanline": false,
+        "glow_fx": false,
+        "ultra_glow": false,
+        "vignette": false,
+        "glow_pulse": false,
+        "score_breathe": false,
+        "bg_breath": false,
+        "fractal_animations": false,
+        "micro_particles": false,
+        "dynamic_bg": false,
+        "theme_effects": true,
+        "score_anim": "none",
+        "crown_leader": false,
+        "flash_intensity": 1,
+        "show_progress": false,
+        "edge_blend": "none",
+        "welcome_screen": false,
+        "show_verse": false,
+        "dynamic_bars": false,
+        "theme_slug": null,
+        "sound_map": {
+            "events": {},
+            "modes": {},
+            "background": null,
+            "channels": {
+                "sfx": 1.0,
+                "music": 1.0,
+                "ambient": 1.0,
+                "voice": 1.0
+            },
+            "muted": false,
+            "enabled": true
+        },
+        "theme_layout": {},
+        "timer_style": "circle",
+        "timer_colors": {},
+        "last_rotation": null,
+        "rotation_enabled": false,
+        "screens": {
+            "1": {
+                "name": "Principal",
+                "role": "main",
+                "elements": {
+                    "timer": true,
+                    "question": true,
+                    "scores": true,
+                    "shapes": true,
+                    "overlays": true
+                },
+                "layout": {},
+                "mapping": {}
+            },
+            "2": {
+                "name": "Pantalla 2",
+                "role": "secondary",
+                "elements": {
+                    "timer": false,
+                    "question": false,
+                    "scores": true,
+                    "shapes": true,
+                    "overlays": false
+                },
+                "layout": {},
+                "mapping": {}
+            }
+        }
+    },
+    "leaderboard": {}
+}

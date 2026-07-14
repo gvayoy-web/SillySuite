@@ -1,0 +1,146 @@
+{
+  "id": "bienvenida_color",
+  "title": "Bienvenida con Color",
+  "description": "Pantalla de bienvenida con secuencia de animaciones escalonadas, gradientes dinámicos y música ambiental.",
+  "tags": ["bienvenida", "intro", "tema", "animación"],
+  "difficulty": "fácil",
+  "heads": {
+    "on_mode_init": [
+      {
+        "opcode": "set_gradient_bg",
+        "args": { "DIR": "↓", "C1": "#0a0a2e", "C2": "#1a0533" },
+        "next": {
+          "opcode": "set_custom_theme",
+          "args": { "BG": "transparent", "TXT": "#00ff88", "ACC": "#ff00ff", "FNT": "system-ui" },
+          "next": {
+            "opcode": "set_text_smooth",
+            "args": { "COMP": "titulo-principal", "TXT": "" },
+            "next": {
+              "opcode": "set_text_smooth",
+              "args": { "COMP": "subtitulo", "TXT": "" },
+              "next": {
+                "opcode": "state_init_memory_key",
+                "args": { "KEY": "anim_step", "DEF": 0 },
+                "next": {
+                  "opcode": "state_init_memory_key",
+                  "args": { "KEY": "bienvenida_activa", "DEF": 1 },
+                  "next": {
+                    "opcode": "play_bg_music",
+                    "args": { "FILE": "ambient-intro.mp3", "VOL": 30, "LOOP": true },
+                    "next": {
+                      "opcode": "spawn_particle_emitter",
+                      "args": { "KIND": "gold", "X": 50, "Y": 10 },
+                      "next": {
+                        "opcode": "set_custom_theme",
+                        "args": { "BG": "transparent", "TXT": "#00ff88", "ACC": "#ff00ff", "FNT": "system-ui" },
+                        "next": {
+                          "opcode": "set_filter",
+                          "args": { "COMP": "titulo-principal", "FILTER": "brightness" },
+                          "next": {
+                            "opcode": "create_overlay",
+                            "args": { "ID": "vignette", "X": 0, "Y": 0, "W": 100, "H": 100 },
+                            "next": {
+                              "opcode": "set_layer_z_index",
+                              "args": { "COMP": "vignette", "Z": 5 },
+                              "next": {
+                                "opcode": "set_opacity_block",
+                                "args": { "COMP": "titulo-principal", "VAL": 0 },
+                                "next": {
+                                  "opcode": "set_scale",
+                                  "args": { "COMP": "titulo-principal", "S": 50 },
+                                  "next": {
+                                    "opcode": "set_rotation",
+                                    "args": { "COMP": "titulo-principal", "DEG": -5 },
+                                    "next": {
+                                      "opcode": "set_text_smooth",
+                                       "args": { "COMP": "titulo-principal", "TXT": "SillyQuiz" },
+                                      "next": {
+                                        "opcode": "play_css_animation",
+                                        "args": { "COMP": "titulo-principal", "ANIM": "elastic-in" },
+                                        "next": {
+                                          "opcode": "spawn_particle_emitter",
+                                          "args": { "KIND": "confetti", "X": 30, "Y": 40 },
+                                          "next": {
+                                            "opcode": "spawn_particle_emitter",
+                                            "args": { "KIND": "confetti", "X": 70, "Y": 40 },
+                                            "next": {
+                                              "opcode": "play_sfx",
+                                              "args": { "FILE": "whoosh.mp3", "VOL": 60, "PITCH": false },
+                                              "next": {
+                                                "opcode": "wait_seconds",
+                                                "args": { "SEC": 2 },
+                                                "next": {
+                                                  "opcode": "set_text_smooth",
+                                                  "args": { "COMP": "subtitulo", "TXT": "El mejor juego de conocimiento" },
+                                                  "next": {
+                                                    "opcode": "play_sfx",
+                                                    "args": { "FILE": "ding.mp3", "VOL": 50, "PITCH": false },
+                                                    "next": {
+                                                      "opcode": "wait_seconds",
+                                                      "args": { "SEC": 3 },
+                                                      "next": {
+                                                        "opcode": "set_text_smooth",
+                                                        "args": { "COMP": "footer", "TXT": "Pulsa cualquier tecla para comenzar" },
+                                                        "next": {
+                                                          "opcode": "play_css_animation",
+                                                          "args": { "COMP": "footer", "ANIM": "fade" },
+                                                          "next": null
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_question_start": [
+      {
+        "opcode": "set_text_smooth",
+        "args": { "COMP": "titulo-principal", "TXT": "¡Comienza el juego!" },
+        "next": {
+          "opcode": "play_sfx",
+          "args": { "FILE": "correct.mp3", "VOL": 70, "PITCH": false },
+          "next": {
+            "opcode": "spawn_particle_emitter",
+            "args": { "KIND": "gold", "X": 50, "Y": 20 },
+            "next": {
+              "opcode": "trigger_scene_wipe",
+              "args": { "WIPE": "fade" },
+              "next": null
+            }
+          }
+        }
+      }
+    ],
+    "on_player_answer": [
+      {
+        "opcode": "play_sfx",
+        "args": { "FILE": "pop.mp3", "VOL": 50, "PITCH": false },
+        "next": {
+          "opcode": "play_css_animation",
+          "args": { "COMP": "titulo-principal", "ANIM": "flash" },
+          "next": null
+        }
+      }
+    ]
+  }
+}

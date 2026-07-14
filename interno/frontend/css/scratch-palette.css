@@ -1,0 +1,140 @@
+/* ==========================================================================
+   SCRATCH PALETTE — Brutalist redesign  (SillyQuiz)
+   ========================================================================== */
+.scratch-palette {
+  width: 284px; flex: 0 0 284px;
+  background: var(--surface, #F4F2EC);
+  border-right: 3px solid var(--ink, #0a0a0a);
+  overflow-y: auto; height: 100%; padding: 0;
+  position: relative;
+}
+.scratch-palette::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(10,10,10,0.03) 23px, rgba(10,10,10,0.03) 24px),
+    repeating-linear-gradient(90deg, transparent, transparent 23px, rgba(10,10,10,0.02) 23px, rgba(10,10,10,0.02) 24px);
+  background-size: 24px 24px;
+  pointer-events: none;
+  z-index: 0;
+}
+.palette-category { border-bottom: 3px solid var(--ink, #0a0a0a); position: relative; z-index: 1; }
+.palette-category-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px; cursor: pointer; user-select: none;
+  background: var(--paper, #ECEAE3);
+  border-left: 8px solid var(--block-color, var(--cat-control));
+  font-family: var(--font-display, 'Inter', 'Segoe UI', system-ui, sans-serif);
+  font-size: 0.7rem; font-weight: var(--fw-black, 900); text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--ink, #0a0a0a);
+  transition: background 0.15s ease, border-left-width 0.15s ease;
+}
+.palette-category-header:hover {
+  background: var(--paper-2, #E2DFD6);
+  border-left-width: 12px;
+}
+.palette-category-header .swatch {
+  width: 14px; height: 14px; border-radius: 0; background: var(--block-color, var(--cat-control));
+  border: 2px solid var(--ink, #0a0a0a);
+  box-shadow: 2px 2px 0 rgba(10,10,10,0.2);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.palette-category-header:hover .swatch {
+  transform: scale(1.1);
+  box-shadow: 3px 3px 0 rgba(10,10,10,0.3);
+}
+.palette-category-header .cat-count {
+  margin-left: auto;
+  font-size: 0.6rem;
+  background: var(--ink, #0a0a0a);
+  color: var(--paper, #ECEAE3);
+  padding: 2px 6px;
+  font-weight: 900;
+  font-family: var(--font-mono, monospace);
+}
+.palette-category.collapsed .palette-category-content { display: none; }
+.palette-category-content { padding: 8px; display: flex; flex-direction: column; gap: 8px; background: var(--paper-2, #E2DFD6); }
+
+.palette-block {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 11px; background: var(--paper, #ECEAE3);
+  border: 2px solid var(--ink, #0a0a0a); border-radius: 0;
+  border-left: 6px solid var(--block-color, var(--cat-control));
+  cursor: grab; font-size: 0.82rem; font-weight: 800; color: var(--ink, #0a0a0a);
+  box-shadow: 3px 3px 0 var(--ink, #0a0a0a);
+  transition: transform 70ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 90ms ease, background 90ms ease, border-color 90ms ease;
+  position: relative;
+  overflow: hidden;
+}
+.palette-block::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+.palette-block:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--ink, #0a0a0a);
+  background: #fff;
+}
+.palette-block:hover::before {
+  opacity: 1;
+}
+.palette-block:active {
+  cursor: grabbing;
+  transform: translate(1px,1px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.palette-block .pb-icon {
+  display: inline-grid; place-items: center; width: 26px; height: 26px; flex: 0 0 26px;
+  border-radius: 0; font-size: 0.95rem; color: var(--block-text, #fff);
+  background: var(--block-color, var(--cat-control));
+  border: 2px solid var(--ink, #0a0a0a);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.palette-block:hover .pb-icon {
+  transform: scale(1.05);
+  box-shadow: 2px 2px 0 rgba(10,10,10,0.3);
+}
+.palette-block .pb-label { flex: 1; }
+.palette-block .pb-type {
+  font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--ink, #0a0a0a); background: var(--paper-2, #E2DFD6);
+  border: 1px solid var(--ink, #0a0a0a); padding: 2px 5px; font-weight: 900;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.palette-block:hover .pb-type {
+  background: var(--ink, #0a0a0a);
+  color: var(--paper, #ECEAE3);
+}
+
+/* Buscador en vivo de la paleta */
+.palette-search {
+  position: sticky; top: 0; z-index: 5;
+  padding: 10px; background: var(--surface, #F4F2EC);
+  border-bottom: 3px solid var(--ink, #0a0a0a);
+  box-shadow: 0 3px 0 rgba(10,10,10,0.12);
+}
+.palette-search input {
+  width: 100%; box-sizing: border-box;
+  padding: 9px 11px; font: 800 0.85rem 'Segoe UI', system-ui, sans-serif;
+  color: var(--ink, #0a0a0a); background: var(--paper, #ECEAE3);
+  border: 2px solid var(--ink, #0a0a0a); border-radius: 0;
+  box-shadow: inset 2px 2px 0 rgba(10,10,10,0.08);
+  transition: box-shadow 0.15s ease;
+}
+.palette-search input:focus { outline: none; box-shadow: inset 3px 3px 0 var(--cat-control, #FF5E3A); }
+.palette-search input::placeholder { color: var(--muted, #8a8780); font-weight: 700; }
+
+/* Oculto por el filtro de búsqueda */
+.hidden { display: none !important; }

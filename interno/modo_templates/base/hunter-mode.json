@@ -1,0 +1,66 @@
+{
+  "id": "hunter-mode-template",
+  "nombre": "Cazador",
+  "descripcion": "Modo de caza con preguntas y temporizadores. Encuentra las respuestas correctas antes de que se acabe el tiempo.",
+  "icono": "🏴‍☠️",
+  "autor": "SillyQuiz Community",
+  "categoria": "hunter",
+  "tags": ["rapido", "competitivo", "caza"],
+  "version": "1.0.0",
+  "fecha_creacion": "2024-01-15T10:00:00Z",
+  "descargas": 1500,
+  "calificacion_promedio": 4.8,
+  "preview_image": "/static/images/templates/hunter-mode.png",
+  "template_config": {
+    "preguntas": {
+      "source": "baseActual",
+      "categorias": ["genesis", "exodo", "leviticus", "numeros", "deuteronomio"],
+      "cantidadPreguntas": 20,
+      "dificultad": "balanced",
+      "tipo": "multiple_choice"
+    },
+    "timer": {
+      "tipo": "countdown",
+      "valorInicial": 60,
+      "alertaEn": 10,
+      "formato": "mm:ss",
+      "autoAvance": true
+    },
+    "scoring": {
+      "correcto": 10,
+      "incorrecto": -3,
+      "racha": true,
+      "bonus_categoria": true,
+      "multiplicador_racha": 1.2
+    },
+    "audio": {
+      "musicaFondo": "ambient-bible-study.mp3",
+      "volumenMusica": 30,
+      "efectosSonido": ["click", "success", "error", "timer_alert"]
+    },
+    "visual": {
+      "tema": "fire",
+      "animaciones": ["pulse", "flash", "confetti"],
+      "overlay": "scoreboard",
+      "templetes": ["default", "minimal", "bold"]
+    },
+    "feedback": {
+      "mostrarCorrecta": true,
+      "tiempo_mostrar": 3,
+      "animacion_revelar": "flash"
+    }
+  },
+  "componentes": [
+    "preguntas",
+    "timer",
+    "scoring",
+    "audio",
+    "visual"
+  ],
+  "atributos": {
+    "maxPreguntas": 100,
+    "minTiempo": 30,
+    "maxTiempo": 300,
+    "permitirMultiEquipo": true
+  }
+}

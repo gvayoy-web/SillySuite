@@ -1,0 +1,27 @@
+/* ==========================================================================
+   SCRATCH INSPECTOR — Brutalist redesign  (SillyQuiz)
+   ========================================================================== */
+.scratch-inspector .inspector-section-title {
+  font-size: 0.7rem; font-weight: 900; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--ink, #0a0a0a); margin: 0 0 14px;
+  border-bottom: 3px solid var(--ink, #0a0a0a); padding-bottom: 8px;
+}
+.scratch-inspector .inspector-meta {
+  font-size: 0.72rem; color: var(--muted, #6b6b6b); margin-bottom: 8px;
+  font-weight: 700;
+}
+.scratch-inspector .inspector-meta code {
+  color: var(--ink, #0a0a0a); background: var(--paper, #ECEAE3);
+  border: 2px solid var(--ink, #0a0a0a); padding: 1px 6px; font-weight: 900;
+}
+.scratch-inspector .btn-sm {
+  padding: 8px 14px; border: 2px solid var(--ink, #0a0a0a); border-radius: 0;
+  background: var(--paper, #ECEAE3); color: var(--ink, #0a0a0a);
+  cursor: pointer; font-size: 0.8rem; font-weight: 900;
+  box-shadow: 3px 3px 0 var(--ink, #0a0a0a);
+  transition: transform 70ms ease, box-shadow 90ms ease;
+}
+.scratch-inspector .btn-sm:hover { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 var(--ink); }
+.scratch-inspector .btn-sm:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
+.scratch-inspector .inspector-list { margin: 4px 0 12px; padding-left: 18px; font-size: 0.78rem; }
+.scratch-inspector .inspector-list li { margin: 2px 0; }

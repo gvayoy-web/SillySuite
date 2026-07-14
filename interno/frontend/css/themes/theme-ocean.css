@@ -1,0 +1,128 @@
+body.theme-ocean {
+  --bg: #001a2a;
+  --surface: #002a40;
+  --border: #004466;
+  --text: #a0d4f0;
+  --wc: #d0eaff;
+  --muted: #4a7a8a;
+  --accent: #00bbff;
+  --glow: rgba(0,187,255,0.3);
+  --glow-strong: rgba(0,187,255,0.5);
+  --shadow: 8px 8px 0px #00334d;
+  --shadow-sm: 4px 4px 0px #00334d;
+  --shadow-lg: 0 8px 40px rgba(0,150,200,0.25);
+  --bg-gradient: radial-gradient(ellipse at 30% 20%, rgba(0,150,255,0.14) 0%, transparent 60%), radial-gradient(ellipse at 70% 80%, rgba(0,200,200,0.1) 0%, transparent 50%);
+}
+
+body.theme-ocean .score-card { background: var(--surface); border-color: var(--border); }
+body.theme-ocean .header { background: var(--surface); border-bottom-color: var(--border); }
+body.theme-ocean .live-badge { background: var(--border); color: #fff; }
+body.theme-ocean .q-text { color: #a0d4f0; }
+body.theme-ocean .ans-text { color: var(--text); }
+body.theme-ocean .timer-badge { background: var(--surface); border-color: var(--border); box-shadow: 6px 6px 0 var(--border); }
+body.theme-ocean .timer-num { color: var(--surface); text-shadow: 6px 6px 0 var(--border); -webkit-text-stroke: 3px var(--border); }
+body.theme-ocean .card-name { color: var(--text); }
+body.theme-ocean .card-rank { background: var(--surface); color: var(--text); border-color: var(--border); }
+body.theme-ocean .card-bar-wrap { background: var(--surface); border-color: var(--border); box-shadow: 2px 2px 0 var(--border); }
+body.theme-ocean .q-progress-text { color: var(--text); }
+body.theme-ocean .anim-box { background: var(--surface); border-color: var(--border); box-shadow: 16px 16px 0 var(--border); }
+body.theme-ocean .anim-label { color: var(--text); }
+body.theme-ocean .anim-sub { background: var(--border); }
+body.theme-ocean .fullscreen-takeover .ft-sub { background: var(--border); }
+body.theme-ocean .score-card.rank-1::before {
+  background: conic-gradient(from var(--a, 0deg), var(--border), #00aaff, #00ddff, #00ffaa, #00aaff, var(--border));
+}
+body.theme-ocean .option-card { background: var(--surface); border-color: var(--border); }
+body.theme-ocean .q-eyebrow {
+    background: linear-gradient(135deg, #0077bb, #00aaff);
+}
+
+/* Tension keyframes for theme-ocean */
+@keyframes oceanPulse {
+    0% { box-shadow: 0 0 20px rgba(0,150,255,0.2), 0 0 40px rgba(0,150,255,0.1); }
+    100% { box-shadow: 0 0 70px rgba(0,150,255,0.5), 0 0 120px rgba(0,150,255,0.25); }
+}
+@keyframes oceanDrift {
+    0% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-4px) scale(1.02); }
+    100% { transform: translateY(0) scale(1); }
+}
+@keyframes oceanSurge {
+    0% { opacity: 0.7; filter: brightness(1) drop-shadow(0 0 0 transparent); }
+    50% { opacity: 1; filter: brightness(1.2) drop-shadow(0 0 20px rgba(0,150,255,0.35)) drop-shadow(0 0 40px rgba(0,150,255,0.15)); }
+    100% { opacity: 0.7; filter: brightness(1) drop-shadow(0 0 0 transparent); }
+}
+@keyframes oceanWave {
+    0% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    100% { transform: translateX(-5px); }
+}
+body.theme-ocean .versos-clock-box.critical {
+    animation: oceanPulse 0.4s ease-in-out infinite alternate;
+}
+body.theme-ocean .versos-clock-number.critical {
+    animation: oceanSurge 0.6s ease-in-out infinite alternate;
+}
+
+/* ─── Theme Effects ─── */
+body.theme-ocean.theme-effects::before {
+  background: #001a2a;
+  background-image:
+    radial-gradient(ellipse at 30% 40%, rgba(0,150,255,0.2) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 70%, rgba(0,200,200,0.12) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 20%, rgba(0,100,200,0.15) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 50%, rgba(0,150,255,0.03) 0%, transparent 70%);
+  animation: oceanCurrents 18s ease-in-out infinite alternate !important;
+}
+@keyframes oceanCurrents {
+  0% { transform: translate(0,0) scale(1); opacity: 0.7; }
+  20% { transform: translate(1%, -0.5%) scale(1.01); opacity: 0.85; }
+  40% { transform: translate(-0.5%, 0.8%) scale(0.99); opacity: 0.9; }
+  60% { transform: translate(0.8%, -0.3%) scale(1.005); opacity: 0.8; }
+  80% { transform: translate(-0.3%, 0.5%) scale(1.002); opacity: 0.85; }
+  100% { transform: translate(0.5%, -0.2%) scale(1.005); opacity: 0.75; }
+}
+body.theme-ocean.theme-effects #decorLayer::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(3px 3px at 10% 70%, rgba(100,220,255,0.5), transparent),
+    radial-gradient(2px 2px at 20% 45%, rgba(100,220,255,0.3), transparent),
+    radial-gradient(2.5px 2.5px at 30% 85%, rgba(150,240,255,0.4), transparent),
+    radial-gradient(2px 2px at 40% 30%, rgba(100,220,255,0.3), transparent),
+    radial-gradient(3px 3px at 50% 90%, rgba(150,240,255,0.5), transparent),
+    radial-gradient(2px 2px at 60% 55%, rgba(100,220,255,0.35), transparent),
+    radial-gradient(2.5px 2.5px at 70% 15%, rgba(150,240,255,0.3), transparent),
+    radial-gradient(2px 2px at 80% 80%, rgba(100,220,255,0.4), transparent),
+    radial-gradient(3px 3px at 90% 40%, rgba(150,240,255,0.5), transparent),
+    radial-gradient(2px 2px at 15% 20%, rgba(100,220,255,0.25), transparent),
+    radial-gradient(2.5px 2.5px at 35% 60%, rgba(150,240,255,0.35), transparent),
+    radial-gradient(2px 2px at 55% 5%, rgba(100,220,255,0.3), transparent),
+    radial-gradient(3px 3px at 75% 50%, rgba(150,240,255,0.4), transparent),
+    radial-gradient(2px 2px at 85% 95%, rgba(100,220,255,0.3), transparent),
+    radial-gradient(2.5px 2.5px at 45% 75%, rgba(150,240,255,0.35), transparent);
+  animation: oceanBubbles 6s ease-in-out infinite;
+}
+@keyframes oceanBubbles {
+  0% { transform: translateY(0) scale(1); opacity: 0.3; }
+  33% { transform: translateY(-2%) scale(1.03); opacity: 0.6; }
+  66% { transform: translateY(-4%) scale(0.97); opacity: 0.4; }
+  100% { transform: translateY(0) scale(1); opacity: 0.3; }
+}
+body.theme-ocean.theme-effects #decorLayer::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    repeating-linear-gradient(80deg, transparent 0px, transparent 40px, rgba(0,200,255,0.025) 40px, rgba(0,200,255,0.025) 41px),
+    repeating-linear-gradient(-80deg, transparent 0px, transparent 40px, rgba(0,150,255,0.02) 40px, rgba(0,150,255,0.02) 41px);
+  animation: oceanCaustics 8s ease-in-out infinite alternate;
+  mix-blend-mode: overlay;
+  opacity: 0.5;
+}
+@keyframes oceanCaustics {
+  0% { transform: translateX(0) translateY(0) scale(1); opacity: 0.3; }
+  25% { transform: translateX(2%) translateY(-0.5%) scale(1.01); opacity: 0.5; }
+  50% { transform: translateX(-1%) translateY(1%) scale(0.99); opacity: 0.4; }
+  75% { transform: translateX(1.5%) translateY(-0.3%) scale(1.005); opacity: 0.5; }
+  100% { transform: translateX(-0.5%) translateY(0.5%) scale(1.002); opacity: 0.35; }
+}

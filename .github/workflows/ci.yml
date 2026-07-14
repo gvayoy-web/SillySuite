@@ -1,0 +1,143 @@
+name: CI — LogosKQuiz
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1'  # Lunes 6am
+
+jobs:
+  python-tests:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('interno/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r interno/requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run Python tests
+        run: |
+          cd interno
+          python -m pytest ../tests/ -v --tb=short --cov=apps --cov-report=xml
+
+      - name: Upload coverage
+        if: matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v4
+        with:
+          file: interno/coverage.xml
+          fail_ci_if_error: false
+
+  js-tests:
+    name: Node.js ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['18', '20', '22']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Run JS tests
+        run: node tests/scratch-renderer.test.js
+
+  template-validation:
+    name: Validate templates
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate all template JSON
+        run: |
+          python -c "
+          import json, sys, os
+          errors = []
+          for root, dirs, files in os.walk('interno/modo_templates'):
+              for f in files:
+                  if f.endswith('.json'):
+                      path = os.path.join(root, f)
+                      try:
+                          with open(path) as fh:
+                              data = json.load(fh)
+                          if 'heads' in data:
+                              assert 'id' in data, f'{path}: missing id'
+                              assert 'title' in data, f'{path}: missing title'
+                              assert isinstance(data['heads'], dict), f'{path}: heads must be dict'
+                          else:
+                              assert 'id' in data or 'nombre' in data, f'{path}: missing id/nombre'
+                      except Exception as e:
+                          errors.append(f'{path}: {e}')
+          if errors:
+              for e in errors:
+                  print(f'ERROR: {e}', file=sys.stderr)
+              sys.exit(1)
+          print('All templates valid')
+          "
+
+  security-scan:
+    name: Security scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for hardcoded secrets
+        run: |
+          if grep -rn "password\s*=\s*['\"]" interno/ --include="*.py" --exclude-dir=__pycache__; then
+            echo "WARNING: Possible hardcoded passwords found"
+            exit 1
+          fi
+          echo "No hardcoded secrets found"
+
+      - name: Check CORS configuration
+        run: |
+          if grep -n "CORS(app)" interno/apps/app.py | grep -v "origins"; then
+            echo "WARNING: CORS may be too permissive"
+          fi
+
+      - name: Validate security headers
+        run: |
+          python -c "
+          import ast, sys
+          with open('interno/apps/blueprints/_security.py') as f:
+              content = f.read()
+          checks = ['X-Content-Type-Options', 'Content-Security-Policy']
+          for check in checks:
+              if check not in content:
+                  print(f'MISSING: {check}', file=sys.stderr)
+                  sys.exit(1)
+          print('Security headers present')
+          "

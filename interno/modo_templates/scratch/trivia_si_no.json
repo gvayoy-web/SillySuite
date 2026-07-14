@@ -1,0 +1,357 @@
+{
+  "id": "trivia_si_no",
+  "title": "Trivia Si / No",
+  "description": "Trivia rapida con scoring condicional, rachas de aciertos, progreso visual.",
+  "tags": [
+    "trivia",
+    "si-no",
+    "rapido",
+    "rachas"
+  ],
+  "difficulty": "media",
+  "heads": {
+    "on_mode_init": [
+      {
+        "opcode": "set_gradient_bg",
+        "args": {
+          "DIR": "→",
+          "C1": "#1a0f00",
+          "C2": "#0d1117"
+        },
+        "next": {
+          "opcode": "set_custom_theme",
+          "args": {
+            "BG": "transparent",
+            "TXT": "#d4a574",
+            "ACC": "#e8b848",
+            "FNT": "Georgia, serif"
+          },
+          "next": {
+            "opcode": "quiz_init_engine",
+            "args": {
+              "N": 15,
+              "CAT": "mixed"
+            },
+            "next": {
+              "opcode": "players_set_active_slots",
+              "args": {
+                "N": 4
+              },
+              "next": {
+                "opcode": "state_init_memory_key",
+                "args": {
+                  "KEY": "ronda_actual",
+                  "DEF": 1
+                },
+                "next": {
+                  "opcode": "state_init_memory_key",
+                  "args": {
+                    "KEY": "total_rondas",
+                    "DEF": 15
+                  },
+                  "next": {
+                    "opcode": "state_init_memory_key",
+                    "args": {
+                      "KEY": "racha_global",
+                      "DEF": 0
+                    },
+                    "next": {
+                      "opcode": "state_init_memory_key",
+                      "args": {
+                        "KEY": "total_correctas",
+                        "DEF": 0
+                      },
+                      "next": {
+                        "opcode": "state_init_memory_key",
+                        "args": {
+                          "KEY": "total_incorrectas",
+                          "DEF": 0
+                        },
+                        "next": {
+                          "opcode": "show_variable",
+                          "args": {
+                            "VAR": "ronda_actual",
+                            "DISP": "display-principal"
+                          },
+                          "next": {
+                            "opcode": "show_variable",
+                            "args": {
+                              "VAR": "racha_global",
+                              "DISP": "display-principal"
+                            },
+                            "next": {
+                              "opcode": "set_text_smooth",
+                              "args": {
+                                "COMP": "titulo-principal",
+                                "TXT": "TRIVIA SI / NO"
+                              },
+                              "next": {
+                                "opcode": "set_text_smooth",
+                                "args": {
+                                  "COMP": "subtitulo",
+                                  "TXT": "Verdadero o Falso - A demostrar tu conocimiento!"
+                                },
+                                "next": {
+                                  "opcode": "play_bg_music",
+                                  "args": {
+                                    "FILE": "trivia-theme.mp3",
+                                    "VOL": 35,
+                                    "LOOP": true
+                                  },
+                                  "next": {
+                                    "opcode": "spawn_particle_emitter",
+                                    "args": {
+                                      "KIND": "gold",
+                                      "X": 50,
+                                      "Y": 15
+                                    },
+                                    "next": {
+                                      "opcode": "play_sfx",
+                                      "args": {
+                                        "FILE": "bell.mp3",
+                                        "VOL": 60,
+                                        "PITCH": false
+                                      },
+                                      "next": {
+                                        "opcode": "set_text_smooth",
+                                        "args": {
+                                          "COMP": "footer",
+                                          "TXT": "15 preguntas - 10 segundos cada una"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_question_load": [
+      {
+        "opcode": "set_text_smooth",
+        "args": {
+          "COMP": "titulo-principal",
+          "TXT": ""
+        },
+        "next": {
+          "opcode": "set_text_smooth",
+          "args": {
+            "COMP": "pregunta-texto",
+            "TXT": ""
+          },
+          "next": {
+            "opcode": "trigger_scene_wipe",
+            "args": {
+              "WIPE": "glitch"
+            },
+            "next": {
+              "opcode": "play_sfx",
+              "args": {
+                "FILE": "whoosh.mp3",
+                "VOL": 40,
+                "PITCH": false
+              },
+              "next": {
+                "opcode": "state_init_memory_key",
+                "args": {
+                  "KEY": "respuesta_actual",
+                  "DEF": ""
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_question_start": [
+      {
+        "opcode": "quiz_fetch_next_question",
+        "args": {},
+        "next": {
+          "opcode": "set_text_smooth",
+          "args": {
+            "COMP": "pregunta-texto",
+            "TXT": "Pregunta de ronda actual"
+          },
+          "next": {
+            "opcode": "set_text_smooth",
+            "args": {
+              "COMP": "titulo-principal",
+              "TXT": "VERDADERO O FALSO?"
+            },
+            "next": {
+              "opcode": "play_sfx",
+              "args": {
+                "FILE": "ding.mp3",
+                "VOL": 55,
+                "PITCH": false
+              },
+              "next": {
+                "opcode": "spawn_particle_emitter",
+                "args": {
+                  "KIND": "gold",
+                  "X": 50,
+                  "Y": 30
+                },
+                "next": {
+                  "opcode": "wait_seconds",
+                  "args": {
+                    "SEC": 10
+                  },
+                  "next": {
+                    "opcode": "quiz_lock_answers",
+                    "args": {},
+                    "next": {
+                      "opcode": "play_sfx",
+                      "args": {
+                        "FILE": "buzzer.mp3",
+                        "VOL": 75,
+                        "PITCH": false
+                      },
+                      "next": {
+                        "opcode": "set_text_smooth",
+                        "args": {
+                          "COMP": "titulo-principal",
+                          "TXT": "TIEMPO!"
+                        },
+                        "next": {
+                          "opcode": "play_css_animation",
+                          "args": {
+                            "COMP": "titulo-principal",
+                            "ANIM": "shake"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_player_answer": [
+      {
+        "opcode": "quiz_verify_player_answer",
+        "args": {
+          "PLAYER": "current"
+        },
+        "next": {
+          "opcode": "state_increment_memory",
+          "args": {
+            "KEY": "ronda_actual",
+            "BY": 1
+          },
+          "next": {
+            "opcode": "state_increment_memory",
+            "args": {
+              "KEY": "racha_global",
+              "BY": 1
+            },
+            "next": {
+              "opcode": "state_increment_memory",
+              "args": {
+                "KEY": "total_correctas",
+                "BY": 1
+              },
+              "next": {
+                "opcode": "quiz_add_score_to_player",
+                "args": {
+                  "PLAYER": "current",
+                  "PTS": 5
+                },
+                "next": {
+                  "opcode": "set_text_smooth",
+                  "args": {
+                    "COMP": "subtitulo",
+                    "TXT": "CORRECTO! +5 pts"
+                  },
+                  "next": {
+                    "opcode": "play_sfx",
+                    "args": {
+                      "FILE": "correct.mp3",
+                      "VOL": 75,
+                      "PITCH": false
+                    },
+                    "next": {
+                      "opcode": "spawn_particle_emitter",
+                      "args": {
+                        "KIND": "confetti",
+                        "X": 50,
+                        "Y": 30
+                      },
+                      "next": {
+                        "opcode": "play_css_animation",
+                        "args": {
+                          "COMP": "titulo-principal",
+                          "ANIM": "flash"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "on_timer_expire": [
+      {
+        "opcode": "state_set_memory",
+        "args": {
+          "KEY": "racha_global",
+          "VAL": 0
+        },
+        "next": {
+          "opcode": "state_increment_memory",
+          "args": {
+            "KEY": "total_incorrectas",
+            "BY": 1
+          },
+          "next": {
+            "opcode": "state_increment_memory",
+            "args": {
+              "KEY": "ronda_actual",
+              "BY": 1
+            },
+            "next": {
+              "opcode": "play_sfx",
+              "args": {
+                "FILE": "times-up.mp3",
+                "VOL": 90,
+                "PITCH": false
+              },
+              "next": {
+                "opcode": "set_text_smooth",
+                "args": {
+                  "COMP": "titulo-principal",
+                  "TXT": "TIEMPO!"
+                },
+                "next": {
+                  "opcode": "spawn_particle_emitter",
+                  "args": {
+                    "KIND": "fire",
+                    "X": 50,
+                    "Y": 50
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}
