@@ -1,0 +1,571 @@
+"""
+Stage Panel Styles - Real-time Stage preview for scratch-build.
+
+Comprehensive styling for the Stage panel with play/pause/stop controls,
+event selection, size toggle, and real-time rendering capabilities.
+"""
+
+/* Stage Panel Base Styles */
+.scratch-stage-wrap {
+  width: 420px;
+  flex: 0 0 420px;
+  display: none;
+  flex-direction: column;
+  background: var(--stage-bg, #0f172a);
+  border-left: 3px solid var(--stage-border, #334155);
+  font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+  font-size: 14px;
+  color: var(--stage-text, #f1f5f9);
+  overflow: hidden;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.scratch-stage-wrap[data-open="1"] {
+  display: flex;
+}
+
+/* Stage Header with Controls */
+.scratch-stage .stage-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--stage-header-bg, #1e293b);
+  border-bottom: 2px solid var(--stage-border, #334155);
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Control Buttons (Play/Pause/Stop) */
+.scratch-stage .stage-controls {
+  display: inline-flex;
+  gap: 8px;
+  margin-right: 12px;
+}
+
+.scratch-stage .stage-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--stage-border, #334155);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 2px 2px 0 var(--stage-border, #334155);
+  background: var(--stage-bg, #0f172a);
+  color: var(--stage-text, #f1f5f9);
+}
+
+.scratch-stage .stage-btn:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 var(--stage-border, #334155);
+}
+
+.scratch-stage .stage-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--stage-border, #334155);
+}
+
+.scratch-stage .stage-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 2px 2px 0 var(--stage-border, #334155);
+}
+
+/* Specific button colors */
+.scratch-stage .stage-btn-green {
+  background: var(--stage-success, #10b981);
+  border-color: var(--stage-success-dark, #059669);
+  color: #fff;
+}
+
+.scratch-stage .stage-btn-green:hover:not(:disabled) {
+  background: var(--stage-success-dark, #059669);
+}
+
+.scratch-stage .stage-btn-yellow {
+  background: var(--stage-warning, #f59e0b);
+  border-color: var(--stage-warning-dark, #d97706);
+  color: #000;
+}
+
+.scratch-stage .stage-btn-yellow:hover:not(:disabled) {
+  background: var(--stage-warning-dark, #d97706);
+}
+
+.scratch-stage .stage-btn-red {
+  background: var(--stage-danger, #ef4444);
+  border-color: var(--stage-danger-dark, #dc2626);
+  color: #fff;
+}
+
+.scratch-stage .stage-btn-red:hover:not(:disabled) {
+  background: var(--stage-danger-dark, #dc2626);
+}
+
+/* State indicators and animations */
+.scratch-stage .stage-btn.running {
+  animation: stage-pulse-green 2s infinite;
+}
+
+.scratch-stage .stage-btn.paused {
+  animation: stage-pulse-yellow 2s infinite;
+}
+
+@keyframes stage-pulse-green {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes stage-pulse-yellow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+  }
+}
+
+/* Event Selector */
+.scratch-stage .stage-event-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  min-width: 140px;
+}
+
+.scratch-stage .stage-event-selector label {
+  color: var(--stage-muted, #94a3b8);
+  white-space: nowrap;
+}
+
+.scratch-stage .stage-event-selector select {
+  background: var(--stage-bg, #0f172a);
+  border: 2px solid var(--stage-border, #334155);
+  border-radius: 4px;
+  color: var(--stage-text, #f1f5f9);
+  padding: 6px 10px;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.scratch-stage .stage-event-selector select:hover {
+  border-color: var(--stage-accent, #3b82f6);
+}
+
+/* Size Toggle Buttons */
+.scratch-stage .stage-size-toggle {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.scratch-stage .stage-size-toggle button {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--stage-border, #334155);
+  background: var(--stage-bg, #0f172a);
+  color: var(--stage-text, #f1f5f9);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.scratch-stage .stage-size-toggle button:hover {
+  background: var(--stage-accent, #3b82f6);
+  color: #fff;
+  border-color: var(--stage-accent-dark, #2563eb);
+}
+
+.scratch-stage .stage-size-toggle button.active {
+  background: var(--stage-accent, #3b82f6);
+  color: #fff;
+  border-color: var(--stage-accent-dark, #2563eb);
+}
+
+/* Close button */
+.scratch-stage .stage-btn-secondary {
+  background: transparent;
+  border: 2px solid var(--stage-danger, #ef4444);
+  color: var(--stage-danger, #ef4444);
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.scratch-stage .stage-btn-secondary:hover {
+  background: var(--stage-danger, #ef4444);
+  color: #fff;
+}
+
+/* Viewport and screen container */
+.scratch-stage .stage-viewport {
+  flex: 1;
+  overflow: auto;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: var(--stage-bg-alt, #0b0f18);
+}
+
+.scratch-stage .stage-screen {
+  width: 100%;
+  max-width: 960px;
+  aspect-ratio: 16/9;
+  min-height: 540px;
+  background: #fff;
+  border-radius: 0;
+  box-shadow: 4px 4px 0 var(--stage-border, #334155);
+  overflow: hidden;
+}
+
+/* Console section */
+.scratch-stage .stage-console {
+  height: 140px;
+  background: #0b0b0b;
+  color: #e8e8e8;
+  border-top: 2px solid var(--stage-border, #334155);
+  padding: 10px 14px;
+  overflow-y: auto;
+  font-family: 'Consolas', 'SF Mono', monospace;
+  font-size: 0.75rem;
+}
+
+.scratch-stage .stage-console .log-line {
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scratch-stage .stage-console .log-line:last-child {
+  border-bottom: none;
+}
+
+.scratch-stage .stage-console .lvl-info {
+  color: #9aa0a6;
+}
+
+.scratch-stage .stage-console .lvl-warn {
+  color: #ffb000;
+}
+
+.scratch-stage .stage-console .lvl-error {
+  color: #ff6b6b;
+}
+
+.scratch-stage .stage-console .lvl-success {
+  color: #4fd1a1;
+}
+
+/* State indicators */
+.scratch-stage .stage-state-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 0.75rem;
+}
+
+.scratch-stage .stage-state-indicator.running {
+  background: rgba(16, 185, 129, 0.2);
+  color: #4ade80;
+}
+
+.scratch-stage .stage-state-indicator.stopped {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+/* Component styles */
+.scratch-stage .stage-components {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  padding: 20px;
+}
+
+.scratch-stage .stage-component {
+  background: var(--stage-surface, #1e293b);
+  border: 1px solid var(--stage-border, #334155);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.scratch-stage .stage-component:hover {
+  border-color: var(--stage-accent, #3b82f6);
+  transform: translateY(-2px);
+}
+
+.scratch-stage .stage-component .component-type {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 6px 10px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--stage-accent, #3b82f6);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.scratch-stage .stage-component .component-content {
+  padding: 12px;
+}
+
+.scratch-stage .stage-component.image-component .component-image {
+  width: 100%;
+  height: auto;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+.scratch-stage .stage-component.video-component .component-video {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 2px;
+  background: #000;
+}
+
+.scratch-stage .stage-component.overlay-component .component-content {
+  background: rgba(59, 130, 246, 0.1);
+  border-left: 3px solid var(--stage-accent, #3b82f6);
+}
+
+.scratch-stage .stage-component .component-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80px;
+  color: var(--stage-muted, #94a3b8);
+}
+
+/* Timeline section */
+.scratch-stage .stage-timeline {
+  margin-top: auto;
+  border-top: 2px solid var(--stage-border, #334155);
+  background: var(--stage-timeline-bg, #0c1015);
+}
+
+.scratch-stage .stage-timeline .timeline-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 0.75rem;
+  color: var(--stage-muted, #94a3b8);
+}
+
+.scratch-stage .stage-timeline .timeline-content {
+  padding: 10px 14px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.scratch-stage .stage-timeline .timeline-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.7rem;
+}
+
+.scratch-stage .stage-timeline .timeline-entry:last-child {
+  border-bottom: none;
+}
+
+.scratch-stage .stage-timeline .entry-time {
+  color: var(--stage-muted, #94a3b8);
+}
+
+.scratch-stage .stage-timeline .entry-level {
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-size: 0.6rem;
+}
+
+.scratch-stage .stage-timeline .entry-message {
+  flex: 1;
+  color: var(--stage-text, #f1f5f9);
+}
+
+/* Error and success states */
+.scratch-stage .stage-timeline .entry-error {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.scratch-stage .stage-timeline .entry-success {
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.scratch-stage .stage-timeline .entry-info {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+/* Loading state */
+.scratch-stage.loading .stage-content {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  .scratch-stage-wrap {
+    width: 320px;
+    flex: 0 0 320px;
+  }
+}
+
+@media (max-width: 900px) {
+  .scratch-body {
+    flex-direction: column;
+  }
+
+  .scratch-canvas-wrap {
+    max-height: 50vh;
+  }
+
+  .scratch-stage-wrap {
+    width: 100%;
+    flex: 0 0 40vh;
+    max-height: 50vh;
+    border-left: none;
+    border-top: 3px solid var(--stage-border, #334155);
+  }
+
+  .scratch-inspector {
+    width: 100%;
+    flex: 0 0 30vh;
+    max-height: 30vh;
+    border-left: none;
+    border-top: 3px solid var(--stage-border, #334155);
+  }
+}
+
+/* Dark theme styles */
+.scratch-app.dark-mode .scratch-stage-wrap {
+  --stage-bg: #1a1b26;
+  --stage-header-bg: #24283b;
+  --stage-border: #3b4261;
+  --stage-text: #c0caf5;
+  --stage-muted: #565f89;
+  --stage-accent: #7aa2f7;
+  --stage-accent-dark: #5b8dd9;
+  --stage-success: #22c55e;
+  --stage-success-dark: #16a34a;
+  --stage-warning: #fbbf24;
+  --stage-warning-dark: #f59e0b;
+  --stage-danger: #f87171;
+  --stage-danger-dark: #ef4444;
+}
+
+.scratch-app.dark-mode .stage-screen {
+  background: #0d1015;
+}
+
+/* Size variations */
+.scratch-stage-wrap.stage-size-compact {
+  width: 280px;
+  flex: 0 0 280px;
+}
+
+.scratch-stage-wrap.stage-size-half {
+  width: 420px;
+  flex: 0 0 420px;
+}
+
+.scratch-stage-wrap.stage-size-full {
+  width: 600px;
+  flex: 0 0 600px;
+}
+
+/* Utility classes */
+.scratch-stage .hidden {
+  display: none !important;
+}
+
+.scratch-stage .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Animation for updates */
+@keyframes stage-update-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 0 rgba(59, 130, 246, 0); }
+  50% { box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.2); }
+}
+
+.scratch-stage .stage-component.updating {
+  animation: stage-update-pulse 1s ease-in-out;
+}
+
+/* Tooltip styles */
+.scratch-stage [title] {
+  position: relative;
+}
+
+.scratch-stage [title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: #1e293b;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.scratch-stage [title]:hover::after {
+  opacity: 1;
+}

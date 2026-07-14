@@ -1,0 +1,155 @@
+{
+  "version": 2,
+  "type": "scratch-mode",
+  "heads": {
+    "on_mode_init": [
+      {
+        "opcode": "on_mode_init",
+        "args": {},
+        "next": {
+          "opcode": "sprite_spawn",
+          "args": {
+            "SID": "",
+            "ASSET": "",
+            "X": 0,
+            "Y": 0
+          },
+          "next": {
+            "opcode": "db_query_get_hint_text",
+            "args": {
+              "QID": 0
+            },
+            "next": {
+              "opcode": "players_send_message",
+              "args": {
+                "MSG": "",
+                "PLAYER": ""
+              },
+              "next": {
+                "opcode": "players_eliminate",
+                "args": {
+                  "PLAYER": ""
+                },
+                "next": null,
+                "_id": 17
+              },
+              "_id": 16
+            },
+            "_id": 15
+          },
+          "_id": 14
+        },
+        "_id": 1
+      },
+      {
+        "opcode": "on_mode_init",
+        "args": {},
+        "next": null,
+        "_id": 13
+      }
+    ],
+    "on_question_load": [
+      {
+        "opcode": "on_question_load",
+        "args": {},
+        "next": null,
+        "_id": 2
+      }
+    ],
+    "on_question_start": [
+      {
+        "opcode": "on_question_start",
+        "args": {},
+        "next": null,
+        "_id": 3
+      }
+    ],
+    "on_player_buzz": [
+      {
+        "opcode": "on_player_buzz",
+        "args": {
+          "PLAYER": ""
+        },
+        "next": null,
+        "_id": 4
+      }
+    ],
+    "on_player_answer": [
+      {
+        "opcode": "on_player_answer",
+        "args": {
+          "PLAYER": ""
+        },
+        "next": null,
+        "_id": 5
+      }
+    ],
+    "on_timer_expire": [
+      {
+        "opcode": "on_timer_expire",
+        "args": {},
+        "next": null,
+        "_id": 6
+      }
+    ],
+    "on_hardware_disconnect": [
+      {
+        "opcode": "on_hardware_disconnect",
+        "args": {},
+        "next": null,
+        "_id": 7
+      }
+    ],
+    "on_custom_signal": [
+      {
+        "opcode": "on_custom_signal",
+        "args": {
+          "SIGNAL": ""
+        },
+        "next": null,
+        "_id": 8
+      }
+    ],
+    "when_i_receive": [
+      {
+        "opcode": "when_i_receive",
+        "args": {
+          "MSG": ""
+        },
+        "next": null,
+        "_id": 9
+      }
+    ],
+    "when_i_start_as_clone": [
+      {
+        "opcode": "when_i_start_as_clone",
+        "args": {},
+        "next": null,
+        "_id": 10
+      }
+    ],
+    "engine_on_client_event": [
+      {
+        "opcode": "engine_on_client_event",
+        "args": {
+          "KEY": ""
+        },
+        "next": null,
+        "_id": 11
+      }
+    ],
+    "sprite_on_collision": [
+      {
+        "opcode": "sprite_on_collision",
+        "args": {
+          "A": "",
+          "B": ""
+        },
+        "next": null,
+        "_id": 12
+      }
+    ]
+  },
+  "id": "on-mode-init",
+  "title": "on-mode-init"
+}

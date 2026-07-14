@@ -90,6 +90,7 @@
               <div class="block-console" id="sbConsole" role="log" aria-label="Consola de depuración" aria-live="polite"></div>
               <div class="live-preview" id="sbPreview" data-open="0" role="region" aria-label="Vista previa"></div>
             </div>
+            <div class="scratch-stage-wrap" id="sbStageWrap" role="region" aria-label="Stage Preview" data-open="0"></div>
             <aside class="scratch-inspector" id="sbInspector" role="region" aria-label="Inspector de bloques"></aside>
           </div>
         </div>`;

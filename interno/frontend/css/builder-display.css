@@ -1,0 +1,306 @@
+"""
+Styles for the builder display component.
+
+This file contains styles for the builder display interface, including
+the stage panel, toolbar, and other UI components.
+"""
+
+/* Base styles for the builder display */
+.builder-display {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #f5f5f5;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Header styles */
+.builder-display .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #fff;
+  border-bottom: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.builder-display .header h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #2c3e50;
+}
+
+.builder-display .header .status {
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.builder-display .header .status.active {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.builder-display .header .status.inactive {
+  background-color: #95a5a6;
+  color: white;
+}
+
+/* Toolbar styles */
+.builder-display .toolbar {
+  display: flex;
+  gap: 10px;
+  padding: 10px 20px;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #eee;
+}
+
+.builder-display .toolbar button {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.builder-display .toolbar button:hover {
+  background-color: #e0e0e0;
+}
+
+.builder-display .toolbar button.active {
+  background-color: #3498db;
+  color: white;
+  border-color: #2980b9;
+}
+
+/* Content area */
+.builder-display .content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.builder-display .sidebar {
+  width: 250px;
+  background-color: #fff;
+  border-right: 1px solid #ddd;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.builder-display .main-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* Stage container */
+.builder-display .stage-container {
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  background-color: white;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.builder-display .stage-container .stage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: #f8f8f8;
+  border-bottom: 1px solid #eee;
+}
+
+.builder-display .stage-container .stage-body {
+  padding: 15px;
+}
+
+/* Component styles */
+.builder-display .component {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.builder-display .component .component-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.builder-display .component .component-title {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.builder-display .component .component-content {
+  min-height: 40px;
+}
+
+/* Status indicators */
+.builder-display .status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.builder-display .status-dot.active {
+  background-color: #2ecc71;
+}
+
+.builder-display .status-dot.inactive {
+  background-color: #95a5a6;
+}
+
+.builder-display .status-dot.error {
+  background-color: #e74c3c;
+}
+
+/* Logs panel */
+.builder-display .logs-panel {
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  overflow-y: auto;
+  max-height: 300px;
+}
+
+.builder-display .logs-panel .log-entry {
+  margin-bottom: 5px;
+  padding: 5px;
+  border-left: 3px solid #3498db;
+  background-color: white;
+}
+
+.builder-display .logs-panel .log-entry.error {
+  border-left-color: #e74c3c;
+  background-color: #ffeaea;
+}
+
+.builder-display .logs-panel .log-entry.success {
+  border-left-color: #2ecc71;
+  background-color: #eaffea;
+}
+
+/* Forms */
+.builder-display .form-group {
+  margin-bottom: 15px;
+}
+
+.builder-display .form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.builder-display .form-group input,
+.builder-display .form-group select,
+.builder-display .form-group textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.builder-display .form-group input:focus,
+.builder-display .form-group select:focus,
+.builder-display .form-group textarea:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 3px rgba(52, 152, 219, 0.3);
+}
+
+/* Buttons */
+.builder-display .btn {
+  display: inline-block;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.builder-display .btn-primary {
+  background-color: #3498db;
+  color: white;
+}
+
+.builder-display .btn-primary:hover {
+  background-color: #2980b9;
+}
+
+.builder-display .btn-danger {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.builder-display .btn-danger:hover {
+  background-color: #c0392b;
+}
+
+.builder-display .btn-success {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.builder-display .btn-success:hover {
+  background-color: #27ae60;
+}
+
+/* Utility classes */
+.builder-display .hidden {
+  display: none !important;
+}
+
+.builder-display .text-center {
+  text-align: center;
+}
+
+.builder-display .mt-10 {
+  margin-top: 10px;
+}
+
+.builder-display .mb-10 {
+  margin-bottom: 10px;
+}
+
+.builder-display .p-10 {
+  padding: 10px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .builder-display .sidebar {
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .builder-display .content {
+    flex-direction: column;
+  }
+
+  .builder-display .main-content {
+    height: auto;
+  }
+}
