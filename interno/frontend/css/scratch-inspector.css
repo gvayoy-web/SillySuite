@@ -25,3 +25,47 @@
 .scratch-inspector .btn-sm:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
 .scratch-inspector .inspector-list { margin: 4px 0 12px; padding-left: 18px; font-size: 0.78rem; }
 .scratch-inspector .inspector-list li { margin: 2px 0; }
+
+/* Bloque de documentación del opcode */
+.scratch-inspector .inspector-doc {
+  margin: 12px 0;
+  padding: 10px;
+  background: var(--paper-2, #E2DFD6);
+  border: 2px solid var(--ink, #0a0a0a);
+  border-left: 5px solid var(--cat-control);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--muted, #6b6b6b);
+}
+.scratch-inspector .inspector-doc strong {
+  color: var(--ink, #0a0a0a);
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+}
+
+/* UI Control Summary */
+.scratch-inspector .inspector-ui-control {
+  margin: 12px 0;
+  padding: 10px;
+  background: var(--paper-2, #E2DFD6);
+  border: 2px solid var(--ink, #0a0a0a);
+}
+.scratch-inspector .inspector-ui-control h5 {
+  margin: 0 0 8px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Port dot indicator mejorado */
+.scratch-inspector .port-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 0;
+  border: 2px solid var(--ink);
+  vertical-align: middle;
+  margin-left: 4px;
+}

@@ -277,3 +277,34 @@ def shutdown():
     if shutdown_func:
         shutdown_func()
     return jsonify({"ok": True})
+
+
+@api_bp.route("/health", methods=["GET"])
+def health_check():
+    """Health-check endpoint. Returns Flask server status and optionally
+    pings the WebSocket sync server to verify dual-process connectivity."""
+    import os
+    import time
+    import socket
+
+    ws_port = int(os.environ.get("SILLY_WS_PORT", "8081"))
+    ws_reachable = False
+    ws_latency_ms = None
+
+    try:
+        start = time.time()
+        with socket.create_connection(("127.0.0.1", ws_port), timeout=2):
+            ws_reachable = True
+            ws_latency_ms = round((time.time() - start) * 1000, 1)
+    except Exception:
+        ws_reachable = False
+
+    status = {
+        "flask": "ok",
+        "websocket": "ok" if ws_reachable else "unreachable",
+        "websocket_port": ws_port,
+        "websocket_latency_ms": ws_latency_ms,
+        "uptime": time.time(),
+    }
+    code = 200 if ws_reachable else 200  # WS down is degraded, not fatal
+    return jsonify(status), code

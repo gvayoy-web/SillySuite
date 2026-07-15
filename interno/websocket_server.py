@@ -228,11 +228,13 @@ class SyncServer:
                     if token:
                         await self.handle_pong(token)
                 elif mtype == "health_check":
+                    flask_ok = await self._check_flask_health()
                     await ws.send(json.dumps({
                         "type": "health_ok",
                         "uptime": time.time(),
                         "displays": len(self.displays),
                         "sessions": len(self.play_sessions),
+                        "flask": flask_ok,
                     }))
                 else:
                     await ws.send(json.dumps({"type": "error", "msg": "tipo desconocido: " + str(mtype)}))
@@ -244,6 +246,20 @@ class SyncServer:
 
 
     # ===================== LOCAL GAME ENGINE =====================
+
+    async def _check_flask_health(self):
+        """Ping Flask server via HTTP to verify dual-process connectivity."""
+        import urllib.request
+        flask_port = int(os.environ.get("SILLY_PORT", "8080"))
+        try:
+            req = urllib.request.Request(
+                f"http://127.0.0.1:{flask_port}/api/health",
+                headers={"Accept": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=2) as resp:
+                return resp.status == 200
+        except Exception:
+            return False
 
     def play_register(self, session_id, slots, base_name_url, metrics):
         """Crea la sesión de juego y emite tokens inmutables por slot.

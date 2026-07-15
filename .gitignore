@@ -1,5 +1,5 @@
 # ====================================================================
-# .GITIGNORE - LOGOSKQUIZ (CAMPEONÍSIMO BÍBLICO)
+# .GITIGNORE - SILLYQUIZ
 # ====================================================================
 
 # --- Entorno virtual y dependencias Python ---
@@ -39,7 +39,7 @@ launcher.exe
 
 # --- Assets sueltos en raíz ---
 icono.ico
-LOGOSKQUIZ.png
+SillyQuiz.png
 
 # --- Configuración local de IDEs ---
 .vscode/

@@ -4,89 +4,100 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; font-src https://fonts.gstatic.com; connect-src 'self' ws://*:8081 wss://*:8081; worker-src blob:; img-src 'self' data: https:; media-src 'self' data: https:;">
-  <title>SillyQuiz · BuildSilly v6.0 — SILLY PACK</title>
+  <title>SillyQuiz · BuildSilly — SILLY PACK</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/sillybuild.css">
   <link rel="stylesheet" href="../css/scratch-blocks.css">
   <link rel="stylesheet" href="../css/scratch-palette.css">
   <link rel="stylesheet" href="../css/scratch-canvas.css">
   <link rel="stylesheet" href="../css/scratch-inspector.css">
+  <link rel="stylesheet" href="../css/scratch-stage.css">
+  <link rel="stylesheet" href="../css/stage-shapes.css">
   <link rel="stylesheet" href="../css/ndi-panel.css">
-  <link rel="stylesheet" href="../css/builder-display.css">
-  <script>window.global = window; window.globalThis = window;</script>
-  <style>
-    :root {
-      --bg: #0b0b0b;
-      --surface: #161616;
-      --border: #3a3a3a;
-      --border2: #5a5a5a;
-      --text: #f2f2f2;
-      --accent: #2b50ff;
-      --accent2: #ffd400;
-      --font: 'Space Mono', 'Courier New', monospace;
-      --font-display: 'Space Grotesk', 'Courier New', monospace;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; border-radius: 0 !important; }
-    html, body {
-      height: 100%;
-      background: var(--bg);
-      background-image:
-        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-      background-size: 34px 34px;
-      color: var(--text);
-      font-family: var(--font);
-    }
-    #scratchBuilder { height: 100vh; }
-    .constructor-welcome {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      height: 100%; text-align: center; padding: 40px; gap: 14px;
-    }
-    .constructor-welcome h3 {
-      font-family: var(--font-display); font-weight: 900; font-size: 2.4rem;
-      letter-spacing: 2px; text-transform: uppercase; color: #fff;
-      border: 4px solid var(--accent); padding: 6px 18px; box-shadow: 6px 6px 0 var(--accent2);
-    }
-    .constructor-welcome p { font-size: 1rem; max-width: 620px; opacity: .85; }
-    .constructor-welcome .spinner {
-      width: 44px; height: 44px; border: 5px solid var(--accent); border-top-color: transparent;
-      animation: spin .8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .constructor-welcome .badge {
-      display: inline-block; padding: 4px 12px; font-weight: 700; font-size: .8rem;
-      border: 2px solid var(--text); background: var(--accent2); color: #000;
-      box-shadow: 3px 3px 0 var(--text);
-    }
-  </style>
+  <link rel="stylesheet" href="../css/modo-builder.css">
 </head>
 <body>
-  <div id="scratchBuilder">
-    <div class="constructor-welcome">
-      <span class="badge">⚡ SILLY PACK</span>
-      <h3>BuildSilly</h3>
-      <p>Cargando el editor de bloques…</p>
-      <div class="spinner" aria-label="Cargando"></div>
+  <!-- Pantalla de bienvenida / onboarding -->
+  <div id="silly-splash" class="silly-splash" role="dialog" aria-modal="true" aria-labelledby="splash-title">
+    <div class="splash-content">
+      <div class="splash-logo" aria-hidden="true">
+        <svg viewBox="0 0 80 80" width="80" height="80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="80" height="80" fill="#FF5E3A"/>
+          <rect x="4" y="4" width="72" height="72" fill="#0B0B0B"/>
+          <text x="40" y="52" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="900" font-size="32" fill="#FF5E3A">SQ</text>
+          <rect x="8" y="8" width="12" height="4" fill="#FFB000"/>
+          <rect x="60" y="68" width="12" height="4" fill="#9B6BFF"/>
+        </svg>
+      </div>
+      <h1 id="splash-title">BuildSilly</h1>
+      <p class="splash-tagline">Crea tus locuras sin programar</p>
+      <div class="splash-progress">
+        <div class="splash-bar" id="splashBar"></div>
+      </div>
+      <p class="splash-status" id="splashStatus">Cargando motor de bloques...</p>
+      <div class="splash-hints" id="splashHints"></div>
     </div>
   </div>
 
-  <!-- Stage Panel (real) - se inyecta después que scratchUI esté listo -->
-  <div class="scratch-stage-wrap" id="sbStageWrap" role="region" aria-label="Stage Preview"></div>
+  <!-- El editor (ScratchUI) se construye aquí mismo al cargar. -->
+  <div id="scratchBuilder" style="display:none;"></div>
 
-  <script>
-    // Mostrar el editor inmediatamente cuando esté listo
-    document.addEventListener('DOMContentLoaded', () => {
-      const welcome = document.querySelector('.constructor-welcome');
-      if (welcome) {
-        setTimeout(() => {
-          welcome.remove();
-        }, 500);
-      }
-    });
-  </script>
+  <!-- Menú flotante de esquina (accesos rápidos) -->
+  <div id="sq-float-toolbar" class="sq-float-toolbar" role="toolbar" aria-label="Acciones rápidas" style="display:none;">
+    <div class="sq-fab-menu" id="sqFabMenu" role="menu" aria-label="Menú de proyecto" hidden>
+      <button class="sq-fab-item" data-act="new" role="menuitem"><span class="sq-fab-ico">📄</span> Nuevo proyecto</button>
+      <button class="sq-fab-item" data-act="save" role="menuitem"><span class="sq-fab-ico">💾</span> Guardar borrador</button>
+      <button class="sq-fab-item" data-act="load" role="menuitem"><span class="sq-fab-ico">📂</span> Cargar borrador</button>
+      <button class="sq-fab-item" data-act="theme" role="menuitem"><span class="sq-fab-ico">🌓</span> Alternar tema</button>
+      <button class="sq-fab-item" data-act="visualizer" role="menuitem"><span class="sq-fab-ico">📡</span> Visualizador en vivo</button>
+      <button class="sq-fab-item" data-act="shortcuts" role="menuitem"><span class="sq-fab-ico">⌨</span> Atajos de teclado</button>
+    </div>
+    <button class="sq-fab-btn" id="sqFabBtn" aria-label="Abrir menú de proyecto" aria-expanded="false" aria-controls="sqFabMenu" title="Menú de proyecto">
+      <span class="sq-fab-glyph">☰</span>
+    </button>
+  </div>
 
-<!-- Núcleo -->
+  <!-- Panel de atajos de teclado -->
+  <div id="sq-shortcuts-modal" class="sq-modal" role="dialog" aria-modal="true" aria-labelledby="shortcuts-title" style="display:none;">
+    <div class="sq-modal-backdrop"></div>
+    <div class="sq-modal-panel">
+      <div class="sq-modal-header">
+        <h2 id="shortcuts-title">⌨ Atajos de Teclado</h2>
+        <button class="sq-modal-close" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="sq-modal-body">
+        <table class="sq-shortcuts-table">
+          <thead><tr><th>Atajo</th><th>Acción</th></tr></thead>
+          <tbody>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>N</kbd></td><td>Nuevo proyecto</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Guardar borrador local</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Cargar borrador local</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>E</kbd></td><td>Exportar proyecto (.json)</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Deshacer</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>Rehacer</td></tr>
+            <tr><td><kbd>Delete</kbd></td><td>Eliminar bloque seleccionado</td></tr>
+            <tr><td><kbd>Espacio</kbd> + <kbd>Arrastrar</kbd></td><td>Pan del lienzo</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>Rueda</kbd></td><td>Zoom del lienzo</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd></td><td>Alternar tema claro/oscuro</td></tr>
+            <tr><td><kbd>F1</kbd></td><td>Mostrar esta ayuda</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>Enter</kbd></td><td>Ejecutar / Vista previa</td></tr>
+            <tr><td><kbd>Escape</kbd></td><td>Cerrar menús / Cancelar</td></tr>
+            <tr><td>Click derecho</td><td>Menú rápido + búsqueda</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="sq-toast-container" class="sq-toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Bootstrap de entorno -->
+  <script src="../js/sillybuild-bootstrap.js"></script>
+
+  <!-- Núcleo -->
   <script src="../js/i18n.js"></script>
   <script src="../js/scratch-blocks.js"></script>
   <script src="../js/scratch-aot.js"></script>
@@ -95,34 +106,218 @@
   <script src="../js/scratch-collab.js"></script>
   <script src="../js/scratch-codegen.js"></script>
   <script src="../js/scratch-runtime.js"></script>
+
   <!-- Managers (Fase 3) -->
   <script src="../js/display-manager.js"></script>
   <script src="../js/ndi-manager.js"></script>
+
   <!-- Proveedores por categoría -->
   <script src="../js/ndi-blocks.js"></script>
   <script src="../js/display-blocks.js"></script>
   <script src="../js/quiz-blocks.js"></script>
+
   <!-- Modelo de display en vivo + render fiel -->
   <script src="../js/builder-display.js"></script>
+  <script src="../js/preview-engine.js"></script>
+  <script src="../js/display-shapes2.js"></script>
+
+  <!-- Empaquetado de proyectos .silly (ZIP: blocks.json + assets) -->
+  <script src="../js/silly-package.js"></script>
+  <script src="../js/asset-sanitize.js"></script>
+
   <!-- Editor + orquestador -->
   <script src="../js/scratch-ui.js"></script>
   <script src="../js/scratch-ui-control-definition.js"></script>
   <script src="../js/template-gallery.js"></script>
+  <script src="../js/scratch-stage.js"></script>
   <script src="../js/buildsilly-v2.js"></script>
   <script src="../js/buildsilly.js"></script>
-  <!-- Stage panel (placeholder shown until scratchUI ready) -->
+
+  <!-- Fallback defensivo: asegura que el editor sea visible -->
+  <script src="../js/sillybuild-fallback.js"></script>
+
+  <!-- Inicialización de UI flagship -->
   <script>
-    // Si scratchUI ya está listo, initialize Stage inmediatamente
-    if (typeof ScratchUI !== 'undefined' && ScratchUI.prototype.init) {
-      setTimeout(() => {
-        if (typeof ScratchStage !== 'undefined') {
-          const stage = new ScratchStage(document.getElementById('sbStageWrap'), {
-            providers: typeof scratchBuildProviders !== 'undefined' ? scratchBuildProviders : null
-          });
-          stage.show();
+    (function() {
+      'use strict';
+      
+      // Splash screen con progreso
+      const splash = document.getElementById('silly-splash');
+      const splashBar = document.getElementById('splashBar');
+      const splashStatus = document.getElementById('splashStatus');
+      const splashHints = document.getElementById('splashHints');
+      const builder = document.getElementById('scratchBuilder');
+      const floatToolbar = document.getElementById('sq-float-toolbar');
+      
+      const hints = [
+        '💡 Arrastra bloques desde la paleta izquierda',
+        '💡 Click derecho en el lienzo para menú rápido',
+        '💡 Espacio + arrastrar = mover lienzo',
+        '💡 Ctrl + rueda = zoom',
+        '💡 F1 = atajos de teclado',
+        '💡 Los bloques se conectan como piezas de puzzle'
+      ];
+      
+      let hintIndex = 0;
+      function rotateHints() {
+        splashHints.textContent = hints[hintIndex];
+        hintIndex = (hintIndex + 1) % hints.length;
+      }
+      setInterval(rotateHints, 3000);
+      rotateHints();
+      
+      // Simular progreso de carga
+      let progress = 0;
+      const loadSteps = [
+        { p: 15, msg: 'Cargando registros de bloques...' },
+        { p: 30, msg: 'Inicializando runtime AOT...' },
+        { p: 50, msg: 'Conectando managers NDI/Display...' },
+        { p: 70, msg: 'Compilando plantillas...' },
+        { p: 85, msg: 'Montando editor visual...' },
+        { p: 100, msg: '¡Listo para crear!' }
+      ];
+      
+      let step = 0;
+      function nextStep() {
+        if (step >= loadSteps.length) {
+          hideSplash();
+          return;
         }
-      }, 500);
-    }
+        const s = loadSteps[step];
+        progress = s.p;
+        splashBar.style.width = progress + '%';
+        splashStatus.textContent = s.msg;
+        step++;
+        setTimeout(nextStep, 300 + Math.random() * 200);
+      }
+      
+      function hideSplash() {
+        splash.style.opacity = '0';
+        splash.style.pointerEvents = 'none';
+        setTimeout(() => {
+          splash.style.display = 'none';
+          builder.style.display = 'flex';
+          floatToolbar.style.display = 'flex';
+          // Disparar evento personalizado para que el editor sepa que está listo
+          window.dispatchEvent(new CustomEvent('sillybuilder:ready'));
+        }, 400);
+      }
+      
+      // Esperar a que el DOM esté listo y luego iniciar
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', nextStep);
+      } else {
+        nextStep();
+      }
+      
+      // Tema persistente
+      const THEME_KEY = 'sillyquiz-builder-theme';
+      function applyTheme(theme) {
+        document.documentElement.classList.toggle('light', theme === 'light');
+        localStorage.setItem(THEME_KEY, theme);
+        updateThemeButton();
+      }
+      
+      function updateThemeButton() {
+        const glyph = document.querySelector('#sqFabBtn .sq-fab-glyph');
+        if (glyph) glyph.textContent = document.documentElement.classList.contains('light') ? '☀️' : '🌙';
+      }
+      
+      // Inicializar tema guardado
+      const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+      applyTheme(savedTheme);
+      
+      // Menú flotante de esquina (FAB)
+      const fabBtn = document.getElementById('sqFabBtn');
+      const fabMenu = document.getElementById('sqFabMenu');
+      function openFabMenu() { fabMenu.hidden = false; fabBtn.setAttribute('aria-expanded', 'true'); }
+      function closeFabMenu() { fabMenu.hidden = true; fabBtn.setAttribute('aria-expanded', 'false'); }
+      fabBtn.addEventListener('click', (e) => { e.stopPropagation(); fabMenu.hidden ? openFabMenu() : closeFabMenu(); });
+      fabMenu.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-act]');
+        if (!btn) return;
+        const act = btn.dataset.act;
+        const ui = window.scratchUI;
+        closeFabMenu();
+        switch (act) {
+          case 'new':
+            if (confirm('¿Crear nuevo proyecto? Se perderán los cambios no guardados.')) {
+              ui.clearCanvas(true);
+              ui.toast('Nuevo proyecto creado', 'info');
+            }
+            break;
+          case 'save':
+            ui.saveToLocalStorage();
+            break;
+          case 'load':
+            ui.loadFromLocalStorage();
+            break;
+          case 'theme':
+            applyTheme(document.documentElement.classList.contains('light') ? 'dark' : 'light');
+            ui.toast(document.documentElement.classList.contains('light') ? 'Modo claro activado' : 'Modo oscuro activado', 'info');
+            break;
+          case 'visualizer':
+            if (window.scratchUI) window.scratchUI.publishLiveState();
+            window.open('/html/SillyVisualizer.html', '_blank');
+            break;
+          case 'shortcuts':
+            showModal('sq-shortcuts-modal');
+            break;
+        }
+      });
+      document.addEventListener('click', (e) => {
+        if (fabMenu.hidden) return;
+        if (!floatToolbar.contains(e.target)) closeFabMenu();
+      });
+      
+      // Modal de atajos
+      const shortcutsModal = document.getElementById('sq-shortcuts-modal');
+      function showModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+          modal.style.display = 'flex';
+          modal.querySelector('.sq-modal-close')?.focus();
+        }
+      }
+      function hideModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.style.display = 'none';
+      }
+      shortcutsModal.querySelector('.sq-modal-close').addEventListener('click', () => hideModal('sq-shortcuts-modal'));
+      shortcutsModal.querySelector('.sq-modal-backdrop').addEventListener('click', () => hideModal('sq-shortcuts-modal'));
+      
+      // Teclas globales
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'F1') {
+          e.preventDefault();
+          showModal('sq-shortcuts-modal');
+        }
+        if (e.key === 'Escape') {
+          hideModal('sq-shortcuts-modal');
+        }
+      });
+      
+      // Toast system
+      window.showToast = function(message, type = 'info', duration = 3000) {
+        const container = document.getElementById('sq-toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'sq-toast sq-toast-' + type;
+        toast.textContent = message;
+        container.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('show'));
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      };
+      
+      // Exponer para uso desde el editor
+      window.SillyBuilder = {
+        showToast: window.showToast,
+        applyTheme: applyTheme,
+        getTheme: () => document.documentElement.classList.contains('light') ? 'light' : 'dark'
+      };
+    })();
   </script>
 </body>
 </html>

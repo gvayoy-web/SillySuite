@@ -1,5 +1,6 @@
 /* ==========================================================================
-   SCRATCH PALETTE — Brutalist redesign  (SillyQuiz)
+   SCRATCH PALETTE — Brutalist redesign (SillyQuiz)
+   Updated to match new anti-Scratch block silhouettes
    ========================================================================== */
 .scratch-palette {
   width: 284px; flex: 0 0 284px;
@@ -28,7 +29,7 @@
   padding: 11px 14px; cursor: pointer; user-select: none;
   background: var(--paper, #ECEAE3);
   border-left: 8px solid var(--block-color, var(--cat-control));
-  font-family: var(--font-display, 'Inter', 'Segoe UI', system-ui, sans-serif);
+  font-family: var(--font-display, 'Space Grotesk', 'Inter', 'Segoe UI', system-ui, sans-serif);
   font-size: 0.7rem; font-weight: var(--fw-black, 900); text-transform: uppercase;
   letter-spacing: 0.1em; color: var(--ink, #0a0a0a);
   transition: background 0.15s ease, border-left-width 0.15s ease;
@@ -59,6 +60,7 @@
 .palette-category.collapsed .palette-category-content { display: none; }
 .palette-category-content { padding: 8px; display: flex; flex-direction: column; gap: 8px; background: var(--paper-2, #E2DFD6); }
 
+/* Bloques de paleta con nuevas siluetas */
 .palette-block {
   display: flex; align-items: center; gap: 10px;
   padding: 9px 11px; background: var(--paper, #ECEAE3);
@@ -69,14 +71,13 @@
   transition: transform 70ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 90ms ease, background 90ms ease, border-color 90ms ease;
   position: relative;
   overflow: hidden;
+  font-family: var(--font-display, 'Space Grotesk', 'Inter', 'Segoe UI', system-ui, sans-serif);
 }
 .palette-block::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -87,17 +88,15 @@
   box-shadow: 5px 5px 0 var(--ink, #0a0a0a);
   background: #fff;
 }
-.palette-block:hover::before {
-  opacity: 1;
-}
+.palette-block:hover::before { opacity: 1; }
 .palette-block:active {
   cursor: grabbing;
   transform: translate(1px,1px);
   box-shadow: 2px 2px 0 var(--ink);
 }
 .palette-block .pb-icon {
-  display: inline-grid; place-items: center; width: 26px; height: 26px; flex: 0 0 26px;
-  border-radius: 0; font-size: 0.95rem; color: var(--block-text, #fff);
+  display: inline-grid; place-items: center; width: 28px; height: 28px; flex: 0 0 28px;
+  border-radius: 0; font-size: 1rem; color: var(--block-text, #fff);
   background: var(--block-color, var(--cat-control));
   border: 2px solid var(--ink, #0a0a0a);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -118,6 +117,66 @@
   color: var(--paper, #ECEAE3);
 }
 
+/* Siluetas por tipo en la paleta (coherentes con scratch-blocks.css) */
+.palette-block.block-hat {
+  padding-top: 13px;
+  clip-path: polygon(
+    14px 8px, calc(100% - 4px) 8px, calc(100% - 4px) 100%, 14px 100%, 14px calc(100% - 6px), 4px calc(100% - 6px), 4px 14px, 14px 14px
+  );
+}
+.palette-block.block-hat::before {
+  clip-path: polygon(
+    14px 5px, calc(100% - 4px) 5px, calc(100% - 4px) 100%, 14px 100%, 14px calc(100% - 3px), 4px calc(100% - 3px), 4px 11px, 14px 11px
+  );
+}
+.palette-block.block-reporter {
+  padding: 4px 18px;
+  clip-path: polygon(
+    18px 0, calc(100% - 18px) 0, calc(100% - 4px) 50%, calc(100% - 18px) 100%, 18px 100%, 4px 50%
+  );
+  border-left: none; /* reporter no tiene diente izq visible, es angular */
+}
+.palette-block.block-reporter::before {
+  clip-path: polygon(
+    18px 3px, calc(100% - 18px) 3px, calc(100% - 7px) 50%, calc(100% - 18px) calc(100% - 3px), 18px calc(100% - 3px), 7px 50%
+  );
+}
+.palette-block.block-boolean {
+  padding: 4px 22px;
+  clip-path: polygon(
+    14px 0, calc(100% - 14px) 0, calc(100% - 4px) 50%, calc(100% - 14px) 100%, 14px 100%, 4px 50%
+  );
+  border-left: none;
+}
+.palette-block.block-boolean::before {
+  clip-path: polygon(
+    14px 3px, calc(100% - 14px) 3px, calc(100% - 7px) 50%, calc(100% - 14px) calc(100% - 3px), 14px calc(100% - 3px), 7px 50%
+  );
+}
+.palette-block.block-c {
+  padding-bottom: 18px;
+}
+.palette-block.block-cap {
+  clip-path: polygon(
+    14px 0, calc(100% - 4px) 0, calc(100% - 4px) 100%, 14px 100%, 14px 6px, 4px 6px, 4px calc(100% - 6px), 14px calc(100% - 6px)
+  );
+}
+
+/* Glifo de categoría en la paleta también */
+.palette-block .pb-cat-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: var(--ink);
+  background: var(--block-fill);
+  border: 2px solid var(--ink);
+}
+
 /* Buscador en vivo de la paleta */
 .palette-search {
   position: sticky; top: 0; z-index: 5;
@@ -127,7 +186,7 @@
 }
 .palette-search input {
   width: 100%; box-sizing: border-box;
-  padding: 9px 11px; font: 800 0.85rem 'Segoe UI', system-ui, sans-serif;
+  padding: 9px 11px; font: 800 0.85rem var(--font-display, 'Space Grotesk', 'Segoe UI', system-ui, sans-serif);
   color: var(--ink, #0a0a0a); background: var(--paper, #ECEAE3);
   border: 2px solid var(--ink, #0a0a0a); border-radius: 0;
   box-shadow: inset 2px 2px 0 rgba(10,10,10,0.08);
@@ -138,3 +197,13 @@
 
 /* Oculto por el filtro de búsqueda */
 .hidden { display: none !important; }
+
+/* Contenedor de secciones por categoría (scroll continuo) */
+.palette-sections { display: block; }
+.palette-category .cat-name { flex: 1; }
+.palette-category .cat-chevron {
+  margin-left: 6px; font-size: 0.8rem; color: var(--ink, #0a0a0a);
+  transition: transform 0.15s ease;
+}
+.palette-category.collapsed .cat-chevron { transform: rotate(-90deg); }
+.palette-category.collapsed .cat-count { display: none; }

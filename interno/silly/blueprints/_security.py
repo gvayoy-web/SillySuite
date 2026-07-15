@@ -303,7 +303,14 @@ _EXTRAS = {
     'get_ndi_latency', 'is_ndi_source_online',
     # Display extras
     'get_display_connection_count',
-    # Quiz extras
+    # Quiz full set
+    'quiz_init_engine', 'quiz_fetch_next_question', 'quiz_lock_answers',
+    'quiz_verify_player_answer', 'quiz_add_score_to_player',
+    'quiz_set_question', 'quiz_reveal_answer', 'quiz_get_score',
+    'quiz_get_player_rank', 'quiz_reset_scores', 'quiz_get_question_category',
+    'quiz_get_option_count', 'quiz_shuffle_options',
+    'get_timer_remaining', 'set_timer_duration', 'timer_pause', 'timer_resume',
+    'quiz_get_correct_option', 'quiz_get_question_image', 'quiz_get_difficulty',
     'quiz_get_total_questions', 'quiz_get_round', 'quiz_is_paused',
     'quiz_get_current_question_text', 'quiz_get_answer_text', 'quiz_get_leaderboard_json',
     # State extras
@@ -336,16 +343,6 @@ _EXTRAS = {
     'math_const', 'math_round_to', 'json_parse', 'json_stringify',
     'random_choice',
     'string_trim', 'string_repeat', 'string_split', 'string_to_number', 'string_matches',
-    # Quiz full set
-    'quiz_init_engine', 'quiz_fetch_next_question', 'quiz_lock_answers',
-    'quiz_verify_player_answer', 'quiz_add_score_to_player',
-    'quiz_set_question', 'quiz_reveal_answer', 'quiz_get_score',
-    'quiz_get_player_rank', 'quiz_reset_scores', 'quiz_get_question_category',
-    'quiz_get_option_count', 'quiz_shuffle_options',
-    'get_timer_remaining', 'set_timer_duration', 'timer_pause', 'timer_resume',
-    'quiz_get_correct_option', 'quiz_get_question_image', 'quiz_get_difficulty',
-    'quiz_get_total_questions', 'quiz_get_round', 'quiz_is_paused',
-    'quiz_get_current_question_text', 'quiz_get_answer_text', 'quiz_get_leaderboard_json',
     # State full set
     'state_init_memory_key', 'state_set_memory', 'state_increment_memory',
     'state_commit_to_sqlite', 'state_clear_volatile_cache',

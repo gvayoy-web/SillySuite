@@ -30,6 +30,7 @@ sandbox.window.module = sandbox.module;
 vm.createContext(sandbox);
 
 loadScript('scratch-blocks.js', sandbox);
+loadScript('dynamic-blocks.js', sandbox);
 loadScript('scratch-aot.js', sandbox);
 loadScript('scratch-sandbox.js', sandbox);
 loadScript('template-migration.js', sandbox);
@@ -37,6 +38,7 @@ loadScript('scratch-codegen.js', sandbox);
 loadScript('scratch-runtime.js', sandbox);
 
 const ScratchBlocks = sandbox.window.ScratchBlocks || sandbox.module.exports.ScratchBlocks;
+const DynamicBlocks = sandbox.window.DynamicBlocks || sandbox.module.exports.DynamicBlocks;
 const ScratchAOT = sandbox.window.ScratchAOT || sandbox.module.exports.ScratchAOT;
 const TemplateMigration = sandbox.window.TemplateMigration || sandbox.module.exports.TemplateMigration;
 const CodeGen = sandbox.window.CodeGen || sandbox.module.exports.CodeGen;

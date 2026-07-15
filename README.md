@@ -76,7 +76,7 @@ python interno/launcher.pyw
 
 | Pantalla | URL |
 |----------|-----|
-| Panel de Control | http://localhost:8080/control |
+| Panel de Control | http://localhost:8080/sillycontrol |
 | Display (pantalla 1) | http://localhost:8080/display |
 | Display (pantalla N) | http://localhost:8080/display?screen=N |
 | Constructor (BuildSilly) | http://localhost:8080/html/buildsilly.html |

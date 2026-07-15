@@ -1,11 +1,4 @@
-"""
-Stage Panel Styles - Real-time Stage preview for scratch-build.
-
-Comprehensive styling for the Stage panel with play/pause/stop controls,
-event selection, size toggle, and real-time rendering capabilities.
-"""
-
-/* Stage Panel Base Styles */
+/* Stage Panel Base Styles — Real-time Stage preview for scratch-build. */
 .scratch-stage-wrap {
   width: 420px;
   flex: 0 0 420px;
@@ -568,4 +561,122 @@ event selection, size toggle, and real-time rendering capabilities.
 
 .scratch-stage [title]:hover::after {
   opacity: 1;
+}
+
+/* === Stage de previsualización en vivo (scratch-stage.js) === */
+.scratch-stage-wrap[data-size="compact"] { width: 300px; flex: 0 0 300px; }
+.scratch-stage-wrap[data-size="wide"]    { width: 620px; flex: 0 0 620px; }
+
+.stage-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.stage-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.25);
+}
+.stage-title {
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stage-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+}
+.stage-tools { display: flex; align-items: center; gap: 6px; }
+.stage-btn {
+  background: #1e293b; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px; width: 26px; height: 26px; cursor: pointer; font-size: 0.8rem;
+}
+.stage-btn:hover { background: #334155; }
+.stage-ndi {
+  font-size: 0.7rem; color: #94a3b8; padding: 2px 6px;
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
+}
+.stage-body {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px; overflow: auto;
+}
+.stage-displays {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  align-content: start;
+}
+.stage-tile {
+  background: #0b1220; border: 1px solid rgba(255,255,255,0.08);
+  border-top: 3px solid var(--cat-displays, #4C97FF);
+  border-radius: 8px; padding: 8px; min-height: 64px;
+  animation: stage-update-pulse 0.6s ease-in-out;
+}
+.stage-tile-h {
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; margin-bottom: 4px; opacity: 0.9;
+}
+.stage-tile-b {
+  font-size: 0.82rem; color: #e2e8f0; word-break: break-word; white-space: pre-wrap;
+}
+.stage-side { display: flex; flex-direction: column; gap: 8px; }
+.stage-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px; padding: 8px;
+}
+.stage-card-h {
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em;
+  color: #94a3b8; margin-bottom: 6px;
+}
+.stage-question {
+  font-size: 0.9rem; color: #f8fafc; margin-bottom: 6px;
+}
+.stage-player, .stage-var {
+  display: flex; justify-content: space-between;
+  font-size: 0.78rem; padding: 1px 0; color: #cbd5e1;
+}
+.stage-player b, .stage-var b { color: #fbbf24; }
+.stage-state-body { font-size: 0.74rem; }
+.stage-state-body .stage-var span { color: #94a3b8; }
+
+/* Preview de canvas (PreviewEngine) + FX + decorLayer (ShapeEngine) */
+.stage-preview {
+  position: relative;
+  height: 280px;
+  flex: 0 0 280px;
+  background: #05060a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.stage-canvas, .stage-fx, .stage-decor {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.stage-canvas { z-index: 1; }
+.stage-decor { z-index: 2; pointer-events: none; overflow: hidden; }
+.stage-fx { z-index: 3; pointer-events: none; }
+.stage-decor .decor-item { position: absolute; }
+
+.stage-row {
+  display: flex;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.stage-displays { flex: 1 1 auto; min-width: 0; }
+.stage-side { display: flex; flex-direction: column; gap: 8px; flex: 0 0 210px; min-width: 0; }
+
+@media (max-width: 900px) {
+  .stage-row { flex-direction: column; }
+  .stage-side { flex: 1 1 auto; }
 }

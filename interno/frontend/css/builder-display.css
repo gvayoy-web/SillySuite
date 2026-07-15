@@ -1,11 +1,4 @@
-"""
-Styles for the builder display component.
-
-This file contains styles for the builder display interface, including
-the stage panel, toolbar, and other UI components.
-"""
-
-/* Base styles for the builder display */
+/* Styles for the builder display component. */
 .builder-display {
   display: flex;
   flex-direction: column;

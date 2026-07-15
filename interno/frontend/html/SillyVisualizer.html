@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SillyQuiz · SillyVisualizer</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; font-src https://fonts.gstatic.com; connect-src 'self' ws://*:8081 wss://*:8081; worker-src blob:; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:;">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0a0a0a;
+      --paper: #0B0B0B;
+      --paper-2: #141414;
+      --surface: #1A1A1A;
+      --line: #2A2A2A;
+      --muted: #8B8B8B;
+      --cat-control: #FF5E3A;
+      --cat-ndi: #00B894;
+      --cat-motion: #3C8DFF;
+      --font-sans: 'Space Grotesk', system-ui, sans-serif;
+      --font-mono: 'Space Mono', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: var(--paper);
+      color: #F2EBDD;
+      font-family: var(--font-sans);
+      display: flex; flex-direction: column;
+      height: 100vh; overflow: hidden;
+    }
+    .sv-top {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 18px; border-bottom: 3px solid var(--ink);
+      background: var(--surface);
+    }
+    .sv-logo {
+      width: 30px; height: 30px; display: grid; place-items: center;
+      background: var(--cat-control); color: #0a0a0a; border: 2px solid var(--ink);
+      font-weight: 900; font-size: 0.8rem;
+    }
+    .sv-title { font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase; font-size: 1rem; }
+    .sv-sub { color: var(--muted); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+    .sv-spacer { flex: 1; }
+    .sv-status {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 12px; border: 2px solid var(--line); background: var(--paper-2);
+      font-weight: 800; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .sv-dot { width: 10px; height: 10px; background: #ef4444; border: 2px solid var(--ink); }
+    .sv-status.on .sv-dot { background: #10b981; }
+    .sv-status.on { border-color: #10b981; }
+    .sv-body { flex: 1; display: grid; grid-template-columns: 1fr 320px; gap: 0; min-height: 0; }
+    .sv-stage {
+      position: relative; display: flex; align-items: center; justify-content: center;
+      padding: 28px; min-height: 0; overflow: auto;
+      background:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 28px 28px, 28px 28px;
+    }
+    .sv-screen {
+      width: min(100%, 880px); min-height: 420px; border: 4px solid var(--ink);
+      box-shadow: 10px 10px 0 rgba(0,0,0,0.5); border-radius: 0;
+      position: relative; overflow: hidden; padding: 32px;
+      display: flex; flex-direction: column;
+    }
+    .sv-screen .sv-title-t { font-size: 2.4rem; font-weight: 900; line-height: 1.05; margin-bottom: 10px; text-shadow: 2px 2px 0 rgba(0,0,0,0.5); }
+    .sv-screen .sv-sub-t { font-size: 1.15rem; opacity: 0.85; margin-bottom: 18px; }
+    .sv-screen .sv-body-t { font-size: 1.45rem; font-weight: 700; line-height: 1.3; margin-bottom: 18px; }
+    .sv-screen .sv-media { margin: 10px 0; border: 2px dashed rgba(255,255,255,0.3); padding: 12px; font-weight: 700; }
+    .sv-screen .sv-media img, .sv-screen .sv-media video { max-width: 100%; border: 2px solid var(--ink); display: block; }
+    .sv-opts { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+    .sv-opt { border: 2px solid currentColor; padding: 10px 18px; font-weight: 800; background: rgba(255,255,255,0.08); box-shadow: 3px 3px 0 rgba(0,0,0,0.3); }
+    .sv-footer { margin-top: auto; padding-top: 14px; font-size: 0.8rem; opacity: 0.6; }
+    .sv-empty {
+      text-align: center; color: var(--muted); font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.06em; max-width: 460px;
+    }
+    .sv-empty .sv-big { font-size: 3rem; margin-bottom: 12px; }
+    .sv-flow {
+      border-left: 3px solid var(--ink); background: var(--surface);
+      overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .sv-flow-h { font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.8rem; margin-bottom: 6px; color: var(--muted); }
+    .sv-chip {
+      border: 2px solid var(--line); background: var(--paper-2); padding: 8px 10px;
+      font-weight: 700; font-size: 0.78rem; display: flex; gap: 8px; align-items: center;
+      box-shadow: 3px 3px 0 rgba(0,0,0,0.35);
+    }
+    .sv-chip .sv-ic { font-size: 0.9rem; }
+    .sv-chip .sv-args { color: var(--muted); font-family: var(--font-mono); font-size: 0.68rem; }
+    .sv-badge { display:inline-block; padding: 2px 8px; background: var(--cat-control); color:#0a0a0a; font-weight:900; font-size: 0.7rem; text-transform:uppercase; border:2px solid var(--ink); margin-bottom: 10px; }
+    .sv-meta { font-size: 0.7rem; color: var(--muted); font-family: var(--font-mono); }
+  </style>
+</head>
+<body>
+  <div class="sv-top">
+    <div class="sv-logo">SQ</div>
+    <div>
+      <div class="sv-title">SillyVisualizer</div>
+      <div class="sv-sub">Reflejo en vivo del Modo Silly</div>
+    </div>
+    <div class="sv-spacer"></div>
+    <div class="sv-status" id="svStatus"><span class="sv-dot"></span><span id="svStatusText">Conectando…</span></div>
+  </div>
+
+  <div class="sv-body">
+    <div class="sv-stage" id="svStage">
+      <div class="sv-empty" id="svEmpty">
+        <div class="sv-big">👁</div>
+        Esperando al editor…<br>
+        Abre <b>SillyBuild</b> y empieza a armar tu modo. Lo verás aquí en tiempo real.
+      </div>
+      <div class="sv-screen" id="svScreen" style="display:none;"></div>
+    </div>
+    <div class="sv-flow" id="svFlow">
+      <div class="sv-flow-h">Flujo de bloques</div>
+      <div id="svChips" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+  </div>
+
+  <!-- Registro de bloques para humanizar etiquetas (opcional) -->
+  <script src="../js/scratch-blocks.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    const WS_URL = (window.__SB_WS_URL || ('ws://' + location.hostname + ':8081'));
+    const statusEl = document.getElementById('svStatus');
+    const statusText = document.getElementById('svStatusText');
+    const emptyEl = document.getElementById('svEmpty');
+    const screenEl = document.getElementById('svScreen');
+    const chipsEl = document.getElementById('svChips');
+    const stageEl = document.getElementById('svStage');
+
+    let lastUpdate = 0;
+    let localAssets = {}; // id -> blob URL
+
+    function revokeLocalAssets() {
+      Object.keys(localAssets).forEach(id => { try { URL.revokeObjectURL(localAssets[id]); } catch (_) {} });
+      localAssets = {};
+    }
+    function buildAssets(assetsObj) {
+      revokeLocalAssets();
+      if (!assetsObj || typeof assetsObj !== 'object') return;
+      Object.keys(assetsObj).forEach(id => {
+        const a = assetsObj[id];
+        if (!a || !a.dataUrl) return;
+        try {
+          const idx = a.dataUrl.indexOf(',');
+          const b64 = a.dataUrl.slice(idx + 1);
+          const bin = atob(b64);
+          const arr = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+          const blob = new Blob([arr], { type: a.mime || 'application/octet-stream' });
+          localAssets[id] = URL.createObjectURL(blob);
+        } catch (_) {}
+      });
+    }
+    function safeUrl(v) {
+      if (typeof v !== 'string' || !v) return '';
+      if (/^(https?:|blob:)/i.test(v)) return v;
+      if (/^data:(image\/|audio\/)/i.test(v)) return v;
+      return '';
+    }
+    function resolve(v) {
+      if (typeof v === 'string' && v.indexOf('__SB_ASSET__:') === 0) {
+        const id = v.slice('__SB_ASSET__:'.length);
+        return localAssets[id] || '';
+      }
+      return v || '';
+    }
+
+    function humanize(op) {
+      if (window.ScratchBlocks && window.ScratchBlocks.get) {
+        try { return window.ScratchBlocks.get(op).text.replace(/\[[A-Z_]+\]/g, '').trim() || op; } catch (e) {}
+      }
+      return String(op).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function setStatus(on, text) {
+      statusEl.classList.toggle('on', on);
+      statusText.textContent = text;
+    }
+
+    /* ---- Interpretación visual (espejo fiel del previzualizador) ---- */
+    const THEMES = {
+      neon:   { bg: '#0a0a2e', fg: '#00ff88', accent: '#ff00ff' },
+      biblia: { bg: '#1a0f00', fg: '#d4a574', accent: '#8b6914' },
+      retro:  { bg: '#2d1b69', fg: '#e0e0e0', accent: '#ff6b35' },
+      oscuro: { bg: '#0b0b0b', fg: '#f4f2ec', accent: '#FF5E3A' }
+    };
+
+    function interpret(heads) {
+      const state = {
+        bg: '#0b0b0b', fg: '#f4f2ec', accent: '#FF5E3A', gradient: null, bgImage: null,
+        title: '', subtitle: '', body: '', footer: '', options: [], media: [], badge: ''
+      };
+      const flow = [];
+      let eventKey = null;
+      if (heads && typeof heads === 'object') {
+        const keys = Object.keys(heads);
+        if (keys.length) eventKey = keys[0];
+      }
+      if (!eventKey || !heads[eventKey]) return { state, flow, eventKey };
+
+      // Elegir el stack principal (el que empieza por Hat)
+      const stacks = Array.isArray(heads[eventKey]) ? heads[eventKey] : [heads[eventKey]];
+      let main = stacks.find(s => s && s.opcode && (!window.ScratchBlocks || !window.ScratchBlocks.get || (window.ScratchBlocks.get(s.opcode) && window.ScratchBlocks.get(s.opcode).type === 'hat'))) || stacks[0];
+      if (!main) return { state, flow, eventKey };
+
+      let cur = main.next;
+      const MAX = 80;
+      while (cur && flow.length < MAX) {
+        const a = cur.args || {};
+        flow.push({ opcode: cur.opcode, args: a });
+        interpretBlock(cur.opcode, a, state);
+        cur = cur.next;
+      }
+      return { state, flow, eventKey };
+    }
+
+    function interpretBlock(opcode, a, s) {
+      switch (opcode) {
+        case 'set_theme': {
+          const t = THEMES[a.THEME] || THEMES.oscuro;
+          s.bg = t.bg; s.fg = t.fg; s.accent = t.accent; s.gradient = null; break;
+        }
+        case 'set_custom_theme':
+          if (a.BG) s.bg = a.BG; if (a.TXT) s.fg = a.TXT; if (a.ACC) s.accent = a.ACC; s.gradient = null; break;
+        case 'set_gradient_bg': {
+          const dirs = { '→': 'to right', '↓': 'to bottom', '↗': 'to top right', '↘': 'to bottom right' };
+          s.gradient = 'linear-gradient(' + (dirs[a.DIR] || 'to right') + ', ' + (a.C1 || '#000') + ', ' + (a.C2 || '#fff') + ')';
+          s.bg = 'transparent'; break;
+        }
+        case 'set_text_smooth':
+          if (a.TXT) {
+            const c = String(a.COMP || '').toLowerCase();
+            if (/title|titulo|header|heading/.test(c)) s.title = a.TXT;
+            else if (/sub|subtitle|bajada/.test(c)) s.subtitle = a.TXT;
+            else if (/body|texto|content|pregunta|question/.test(c)) s.body = a.TXT;
+            else if (/footer|pie|bottom/.test(c)) s.footer = a.TXT;
+            else if (!s.title) s.title = a.TXT; else s.body = a.TXT;
+          }
+          break;
+        case 'set_background_image': if (a.SRC) s.bgImage = safeUrl(resolve(a.SRC)); break;
+        case 'show_image': if (a.SRC) { const _u = safeUrl(resolve(a.SRC)); if (_u) s.media.push({ type: 'image', src: _u }); } break;
+        case 'show_video': if (a.SRC) { const _u = safeUrl(resolve(a.SRC)); if (_u) s.media.push({ type: 'video', src: _u, loop: !!a.LOOP }); } break;
+        case 'quiz_init_engine': s.footer = 'Quiz: ' + (a.N || '?') + ' preguntas · ' + (a.CAT || 'mix'); break;
+        case 'quiz_get_answer_text': if (a.OPT) s.options.push(a.OPT); break;
+        case 'players_set_active_slots': s.footer = (a.N || '?') + ' jugadores activos'; break;
+        default: break;
+      }
+    }
+
+    function esc(v) {
+      return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function render(payload) {
+      const heads = (payload && payload.heads) ? payload.heads : payload;
+      if (payload && payload.assets) buildAssets(payload.assets);
+      const { state, flow, eventKey } = interpret(heads);
+      if (!eventKey) {
+        emptyEl.style.display = '';
+        screenEl.style.display = 'none';
+        chipsEl.innerHTML = '';
+        return;
+      }
+      emptyEl.style.display = 'none';
+      screenEl.style.display = 'flex';
+
+      let bgStyle = state.gradient
+        ? 'background:' + state.gradient
+        : state.bgImage
+          ? 'background:linear-gradient(rgba(0,0,0,0.45),rgba(0,0,0,0.45)),url(' + esc(state.bgImage) + ') center/cover'
+          : 'background:' + state.bg;
+      bgStyle += ';color:' + state.fg + ';';
+      if (state.accent) bgStyle += 'border-color:' + state.accent + ';';
+
+      let html = '<div class="sv-badge" style="color:' + esc(state.accent) + ';border-color:' + esc(state.accent) + '">📡 En vivo · ' + esc(eventKey) + '</div>';
+      if (state.title) html += '<div class="sv-title-t">' + esc(state.title) + '</div>';
+      if (state.subtitle) html += '<div class="sv-sub-t">' + esc(state.subtitle) + '</div>';
+      if (state.body) html += '<div class="sv-body-t">' + esc(state.body) + '</div>';
+
+      state.media.forEach(m => {
+        if (m.type === 'image') html += '<div class="sv-media"><img src="' + esc(m.src) + '" alt=""></div>';
+        else if (m.type === 'video') html += '<div class="sv-media"><video src="' + esc(m.src) + '"' + (m.loop ? ' loop autoplay muted' : '') + '></video></div>';
+      });
+
+      if (state.options.length) {
+        html += '<div class="sv-opts">';
+        state.options.forEach((o, i) => {
+          const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+          html += '<div class="sv-opt" style="color:' + esc(state.accent) + '"><span>' + (letters[i] || (i + 1)) + '</span> ' + esc(o) + '</div>';
+        });
+        html += '</div>';
+      }
+      if (state.footer) html += '<div class="sv-footer">' + esc(state.footer) + '</div>';
+
+      screenEl.setAttribute('style', bgStyle + 'display:flex;flex-direction:column;');
+      screenEl.innerHTML = html;
+
+      // Flujo de bloques
+      const valStr = (v) => {
+        if (typeof v === 'string' && v.indexOf('__SB_ASSET__:') === 0) return 'asset';
+        return Array.isArray(v) ? v.join(',') : String(v).substring(0, 30);
+      };
+      chipsEl.innerHTML = flow.map(f => {
+        const argStr = Object.keys(f.args)
+          .filter(k => f.args[k] !== '' && f.args[k] != null)
+          .map(k => k + '=' + valStr(f.args[k]))
+          .join(' · ');
+        return '<div class="sv-chip"><span class="sv-ic">🧩</span><span>' + esc(humanize(f.opcode)) + '</span>' +
+          (argStr ? '<span class="sv-args">' + esc(argStr) + '</span>' : '') + '</div>';
+      }).join('') || '<div class="sv-chip">Sin bloques todavía</div>';
+
+      lastUpdate = new Date();
+    }
+
+    /* ---- WebSocket ---- */
+    let ws = null;
+    function connect() {
+      try { ws = new WebSocket(WS_URL); }
+      catch (e) { setStatus(false, 'WS no disponible'); return; }
+
+      ws.onopen = () => {
+        setStatus(true, 'Conectado');
+        ws.send(JSON.stringify({ type: 'register', display_id: 'visualizer_' + Math.random().toString(36).slice(2) }));
+      };
+      ws.onclose = () => { setStatus(false, 'Desconectado'); setTimeout(connect, 2000); };
+      ws.onerror = () => { setStatus(false, 'Error de conexión'); };
+      ws.onmessage = (e) => {
+        try {
+          const msg = JSON.parse(e.data);
+          if (msg.type === 'builder_state' && msg.state) {
+            render(msg.state);
+            setStatus(true, 'En vivo · ' + new Date().toLocaleTimeString('es'));
+          }
+        } catch (_) {}
+      };
+    }
+    connect();
+  })();
+  </script>
+</body>
+</html>

@@ -296,7 +296,7 @@ button:hover{background:#FF7A5C}
             "/quiz-renderer.js", "/api/stream",
         )
         _PAGE_ROOTS = (
-            "/sillycontrol", "/sillycontrol/", "/control",
+            "/sillycontrol", "/sillycontrol/",
             "/display", "/displaysilly", "/canva", "/play", "/",
             "/login", "/logout",
         )

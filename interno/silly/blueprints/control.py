@@ -15,6 +15,8 @@ import os
 
 from flask import Blueprint, send_from_directory, redirect, request
 
+from silly.blueprints._security import require_auth, require_auth_html
+
 control_bp = Blueprint(
     "control",
     __name__,
@@ -30,6 +32,7 @@ FRONTEND_DIR = os.path.join(
 
 @control_bp.route("/", defaults={"subpath": ""})
 @control_bp.route("/<path:subpath>")
+@require_auth_html
 def index(subpath):
     """Sirve el panel de control SPA (sillycontrol.html).
 
@@ -41,17 +44,17 @@ def index(subpath):
     if subpath in legacy:
         return redirect("/sillycontrol/", code=302)
 
-    from silly.blueprints._security import require_auth_html
     resp = send_from_directory(FRONTEND_DIR, "sillycontrol.html")
     resp.headers["Cache-Control"] = "no-cache"
     return resp
 
 
-# Alias para mantener compatibilidad con enlaces antiguos que apuntaban a
-# /sillycontrol/estado-actual, /sillycontrol/api, etc. La API real vive en /api.
 @control_bp.route("/estado-actual", methods=["GET"])
 @control_bp.route("/api/<path:subpath>", methods=["GET", "POST", "PUT", "DELETE"])
+@require_auth
 def _legacy_api_proxy(subpath=None):
+    """Alias para compatibilidad con enlaces antiguos que apuntaban a
+    /sillycontrol/estado-actual, /sillycontrol/api, etc. Redirige a la API real."""
     target = request.full_path
     target = target.replace("/sillycontrol/api/", "/api/", 1)
     target = target.replace("/sillycontrol/estado-actual", "/api/estado-actual", 1)

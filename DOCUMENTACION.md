@@ -1,26 +1,15 @@
 # DOCUMENTACIÓN TÉCNICA — SILLYQUIZ
 
 > **Qué ES SillyQuiz (la visión)**
-> SillyQuiz no es "un programa de trivias bíblicas": es una **plataforma para que
-> cualquier persona cree LOCURAS**. Un modo en SillyQuiz puede ser desde un sistema de
-> preguntas y respuestas, hasta un **videojuego local donde la gente juega desde sus
-> celulares**, una **carrera de caballos aleatoria**, un quiz show, un modo batalla 1v1,
-> supervivencia, ruleta… lo que le cabe en la cabeza al creador. El límite es el builder.
+> SillyQuiz no es "un programa de trivias": es una **plataforma para que cualquier persona cree LOCURAS**. Un modo en SillyQuiz puede ser desde un sistema de preguntas y respuestas, hasta un **videojuego local donde la gente juega desde sus celulares**, una **carrera de caballos aleatoria**, un quiz show, un modo batalla 1v1, supervivencia, ruleta… lo que le quepa en la cabeza al creador. El límite es el builder.
 >
-> Por eso se llama *SillyQuiz* y por eso los modos se empaquetan con la extensión
-> **`.silly`**: para que la gente comparta, venda y descargue "locuras" ajenas.
+> Por eso se llama *SillyQuiz* y por eso los modos se empaquetan con la extensión **`.silly`**: para que la gente comparta, venda y descargue "locuras" ajenas.
 >
 > **Modelo de negocio / adopción**
-> Idea de venta a **$10–$15 USD**. A ese precio la gente masifica sus modos locos y se
-> forma un ecosistema/marketplace donde unos crean y otros solo descargan.
+> Idea de venta a **$10–$15 USD**. A ese precio la gente masifica sus modos locos y se forma un ecosistema/marketplace donde unos crean y otros solo descargan.
 >
 > **Por qué existe (la historia)**
-> El profesor de Informática, el primer día de clases, usó un programa para hacernos
-> quiz: **Wordwall** "en abrecajas". Era feo, poco personalizable, y tuvo un problema
-> real: al no poder elegir los tiempos, tenía que reiniciarlos y las preguntas se
-> mezclaban — un solo desastre. Hoy, con SillyQuiz, él (o cualquiera) puede **crear su
-> propio sistema de trivias**, **pedírselo a una IA**, o **descargarlo de internet con
-> un par de clics**. Cero mezcla de preguntas, tiempos a la medida.
+> El profesor de Informática, el primer día de clases, usó un programa para hacernos quiz: **Wordwall** "en abrecajas". Era feo, poco personalizable, y tuvo un problema real: al no poder elegir los tiempos, tenía que reiniciarlos y las preguntas se mezclaban — un solo desastre. Hoy, con SillyQuiz, él (o cualquiera) puede **crear su propio sistema de trivias**, **pedírselo a una IA**, o **descargarlo de internet con un par de clics**. Cero mezcla de preguntas, tiempos a la medida.
 
 ---
 
@@ -43,8 +32,7 @@ URLs:
 - WebSocket de sync: `ws://127.0.0.1:8081`
 
 > **Nota sobre el contenido actual**: el contenido por defecto que trae el código hoy
-> está tematizado como "Campeonísimo Bíblico" (oración, versos, etc.). Eso es solo
-> **contenido de ejemplo/default**; el motor, los modos y el builder son 100%
+> está tematizado como ejemplo genérico. Eso es solo **contenido de ejemplo/default**; el motor, los modos y el builder son 100%
 > genéricos y están hechos para cualquier locura que el usuario quiera montar.
 
 ================================================================================
@@ -53,8 +41,7 @@ RAÍZ DEL PROYECTO (SillyQuiz/)
 
 README.md
   - Para qué sirve: Portada del repo. Explica características, arquitectura, mapeo de
-    proyectores, mode blending y el constructor. (Hoy está redactado con el ejemplo
-    bíblico; conviene reescribirlo hacia la visión de "crea tus locuras / .silly".)
+    proyectores, mode blending y el constructor.
   - Estética: Markdown con badges, emojis y bloques de código.
 
 requirements.txt
@@ -284,15 +271,15 @@ docs/modo-builder/ — centro de soporte y tutorial del constructor (HTML).
 interno/themes/ — Biblioteca de temas (JSON)
 ================================================================================
 
-35 archivos `.json` de temas presets: biblical-*, fantasy-*, festive-*, nature-*,
+35 archivos `.json` de temas presets: fantasy-*, festive-*, nature-*,
 modern-*, más fuego/océano/bosque/oscuro/neón y test-theme.
 
   - Para qué sirve: cada tema define colores, tipografía, timer, layout, shapes,
     efectos y sonido; el editor WYSIWYG los crea/modifica y el display los aplica sin
     flash. Así el creador pone la estética de su "locura" en segundos.
   - Estética de los temas: neón púrpura (#a855f7), fuego rojo/naranja, océano azul
-    cian, bosque verde, litúrgico dorado/azul, festivo multicolor. Todos con
-    bg_gradient, glow, sombras y formas (copa, corona, paloma, pez, espada, lámpara…).
+    cian, bosque verde, festivo multicolor. Todos con
+    bg_gradient, glow, sombras y formas.
 
 ================================================================================
 interno/modo_templates/ — Plantillas de modos (el catálogo de locuras)

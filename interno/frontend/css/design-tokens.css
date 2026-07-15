@@ -13,102 +13,192 @@
   /* =========================================================================
    * 1. COLORES BASE (sin tema)
    * ========================================================================= */
-  --lzq-bg: #0b0b0b;
-  --lzq-surface: #1a1a2e;
-  --lzq-surface-raised: #16213e;
-  --lzq-border: #333355;
-  --lzq-text: #e0e0e0;
-  --lzq-text-muted: #888;
-  --lzq-text-dim: #555;
-  --lzq-accent: #FF5E3A;
-  --lzq-accent-hover: #ff7a5c;
-  --lzq-success: #10b981;
-  --lzq-danger: #ef4444;
-  --lzq-warning: #f59e0b;
-  --lzq-info: #3b82f6;
+  --silly-bg: #050505;
+  --silly-bg-deep: #020204;
+  --silly-surface: #0f0f1a;
+  --silly-surface-raised: #171730;
+  --silly-surface-floating: #252545;
+  --silly-border: #2d2d50;
+  --silly-border-light: #3d3d6a;
+  --silly-border-subtle: #505072;
+  --silly-text: #f0f0f8;
+  --silly-text-muted: #a0a0b0;
+  --silly-text-dim: #707080;
+  --silly-text-bright: #ffffff;
+  --silly-accent: #ff5e3a;
+  --silly-accent-primary: #ff7a5c;
+  --silly-accent-secondary: #ff3300;
+  --silly-accent-tertiary: #ff8c66;
+  --silly-accent-glow: rgba(255, 94, 58, 0.5);
+  --silly-success: #10b981;
+  --silly-success-bright: #34d399;
+  --silly-success-dark: #059669;
+  --silly-danger: #ef4444;
+  --silly-danger-bright: #f87171;
+  --silly-danger-dark: #dc2626;
+  --silly-warning: #f59e0b;
+  --silly-warning-bright: #fbbf24;
+  --silly-warning-dark: #d97706;
+  --silly-info: #3b82f6;
+  --silly-info-bright: #60a5fa;
+  --silly-info-dark: #2563eb;
 
   /* Grupos */
-  --lzq-jovenes: #ff00ff;
-  --lzq-damas: #ffcc00;
-  --lzq-caball: #ff5500;
-  --lzq-ninos: #00ff55;
+  --silly-jovenes: #ff00ff;
+  --silly-jovenes-bright: #ff66ff;
+  --silly-jovenes-glow: rgba(255, 0, 255, 0.6);
+  --silly-damas: #ffcc00;
+  --silly-damas-bright: #ffee00;
+  --silly-damas-glow: rgba(255, 204, 0, 0.6);
+  --silly-caball: #ff5500;
+  --silly-caball-bright: #ff8c33;
+  --silly-caball-glow: rgba(255, 85, 0, 0.6);
+  --silly-ninos: #00ff55;
+  --silly-ninos-bright: #00ff80;
+  --silly-ninos-glow: rgba(0, 255, 85, 0.6);
 
   /* =========================================================================
    * 2. SOMBRAS
    * ========================================================================= */
-  --lzq-shadow-sm: 2px 2px 0px rgba(0,0,0,0.4);
-  --lzq-shadow: 4px 4px 0px rgba(0,0,0,0.5);
-  --lzq-shadow-lg: 0 8px 40px rgba(0,0,0,0.55);
-  --lzq-shadow-glow: 0 0 20px var(--lzq-accent);
+  --silly-shadow-sm: 2px 2px 0px rgba(0,0,0,0.4);
+  --silly-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+  --silly-shadow-lg: 0 8px 40px rgba(0,0,0,0.55);
+  --silly-shadow-glow: 0 0 20px var(--silly-accent);
 
   /* =========================================================================
    * 3. TIPOGRAFÍA
    * ========================================================================= */
-  --lzq-font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --lzq-font-heading: Georgia, 'Times New Roman', serif;
-  --lzq-font-mono: 'Fira Code', 'Cascadia Code', Consolas, monospace;
-  --lzq-font-size-xs: 0.7rem;
-  --lzq-font-size-sm: 0.85rem;
-  --lzq-font-size-base: 1rem;
-  --lzq-font-size-lg: 1.2rem;
-  --lzq-font-size-xl: 1.5rem;
-  --lzq-font-size-2xl: 2rem;
-  --lzq-font-size-3xl: 3rem;
+  --silly-font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --silly-font-heading: Georgia, 'Times New Roman', serif;
+  --silly-font-mono: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  --silly-font-size-xs: 0.7rem;
+  --silly-font-size-sm: 0.85rem;
+  --silly-font-size-base: 1rem;
+  --silly-font-size-lg: 1.2rem;
+  --silly-font-size-xl: 1.5rem;
+  --silly-font-size-2xl: 2rem;
+  --silly-font-size-3xl: 3rem;
 
   /* =========================================================================
    * 4. ESPACIADO
    * ========================================================================= */
-  --lzq-space-xs: 4px;
-  --lzq-space-sm: 8px;
-  --lzq-space-md: 16px;
-  --lzq-space-lg: 24px;
-  --lzq-space-xl: 32px;
-  --lzq-space-2xl: 48px;
+  --silly-space-xs: 4px;
+  --silly-space-sm: 8px;
+  --silly-space-md: 16px;
+  --silly-space-lg: 24px;
+  --silly-space-xl: 32px;
+  --silly-space-2xl: 48px;
 
   /* =========================================================================
    * 5. BORDES
    * ========================================================================= */
-  --lzq-radius-sm: 4px;
-  --lzq-radius-md: 8px;
-  --lzq-radius-lg: 12px;
-  --lzq-radius-xl: 16px;
-  --lzq-radius-full: 9999px;
+  --silly-radius-sm: 4px;
+  --silly-radius-md: 8px;
+  --silly-radius-lg: 12px;
+  --silly-radius-xl: 16px;
+  --silly-radius-full: 9999px;
 
   /* =========================================================================
    * 6. TRANSICIONES
    * ========================================================================= */
-  --lzq-ease: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  --lzq-ease-out: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --lzq-ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --lzq-ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-  --lzq-ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
-  --lzq-transition-fast: 150ms var(--lzq-ease-smooth);
-  --lzq-transition-base: 250ms var(--lzq-ease-smooth);
-  --lzq-transition-slow: 400ms var(--lzq-ease-smooth);
+  --silly-ease: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --silly-ease-out: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --silly-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --silly-ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --silly-ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  --silly-transition-fast: 150ms var(--silly-ease-smooth);
+  --silly-transition-base: 250ms var(--silly-ease-smooth);
+  --silly-transition-slow: 400ms var(--silly-ease-smooth);
 
   /* =========================================================================
    * 7. TIMERS & SCORES
    * ========================================================================= */
-  --lzq-timer-bg: #1a1a2e;
-  --lzq-timer-text: #FF5E3A;
-  --lzq-timer-critical: #ef4444;
-  --lzq-score-bg: rgba(0,0,0,0.6);
-  --lzq-score-text: #f4f2ec;
-  --lzq-score-accent: #FFD700;
+  --silly-timer-bg: #1a1a2e;
+  --silly-timer-text: #FF5E3A;
+  --silly-timer-critical: #ef4444;
+  --silly-score-bg: rgba(0,0,0,0.6);
+  --silly-score-text: #f4f2ec;
+  --silly-score-accent: #FFD700;
 
   /* =========================================================================
    * 8. SHAPES
    * ========================================================================= */
-  --lzq-shape-square: 0;
-  --lzq-shape-rounded: 8px;
-  --lzq-shape-pill: 9999px;
-  --lzq-shape-circle: 50%;
+  --silly-shape-square: 0;
+  --silly-shape-rounded: 8px;
+  --silly-shape-pill: 9999px;
+  --silly-shape-circle: 50%;
 
   /* =========================================================================
    * 9. TEXTURES
    * ========================================================================= */
-  --lzq-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  --lzq-dot-pattern: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='10' cy='10' r='0.8' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E");
+  --silly-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  --silly-dot-pattern: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='10' cy='10' r='0.8' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E");
+
+  /* =========================================================================
+   * LEGACY ALIASES — --lzq-* (deprecated, migrar a --silly-*)
+   * ========================================================================= */
+  --lzq-bg: var(--silly-bg);
+  --lzq-surface: var(--silly-surface);
+  --lzq-surface-raised: var(--silly-surface-raised);
+  --lzq-border: var(--silly-border);
+  --lzq-text: var(--silly-text);
+  --lzq-text-muted: var(--silly-text-muted);
+  --lzq-text-dim: var(--silly-text-dim);
+  --lzq-accent: var(--silly-accent);
+  --lzq-accent-hover: var(--silly-accent-hover);
+  --lzq-success: var(--silly-success);
+  --lzq-danger: var(--silly-danger);
+  --lzq-warning: var(--silly-warning);
+  --lzq-info: var(--silly-info);
+  --lzq-jovenes: var(--silly-jovenes);
+  --lzq-damas: var(--silly-damas);
+  --lzq-caball: var(--silly-caball);
+  --lzq-ninos: var(--silly-ninos);
+  --lzq-shadow-sm: var(--silly-shadow-sm);
+  --lzq-shadow: var(--silly-shadow);
+  --lzq-shadow-lg: var(--silly-shadow-lg);
+  --lzq-shadow-glow: var(--silly-shadow-glow);
+  --lzq-font-body: var(--silly-font-body);
+  --lzq-font-heading: var(--silly-font-heading);
+  --lzq-font-mono: var(--silly-font-mono);
+  --lzq-font-size-xs: var(--silly-font-size-xs);
+  --lzq-font-size-sm: var(--silly-font-size-sm);
+  --lzq-font-size-base: var(--silly-font-size-base);
+  --lzq-font-size-lg: var(--silly-font-size-lg);
+  --lzq-font-size-xl: var(--silly-font-size-xl);
+  --lzq-font-size-2xl: var(--silly-font-size-2xl);
+  --lzq-font-size-3xl: var(--silly-font-size-3xl);
+  --lzq-space-xs: var(--silly-space-xs);
+  --lzq-space-sm: var(--silly-space-sm);
+  --lzq-space-md: var(--silly-space-md);
+  --lzq-space-lg: var(--silly-space-lg);
+  --lzq-space-xl: var(--silly-space-xl);
+  --lzq-space-2xl: var(--silly-space-2xl);
+  --lzq-radius-sm: var(--silly-radius-sm);
+  --lzq-radius-md: var(--silly-radius-md);
+  --lzq-radius-lg: var(--silly-radius-lg);
+  --lzq-radius-xl: var(--silly-radius-xl);
+  --lzq-radius-full: var(--silly-radius-full);
+  --lzq-ease: var(--silly-ease);
+  --lzq-ease-out: var(--silly-ease-out);
+  --lzq-ease-in: var(--silly-ease-in);
+  --lzq-ease-smooth: var(--silly-ease-smooth);
+  --lzq-ease-bounce: var(--silly-ease-bounce);
+  --lzq-transition-fast: var(--silly-transition-fast);
+  --lzq-transition-base: var(--silly-transition-base);
+  --lzq-transition-slow: var(--silly-transition-slow);
+  --lzq-timer-bg: var(--silly-timer-bg);
+  --lzq-timer-text: var(--silly-timer-text);
+  --lzq-timer-critical: var(--silly-timer-critical);
+  --lzq-score-bg: var(--silly-score-bg);
+  --lzq-score-text: var(--silly-score-text);
+  --lzq-score-accent: var(--silly-score-accent);
+  --lzq-shape-square: var(--silly-shape-square);
+  --lzq-shape-rounded: var(--silly-shape-rounded);
+  --lzq-shape-pill: var(--silly-shape-pill);
+  --lzq-shape-circle: var(--silly-shape-circle);
+  --lzq-noise: var(--silly-noise);
+  --lzq-dot-pattern: var(--silly-dot-pattern);
 }
 
 /* =========================================================================
@@ -116,101 +206,101 @@
  * ========================================================================= */
 html.theme-dark,
 html:not(.theme-fire):not(.theme-ocean):not(.theme-light) {
-  --lzq-bg: #001144;
-  --lzq-surface: #001a66;
-  --lzq-surface-raised: #002288;
-  --lzq-border: #0033aa;
-  --lzq-text: #89b3ff;
-  --lzq-text-muted: #5577aa;
-  --lzq-accent: #7C3AED;
+  --silly-bg: #001144;
+  --silly-surface: #001a66;
+  --silly-surface-raised: #002288;
+  --silly-border: #0033aa;
+  --silly-text: #89b3ff;
+  --silly-text-muted: #5577aa;
+  --silly-accent: #7C3AED;
 }
 
 /* =========================================================================
  * TEMA: FIRE
  * ========================================================================= */
 html.theme-fire {
-  --lzq-bg: #1a0000;
-  --lzq-surface: #330000;
-  --lzq-surface-raised: #4d0000;
-  --lzq-border: #660000;
-  --lzq-text: #ff9966;
-  --lzq-text-muted: #cc8866;
-  --lzq-accent: #ff4400;
-  --lzq-success: #00ff00;
-  --lzq-danger: #ff0000;
-  --lzq-warning: #ffa500;
-  --lzq-jovenes: #ff4400;
-  --lzq-damas: #ffbb00;
-  --lzq-caball: #ff6600;
-  --lzq-ninos: #ff0000;
+  --silly-bg: #1a0000;
+  --silly-surface: #330000;
+  --silly-surface-raised: #4d0000;
+  --silly-border: #660000;
+  --silly-text: #ff9966;
+  --silly-text-muted: #cc8866;
+  --silly-accent: #ff4400;
+  --silly-success: #00ff00;
+  --silly-danger: #ff0000;
+  --silly-warning: #ffa500;
+  --silly-jovenes: #ff4400;
+  --silly-damas: #ffbb00;
+  --silly-caball: #ff6600;
+  --silly-ninos: #ff0000;
 }
 
 /* =========================================================================
  * TEMA: OCEAN
  * ========================================================================= */
 html.theme-ocean {
-  --lzq-bg: #001122;
-  --lzq-surface: #002244;
-  --lzq-surface-raised: #003366;
-  --lzq-border: #004488;
-  --lzq-text: #66ccff;
-  --lzq-text-muted: #4499cc;
-  --lzq-accent: #00aaff;
-  --lzq-success: #00ffcc;
-  --lzq-danger: #ff4466;
-  --lzq-warning: #ffaa00;
-  --lzq-jovenes: #66ffff;
-  --lzq-damas: #66ccff;
-  --lzq-caball: #3399ff;
-  --lzq-ninos: #00ff99;
+  --silly-bg: #001122;
+  --silly-surface: #002244;
+  --silly-surface-raised: #003366;
+  --silly-border: #004488;
+  --silly-text: #66ccff;
+  --silly-text-muted: #4499cc;
+  --silly-accent: #00aaff;
+  --silly-success: #00ffcc;
+  --silly-danger: #ff4466;
+  --silly-warning: #ffaa00;
+  --silly-jovenes: #66ffff;
+  --silly-damas: #66ccff;
+  --silly-caball: #3399ff;
+  --silly-ninos: #00ff99;
 }
 
 /* =========================================================================
  * TEMA: LIGHT
  * ========================================================================= */
 html.theme-light {
-  --lzq-bg: #f8f9fa;
-  --lzq-surface: #ffffff;
-  --lzq-surface-raised: #f0f0f0;
-  --lzq-border: #dee2e6;
-  --lzq-text: #212529;
-  --lzq-text-muted: #6c757d;
-  --lzq-accent: #0d6efd;
-  --lzq-accent-hover: #0b5ed7;
-  --lzq-success: #198754;
-  --lzq-danger: #dc3545;
-  --lzq-warning: #ffc107;
-  --lzq-info: #0dcaf0;
-  --lzq-shadow-sm: 2px 2px 0px rgba(0,0,0,0.1);
-  --lzq-shadow: 4px 4px 0px rgba(0,0,0,0.15);
-  --lzq-shadow-lg: 0 8px 40px rgba(0,0,0,0.1);
+  --silly-bg: #f8f9fa;
+  --silly-surface: #ffffff;
+  --silly-surface-raised: #f0f0f0;
+  --silly-border: #dee2e6;
+  --silly-text: #212529;
+  --silly-text-muted: #6c757d;
+  --silly-accent: #0d6efd;
+  --silly-accent-hover: #0b5ed7;
+  --silly-success: #198754;
+  --silly-danger: #dc3545;
+  --silly-warning: #ffc107;
+  --silly-info: #0dcaf0;
+  --silly-shadow-sm: 2px 2px 0px rgba(0,0,0,0.1);
+  --silly-shadow: 4px 4px 0px rgba(0,0,0,0.15);
+  --silly-shadow-lg: 0 8px 40px rgba(0,0,0,0.1);
 }
 
 /* =========================================================================
- * COMPAT: Variables legacy (deprecated, migrar a --lzq-*)
+ * COMPAT: Variables legacy (deprecated, migrar a --silly-*)
  * ========================================================================= */
 :root {
-  /* Legacy aliases — usar --lzq-* en código nuevo */
-  --bg: var(--lzq-bg);
-  --surface: var(--lzq-surface);
-  --border: var(--lzq-border);
-  --text: var(--lzq-text);
-  --accent: var(--lzq-accent);
-  --jovenes: var(--lzq-jovenes);
-  --damas: var(--lzq-damas);
-  --caball: var(--lzq-caball);
-  --ninos: var(--lzq-ninos);
-  --shadow: var(--lzq-shadow);
-  --shadow-sm: var(--lzq-shadow-sm);
-  --shadow-lg: var(--lzq-shadow-lg);
-  --ease: var(--lzq-ease);
-  --ease-out: var(--lzq-ease-out);
-  --ease-in: var(--lzq-ease-in);
-  --ease-smooth: var(--lzq-ease-smooth);
-  --ease-bounce: var(--lzq-ease-bounce);
+  /* Legacy aliases — usar --silly-* en código nuevo */
+  --bg: var(--silly-bg);
+  --surface: var(--silly-surface);
+  --border: var(--silly-border);
+  --text: var(--silly-text);
+  --accent: var(--silly-accent);
+  --jovenes: var(--silly-jovenes);
+  --damas: var(--silly-damas);
+  --caball: var(--silly-caball);
+  --ninos: var(--silly-ninos);
+  --shadow: var(--silly-shadow);
+  --shadow-sm: var(--silly-shadow-sm);
+  --shadow-lg: var(--silly-shadow-lg);
+  --ease: var(--silly-ease);
+  --ease-out: var(--silly-ease-out);
+  --ease-in: var(--silly-ease-in);
+  --ease-smooth: var(--silly-ease-smooth);
+  --ease-bounce: var(--silly-ease-bounce);
 
   /* Scratch builder compat */
-  --paper: var(--lzq-surface);
-  --ink: var(--lzq-text);
-  --primary: var(--lzq-accent);
+  --paper: var(--silly-surface);
+  --ink: var(--silly-text);
+  --primary: var(--silly-accent);
 }

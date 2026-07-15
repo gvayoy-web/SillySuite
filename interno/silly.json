@@ -49,7 +49,6 @@
         "show_progress": false,
         "edge_blend": "none",
         "welcome_screen": false,
-        "show_verse": false,
         "dynamic_bars": false,
         "theme_slug": null,
         "sound_map": {

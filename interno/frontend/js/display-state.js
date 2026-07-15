@@ -197,7 +197,6 @@ function procesarEstado(d) {
             document.body.classList.add('edge-blend-' + d.display_config.edge_blend);
         }
         document.body.classList.toggle('welcome-screen', !!d.display_config.welcome_screen);
-        document.body.classList.toggle('show-verse', !!d.display_config.show_verse);
 
         // Flash intensity — set CSS variable on body
         var fi = d.display_config.flash_intensity;
@@ -323,15 +322,10 @@ function procesarEstado(d) {
           welcomeEl.classList.toggle("show", showWelcome);
       }
 
-      // Verse reference on question
+      // Verse reference on question - REMOVED (show_verse deprecated)
       var verseEl = document.getElementById("qVerse");
       if (verseEl) {
-          if (d.pregunta_actual && d.display_config.show_verse && d.pregunta_actual.referencia) {
-              verseEl.textContent = d.pregunta_actual.referencia;
-              verseEl.style.display = "block";
-          } else {
-              verseEl.style.display = "none";
-          }
+          verseEl.style.display = "none";
       }
 
       // Dynamic bars — pass flag to renderScores

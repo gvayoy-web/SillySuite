@@ -6,7 +6,7 @@
         <meta name="theme-color" content="#0038ff" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <title>Display — Campeonísimo Bíblico</title>
+        <title>Display — SillyQuiz</title>
         <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;700&family=Cinzel:wght@400;600;700;900&family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap"
             rel="stylesheet"
@@ -68,10 +68,10 @@
 
             <!-- BASE CSS LOADED VIA display-base.css -->
     </head>
-    <body>
+    <body aria-live="polite">
         <!-- Connection status (always visible, even if JS modules fail) -->
-        <div id="connPill" class="conn-pill conn-init">
-            <span class="conn-dot"></span>
+        <div id="connPill" class="conn-pill conn-init" role="status" aria-live="assertive">
+            <span class="conn-dot" aria-hidden="true"></span>
             <span id="connText">Conectando…</span>
         </div>
 
@@ -124,9 +124,9 @@
         <div class="decor-corner bl">◇</div>
         <div class="decor-corner br">◆</div>
         <div class="screen brutal-layout">
-            <section class="question-zone">
-                <div class="timer-badge" id="timerBadge">
-                    <div class="timer-num stopped" id="timerNum">—</div>
+            <section class="question-zone" role="region" aria-label="Zona de pregunta">
+                <div class="timer-badge" id="timerBadge" role="timer" aria-live="off">
+                    <div class="timer-num stopped" id="timerNum" aria-label="Temporizador">—</div>
                 </div>
                 <div class="q-progress" id="qProgress">
                     <div class="q-progress-bar" id="qProgressBar"></div>
@@ -135,7 +135,7 @@
                 <div class="q-eyebrow" id="qEyebrow">Pregunta</div>
                 <div class="q-category-badge" id="qCatBadge"></div>
                 <div class="q-verse" id="qVerse" style="display:none;"></div>
-                <div class="q-text empty visible pos-relative" id="qText">
+                <div class="q-text empty visible pos-relative" id="qText" role="heading" aria-level="2" aria-live="polite">
                     Esperando pregunta…
                     <div class="decor-attached at-corner-tl" id="atTL"></div>
                     <div class="decor-attached at-corner-tr" id="atTR"></div>
@@ -146,15 +146,15 @@
                     <div class="decor-attached at-dot-l" id="atDotL"></div>
                     <div class="decor-attached at-dot-r" id="atDotR"></div>
                 </div>
-                <div class="answer-block" id="ansBlock">
+                <div class="answer-block" id="ansBlock" aria-live="polite">
                     <div class="ans-label">Respuesta</div>
                     <div class="ans-text" id="ansText"></div>
                 </div>
             </section>
 
-            <div class="options-container" id="optionsContainer"></div>
+            <div class="options-container" id="optionsContainer" role="group" aria-label="Opciones de respuesta"></div>
 
-            <div class="scores-zone" id="scoresZone"></div>
+            <div class="scores-zone" id="scoresZone" role="region" aria-label="Puntajes"></div>
         </div>
 
         <!-- Animations -->

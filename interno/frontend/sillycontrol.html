@@ -19,7 +19,7 @@
   <script>
     (function () {
       try {
-        if (localStorage.getItem('lq-control-theme') === 'light') {
+        if (localStorage.getItem('silly-control-theme') === 'light') {
           document.documentElement.classList.add('control-light');
         }
       } catch (e) {}
@@ -29,9 +29,12 @@
 
 <body>
 
+<!-- Skip navigation for keyboard users -->
+<a href="#content" class="skip-link" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;z-index:10000;background:#FF5E3A;color:#0B0B0B;padding:8px 16px;font-weight:700;text-decoration:none;" onfocus="this.style.left='8px'" onblur="this.style.left='-9999px'">Saltar al contenido principal</a>
+
 <!-- Sidebar -->
-<nav class="sidebar" id="sidebar" aria-label="Panel de navegación">
-  <div class="sidebar-brand">LQ</div>
+<nav class="sidebar" id="sidebar" aria-label="Panel de navegación" role="navigation">
+  <div class="sidebar-brand" title="SillyQuiz">SQ</div>
   <div class="sidebar-nav">
     <button class="tab-btn active" data-tab="dashboard" title="Dashboard" aria-label="Dashboard">🏆</button>
     <button class="tab-btn" data-tab="preguntas" title="Preguntas" aria-label="Preguntas">❓</button>
@@ -50,17 +53,17 @@
   </div>
   <div class="sidebar-footer">
     <div id="sidebarStatus" class="sidebar-status" title="Estado de conexión">🔴</div>
-    <button class="tab-btn" id="themeToggle" title="Tema (Oscuro/Claro)" aria-label="Alternar tema oscuro/claro" onclick="toggleLQTheme()">◐</button>
+    <button class="tab-btn" id="themeToggle" title="Tema (Oscuro/Claro)" aria-label="Alternar tema oscuro/claro" onclick="toggleSillyTheme()">◐</button>
       <button class="tab-btn" id="displayPreviewToggle" title="Vista Display" aria-label="Alternar vista display">📺</button>
       <button class="tab-btn" id="btnPersonalizar" title="Personalizar" aria-label="Personalizar panel">🎛️</button>
     </div>
 </nav>
 
 <!-- Content -->
-<main class="content" id="content">
-  <div class="app-hud">
+<main class="content" id="content" role="main">
+  <div class="app-hud" role="status" aria-live="polite">
     <span class="app-hud-mark">SILLYQUIZ</span>
-    <span class="app-hud-dot" id="appHudDot" title="Estado del servidor: comprobando…"></span>
+    <span class="app-hud-dot" id="appHudDot" title="Estado del servidor: comprobando…" aria-hidden="true"></span>
     <span class="app-hud-meta"><span id="appHudClock">--:--:--</span> &nbsp;·&nbsp; CONTROL</span>
     <span class="app-hud-state" id="appHudState">servidor: —</span>
   </div>
@@ -113,8 +116,8 @@
     </div>
     <div class="dashboard-card">
       <div class="label">Puntajes</div>
-      <canvas id="dashSparkline" height="60" style="width:100%;margin-bottom:8px;"></canvas>
-      <div id="dashScores"></div>
+      <canvas id="dashSparkline" height="60" style="width:100%;margin-bottom:8px;" aria-hidden="true"></canvas>
+      <div id="dashScores" aria-live="polite" role="list" label="Puntajes actuales"></div>
     </div>
     <div class="dashboard-card">
       <div class="label">Ajustar Puntos</div>
@@ -123,7 +126,7 @@
     <div class="grid-2">
       <div class="dashboard-card">
         <div class="label">Actividad Reciente</div>
-        <div class="activity-log" id="dashActivity"><div class="log-entry text-muted2">Sin actividad</div></div>
+        <div class="activity-log" id="dashActivity" aria-live="polite" role="log" label="Actividad reciente"><div class="log-entry text-muted2">Sin actividad</div></div>
       </div>
       <div class="dashboard-card">
         <div class="label">📊 Estadísticas Rápidas</div>
@@ -1411,11 +1414,11 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <script>
-  window.toggleLQTheme = function () {
+  window.toggleSillyTheme = function () {
     var html = document.documentElement;
     html.classList.toggle('control-light');
     try {
-      localStorage.setItem('lq-control-theme', html.classList.contains('control-light') ? 'light' : 'dark');
+      localStorage.setItem('silly-control-theme', html.classList.contains('control-light') ? 'light' : 'dark');
     } catch (e) {}
   };
   (function () {

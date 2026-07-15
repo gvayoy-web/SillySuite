@@ -766,71 +766,6 @@ class CompleteThemeEngine:
 
         return themes
 
-    def _create_biblical_themes(self, base: Dict) -> List[Dict]:
-        """Create 5 biblical-themed variants."""
-        biblical_variants = [
-            {"name": "Ark of Covenant", "description": "Tema sagrado del arca con resplandor divino", "slug": "biblical-ark-covenant"},
-            {"name": "David's Throne", "description": "Tema trono davídico con esplendor real", "slug": "biblical-david-throne"},
-            {"name": "Mount Sinai", "description": "Tema monte sinai con emanaciones de fuego", "slug": "biblical-mount-sinai"},
-            {"name": "Garden of Eden", "description": "Tema jardín edén con flores celestiales", "slug": "biblical-garden-eden"},
-            {"name": "Moses' Burning Bush", "description": "Tema ardiente con luz milagrosa", "slug": "biblical-moses-burning-bush"}
-        ]
-
-        themes = []
-        for variant in biblical_variants:
-            theme = deepcopy(base)
-            theme.update(variant)
-
-            if "ark" in variant["slug"]:
-                theme["colors"]["primary"] = "#78350f"
-                theme["colors"]["secondary"] = "#fef3c7"
-                theme["colors"]["accent"] = "#fbbf24"
-                theme["typography"]["heading_font"] = "Cinzel"
-                theme["shapes"]["enabled"] = ["ark", "tablets", "mezuzzah", "crown", "heart", "key", "star", "fish", "bread", "lamp", "ary"]
-                theme["shapes"]["color_source"] = "holy"
-                theme["effects"]["default_effects"] = ["holy", "glow", "aureola"]
-
-            elif "david" in variant["slug"]:
-                theme["colors"]["primary"] = "#374151"
-                theme["colors"]["secondary"] = "#f3f4f6"
-                theme["colors"]["accent"] = "#fbbf24"
-                theme["typography"]["heading_font"] = "Playfair Display"
-                theme["shapes"]["enabled"] = ["throne", "scepter", "crown", "heart", "key", "star", "fish", "bread", "lamp", "ary", "scroll"]
-                theme["shapes"]["size"] = "large"
-                theme["effects"]["default_effects"] = ["glory", "halo", "mystery"]
-
-            elif "sinai" in variant["slug"]:
-                theme["colors"]["primary"] = "#451a03"
-                theme["colors"]["secondary"] = "#fef3c7"
-                theme["colors"]["accent"] = "#dc2626"
-                theme["typography"]["heading_font"] = "Unifraktur Maguntia"
-                theme["shapes"]["enabled"] = ["fire", "cloud", "lighting", "crown", "heart", "key", "star", "fish", "bread", "lamp", "scroll"]
-                theme["shapes"]["behavior"] = "fire"
-                theme["effects"]["default_effects"] = ["fire", "cloud", "lightning"]
-                theme["timer"]["style"] = "bar"
-
-            elif "garden" in variant["slug"]:
-                theme["colors"]["primary"] = "#14532d"
-                theme["colors"]["secondary"] = "#d1fae5"
-                theme["colors"]["accent"] = "#10b981"
-                theme["typography"]["heading_font"] = "Italiana"
-                theme["shapes"]["enabled"] = ["tree", "flower", "fruit", "crown", "heart", "key", "star", "fish", "bread", "lamp", "garden"]
-                theme["shapes"]["color_source"] = "holy"
-                theme["effects"]["default_effects"] = ["blossom", "flower", "garden"]
-
-            elif "moses" in variant["slug"]:
-                theme["colors"]["primary"] = "#4c1d95"
-                theme["colors"]["secondary"] = "#ede9fe"
-                theme["colors"]["accent"] = "#c084fc"
-                theme["typography"]["heading_font"] = "Bebas Neue"
-                theme["shapes"]["enabled"] = ["bush", "flame", "fire", "crown", "heart", "key", "star", "fish", "bread", "lamp", "prophet"]
-                theme["shapes"]["behavior"] = "burning"
-                theme["effects"]["default_effects"] = ["fire", "bush", "divine"]
-
-            themes.append(theme)
-
-        return themes
-
     def _save_theme(self, theme: Dict):
         """Save theme to file."""
         path = os.path.join(self.themes_dir, f"{theme['slug']}.json")
@@ -1019,7 +954,6 @@ class CompleteThemeEngine:
                 "fantasy": ["fantasy-", "observatory", "dragon", "elven", "castle", "phoenix", "celestial"],
                 "modern": ["modern-", "cyber", "glass", "quantum", "singularity", "digital", "tech"],
                 "festive": ["festive-", "confetti", "fireworks", "lights", "parade", "new-years", "birthday"],
-                "biblical": ["biblical-", "ark", "david", "sinai", "garden", "moses"]
             }
 
             if category not in category_mapping:
@@ -1038,7 +972,7 @@ class CompleteThemeEngine:
 
     def get_all_categories(self) -> List[str]:
         """Get all available categories."""
-        return ["nature", "fantasy", "modern", "festive", "biblical"]
+        return ["nature", "fantasy", "modern", "festive"]
 
     def get_screens_from_theme(self, theme_slug: str) -> Dict:
         """Extract screens configuration from a theme."""

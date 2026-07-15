@@ -1,0 +1,650 @@
+/* Shapes/decor (ShapeEngine) extraído y re-escopado desde display-base.css.
+   Solo aplica dentro de .stage-decor del panel Stage. */
+
+.stage-decor .decor-item {
+                position: absolute;
+                pointer-events: none;
+                filter: drop-shadow(10px 10px 0 rgba(0, 0, 0, 0.9));
+                transform: translate(var(--enterX), var(--enterY)) scale(0.1)
+                    rotate(0deg);
+            }
+
+.stage-decor .decor-item.show {
+                animation: shapeStampIn 0.7s
+                    cubic-bezier(0.175, 0.885, 0.32, 1.375) forwards;
+            }
+
+.stage-decor .decor-item.show-done {
+                opacity: 1;
+                transform: translate(var(--moveX), var(--moveY))
+                    scale(var(--scale)) rotate(var(--rot));
+            }
+
+@keyframes shapeStampIn {
+                0% {
+                    transform: translate(var(--enterX), var(--enterY))
+                        scale(0.1) rotate(0deg);
+                    opacity: 0;
+                }
+                25% {
+                    opacity: 1;
+                }
+                55% {
+                    transform: translate(var(--moveX), var(--moveY))
+                        scale(calc(var(--scale) * 1.25))
+                        rotate(calc(var(--rot) + 5deg));
+                    opacity: 1;
+                }
+                100% {
+                    transform: translate(var(--moveX), var(--moveY))
+                        scale(var(--scale)) rotate(var(--rot));
+                    opacity: 1;
+                }
+            }
+
+.stage-decor /* ── Decor que se adhiere al texto ── */
+            .decor-attached {
+                position: absolute;
+                pointer-events: none;
+                transition:
+                    opacity 0.4s ease,
+                    transform 0.5s var(--ease);
+                opacity: 0;
+                transform: scale(0.3);
+            }
+
+.stage-decor .decor-attached.show {
+                opacity: 0.9;
+                transform: scale(1);
+            }
+
+.stage-decor .decor-attached.at-underline,
+.stage-decor .decor-attached.at-overline {
+                filter: drop-shadow(4px 4px 0 rgba(0, 0, 0, 0.8));
+                transform: scaleX(0.1);
+            }
+
+.stage-decor .decor-attached.at-underline.show,
+.stage-decor .decor-attached.at-overline.show {
+                transform: scaleX(1);
+            }
+
+.stage-decor .decor-attached.at-dot-l,
+.stage-decor .decor-attached.at-dot-r {
+                filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.8));
+            }
+
+.stage-decor /* ══════════════════════════════════════════════════════
+       FORMAS BÍBLICAS — Iconografía neo-brutalista
+       ══════════════════════════════════════════════════════ */
+
+            /* ── ESTRELLA DE DAVID ── */
+            .shape-star {
+                width: 100px;
+                height: 100px;
+                background: var(--damas);
+                clip-path: polygon(
+                    50% 0%,
+                    61% 35%,
+                    98% 35%,
+                    68% 57%,
+                    79% 91%,
+                    50% 70%,
+                    21% 91%,
+                    32% 57%,
+                    2% 35%,
+                    39% 35%
+                );
+            }
+
+.stage-decor /* ── CRUZ EXPANDIDA ── */
+            .shape-cross {
+                width: 80px;
+                height: 110px;
+                background: var(--ninos);
+                clip-path: polygon(
+                    30% 0,
+                    70% 0,
+                    70% 30%,
+                    100% 30%,
+                    100% 70%,
+                    70% 70%,
+                    70% 100%,
+                    30% 100%,
+                    30% 70%,
+                    0 70%,
+                    0 30%,
+                    30% 30%
+                );
+            }
+
+.stage-decor /* ── LLAMA / FUEGO ── */
+            .shape-flame {
+                width: 70px;
+                height: 100px;
+                background: var(--caball);
+                clip-path: polygon(
+                    50% 0%,
+                    80% 40%,
+                    65% 45%,
+                    85% 78%,
+                    55% 65%,
+                    60% 100%,
+                    40% 100%,
+                    45% 65%,
+                    15% 78%,
+                    35% 45%,
+                    20% 40%
+                );
+            }
+
+.stage-decor /* ── COPA / CÁLIZ ── */
+            .shape-cup {
+                width: 80px;
+                height: 90px;
+                background: var(--damas);
+                clip-path: polygon(
+                    15% 0%,
+                    85% 0%,
+                    100% 30%,
+                    75% 100%,
+                    25% 100%,
+                    0% 30%
+                );
+            }
+
+.stage-decor /* ── CORONA ── */
+            .shape-crown {
+                width: 100px;
+                height: 70px;
+                background: var(--jovenes);
+                clip-path: polygon(
+                    0% 100%,
+                    0% 40%,
+                    20% 55%,
+                    35% 15%,
+                    50% 45%,
+                    65% 15%,
+                    80% 55%,
+                    100% 40%,
+                    100% 100%
+                );
+            }
+
+.stage-decor /* ── PALOMA / ESPÍRITU ── */
+            .shape-dove {
+                width: 90px;
+                height: 80px;
+                background: var(--ninos);
+                clip-path: polygon(
+                    30% 15%,
+                    55% 0%,
+                    80% 15%,
+                    100% 35%,
+                    85% 55%,
+                    70% 50%,
+                    75% 75%,
+                    60% 65%,
+                    50% 100%,
+                    40% 65%,
+                    25% 75%,
+                    30% 50%,
+                    15% 55%,
+                    0% 35%
+                );
+            }
+
+.stage-decor /* ── MANO / ALABANZA ── */
+            .shape-hand {
+                width: 70px;
+                height: 100px;
+                background: var(--jovenes);
+                clip-path: polygon(
+                    25% 0%,
+                    50% 0%,
+                    75% 0%,
+                    100% 25%,
+                    90% 45%,
+                    75% 40%,
+                    80% 60%,
+                    65% 55%,
+                    70% 80%,
+                    50% 70%,
+                    50% 100%,
+                    30% 70%,
+                    10% 80%,
+                    15% 55%,
+                    0% 60%,
+                    10% 45%,
+                    0% 25%
+                );
+            }
+
+.stage-decor /* ── MONTAÑA / FE ── */
+            .shape-mountain {
+                width: 110px;
+                height: 80px;
+                background: var(--caball);
+                clip-path: polygon(
+                    0% 100%,
+                    25% 50%,
+                    40% 70%,
+                    55% 10%,
+                    70% 50%,
+                    85% 35%,
+                    100% 100%
+                );
+            }
+
+.stage-decor /* ── ESCUDO / PROTECCIÓN ── */
+            .shape-shield {
+                width: 80px;
+                height: 90px;
+                background: var(--damas);
+                clip-path: polygon(
+                    50% 0%,
+                    100% 15%,
+                    100% 60%,
+                    50% 100%,
+                    0% 60%,
+                    0% 15%
+                );
+            }
+
+.stage-decor /* ── ORACIÓN / MANOS JUNTAS ── */
+            .shape-pray {
+                width: 80px;
+                height: 80px;
+                background: var(--ninos);
+                clip-path: polygon(
+                    25% 0%,
+                    35% 15%,
+                    50% 10%,
+                    65% 15%,
+                    75% 0%,
+                    100% 20%,
+                    90% 45%,
+                    75% 55%,
+                    65% 85%,
+                    50% 100%,
+                    35% 85%,
+                    25% 55%,
+                    10% 45%,
+                    0% 20%
+                );
+            }
+
+.stage-decor /* ── CORAZÓN / AMOR ── */
+            .shape-heart {
+                width: 90px;
+                height: 80px;
+                background: var(--jovenes);
+                clip-path: polygon(
+                    50% 15%,
+                    35% 0%,
+                    10% 15%,
+                    0% 45%,
+                    20% 75%,
+                    50% 100%,
+                    80% 75%,
+                    100% 45%,
+                    90% 15%,
+                    65% 0%
+                );
+            }
+
+.stage-decor /* ── LÁMPARA / VELA ── */
+            .shape-lamp {
+                width: 60px;
+                height: 100px;
+                background: var(--damas);
+                clip-path: polygon(
+                    30% 0%,
+                    70% 0%,
+                    70% 20%,
+                    100% 40%,
+                    90% 70%,
+                    70% 65%,
+                    70% 100%,
+                    30% 100%,
+                    30% 65%,
+                    10% 70%,
+                    0% 40%,
+                    30% 20%
+                );
+            }
+
+.stage-decor /* ── ALAS ── */
+            .shape-wings {
+                width: 110px;
+                height: 70px;
+                background: var(--ninos);
+                clip-path: polygon(
+                    50% 0%,
+                    70% 20%,
+                    100% 15%,
+                    85% 45%,
+                    100% 70%,
+                    70% 60%,
+                    50% 80%,
+                    30% 60%,
+                    0% 70%,
+                    15% 45%,
+                    0% 15%,
+                    30% 20%
+                );
+            }
+
+.stage-decor /* ── TORRE / FORTALEZA ── */
+            .shape-tower {
+                width: 70px;
+                height: 100px;
+                background: var(--caball);
+                clip-path: polygon(
+                    10% 0%,
+                    90% 0%,
+                    100% 20%,
+                    90% 20%,
+                    90% 100%,
+                    10% 100%,
+                    10% 20%,
+                    0% 20%
+                );
+            }
+
+.stage-decor /* ── ANCLA / ESPERANZA ── */
+            .shape-anchor {
+                width: 90px;
+                height: 90px;
+                background: var(--jovenes);
+                clip-path: polygon(
+                    45% 0%,
+                    55% 0%,
+                    60% 30%,
+                    65% 25%,
+                    80% 30%,
+                    80% 45%,
+                    65% 50%,
+                    60% 55%,
+                    60% 75%,
+                    80% 80%,
+                    50% 100%,
+                    20% 80%,
+                    40% 75%,
+                    40% 55%,
+                    35% 50%,
+                    20% 45%,
+                    20% 30%,
+                    35% 25%,
+                    40% 30%
+                );
+            }
+
+.stage-decor /* ── CÍRCULO PUNTIAGUDO (original,
+.stage-decor conservado por variedad) ── */
+            .shape-spikeball {
+                width: 100px;
+                height: 100px;
+                background: var(--jovenes);
+                clip-path: polygon(
+                    50% 0%,
+                    61% 18%,
+                    80% 5%,
+                    72% 28%,
+                    95% 22%,
+                    80% 42%,
+                    100% 50%,
+                    80% 58%,
+                    95% 78%,
+                    72% 72%,
+                    80% 95%,
+                    61% 82%,
+                    50% 100%,
+                    39% 82%,
+                    20% 95%,
+                    28% 72%,
+                    5% 78%,
+                    20% 58%,
+                    0% 50%,
+                    20% 42%,
+                    5% 22%,
+                    28% 28%,
+                    20% 5%,
+                    39% 18%
+                );
+            }
+
+.stage-decor /* ── CÍRCULO PUNTIAGUDO v2 ── */
+            .shape-spikeball-2 {
+                width: 80px;
+                height: 80px;
+                background: var(--caball);
+                clip-path: polygon(
+                    50% 0%,
+                    55% 20%,
+                    75% 5%,
+                    70% 28%,
+                    95% 15%,
+                    78% 38%,
+                    100% 40%,
+                    80% 55%,
+                    98% 72%,
+                    75% 65%,
+                    85% 88%,
+                    62% 75%,
+                    65% 100%,
+                    50% 82%,
+                    35% 100%,
+                    38% 75%,
+                    15% 88%,
+                    25% 65%,
+                    2% 72%,
+                    20% 55%,
+                    0% 40%,
+                    22% 38%,
+                    5% 15%,
+                    30% 28%,
+                    25% 5%,
+                    45% 20%
+                );
+            }
+
+.stage-decor /* ── PEZ / ICHTHYS ── */
+            .shape-fish {
+                width: 100px;
+                height: 60px;
+                background: var(--damas);
+                clip-path: polygon(
+                    0% 50%,
+                    30% 0%,
+                    60% 20%,
+                    100% 0%,
+                    80% 50%,
+                    100% 100%,
+                    60% 80%,
+                    30% 100%
+                );
+            }
+
+.stage-decor /* ── ARCA / NOÉ ── */
+            .shape-ark {
+                width: 110px;
+                height: 70px;
+                background: var(--caball);
+                clip-path: polygon(
+                    0% 100%,
+                    10% 60%,
+                    30% 20%,
+                    70% 20%,
+                    90% 60%,
+                    100% 100%,
+                    80% 80%,
+                    20% 80%
+                );
+                border-radius: 0 0 20px 20px;
+            }
+
+.stage-decor /* ── TROMPETA / SHOFAR ── */
+            .shape-trumpet {
+                width: 100px;
+                height: 50px;
+                background: var(--damas);
+                clip-path: polygon(
+                    0% 30%,
+                    40% 10%,
+                    60% 20%,
+                    100% 0%,
+                    100% 100%,
+                    60% 80%,
+                    40% 90%,
+                    0% 70%
+                );
+            }
+
+.stage-decor /* ── PERGAMINO / TORAH ── */
+            .shape-scroll {
+                width: 70px;
+                height: 90px;
+                background: var(--ninos);
+                clip-path: polygon(
+                    20% 0%,
+                    80% 0%,
+                    100% 10%,
+                    90% 50%,
+                    100% 90%,
+                    80% 100%,
+                    20% 100%,
+                    0% 90%,
+                    10% 50%,
+                    0% 10%
+                );
+            }
+
+.stage-decor /* ── ROCA / PIEDRA ── */
+            .shape-stone {
+                width: 80px;
+                height: 70px;
+                background: var(--caball);
+                clip-path: polygon(
+                    20% 5%,
+                    80% 5%,
+                    100% 30%,
+                    90% 80%,
+                    60% 100%,
+                    40% 100%,
+                    10% 80%,
+                    0% 30%
+                );
+            }
+
+.stage-decor /* ── PAN / MESA ── */
+            .shape-bread {
+                width: 90px;
+                height: 80px;
+                background: var(--jovenes);
+                clip-path: polygon(
+                    10% 20%,
+                    90% 20%,
+                    100% 40%,
+                    100% 80%,
+                    80% 100%,
+                    20% 100%,
+                    0% 80%,
+                    0% 40%
+                );
+            }
+
+.stage-decor /* ── ESPADA ── */
+            .shape-sword {
+                width: 50px;
+                height: 110px;
+                background: var(--ninos);
+                clip-path: polygon(
+                    40% 0%,
+                    60% 0%,
+                    55% 35%,
+                    100% 50%,
+                    100% 65%,
+                    55% 55%,
+                    60% 100%,
+                    40% 100%,
+                    45% 55%,
+                    0% 65%,
+                    0% 50%,
+                    45% 35%
+                );
+            }
+
+.stage-decor /* ── CÍRCULO BÍBLICO (sello) ── */
+            .shape-seal {
+                width: 80px;
+                height: 80px;
+                background: var(--jovenes);
+                clip-path: polygon(
+                    50% 0%,
+                    60% 20%,
+                    80% 5%,
+                    75% 30%,
+                    100% 30%,
+                    82% 50%,
+                    100% 70%,
+                    75% 70%,
+                    80% 95%,
+                    60% 80%,
+                    50% 100%,
+                    40% 80%,
+                    20% 95%,
+                    25% 70%,
+                    0% 70%,
+                    18% 50%,
+                    0% 30%,
+                    25% 30%,
+                    20% 5%,
+                    40% 20%
+                );
+            }
+
+.stage-decor /* ── CORDERO ── */
+            .shape-lamb {
+                width: 90px;
+                height: 75px;
+                background: var(--ninos);
+                clip-path: polygon(
+                    30% 0%,
+                    70% 0%,
+                    85% 20%,
+                    100% 40%,
+                    90% 65%,
+                    75% 85%,
+                    50% 100%,
+                    25% 85%,
+                    10% 65%,
+                    0% 40%,
+                    15% 20%
+                );
+            }
+
+.stage-decor /* ── LLAVE / REINO ── */
+            .shape-key {
+                width: 60px;
+                height: 100px;
+                background: var(--damas);
+                clip-path: polygon(
+                    30% 0%,
+                    70% 0%,
+                    80% 30%,
+                    70% 35%,
+                    70% 60%,
+                    100% 70%,
+                    100% 80%,
+                    70% 75%,
+                    65% 100%,
+                    35% 100%,
+                    30% 75%,
+                    0% 80%,
+                    0% 70%,
+                    30% 60%,
+                    30% 35%,
+                    20% 30%
+                );
+            }

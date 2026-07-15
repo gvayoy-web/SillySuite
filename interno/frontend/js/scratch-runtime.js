@@ -72,6 +72,7 @@
       this._delayQueue = [];
       this._isPaused = false;
       this._perfMetrics = { blocks: 0, totalTime: 0, slowBlocks: [] };
+      this._callStack = [];
     }
 
     panic() {
@@ -573,25 +574,22 @@
           let chain = [];
           for (let i = 0; i < n && !ctx.runtime.killed; i++) {
             this._pushScope(ctx);
-            chain.push(node.body);
+            chain.push(...node.body);
           }
           return this.executeChain(chain, ctx).finally(() => {
-            // Pop all scopes pushed for this loop
             for (let i = 0; i < n; i++) this._popScope(ctx);
           });
         }
         case 'repeat_until': {
           const body = node.body;
-          const cond = () => truthy(a.COND);
+          const condNode = node.args && node.args.COND;
+          this._pushScope(ctx);
           const step = () => {
-            if (cond() || ctx.runtime.killed || ctx.runtime.steps > MAX_STEPS) return Promise.resolve();
-            this._pushScope(ctx);
-            return this.executeChain(body, ctx).then(() => {
-              this._popScope(ctx);
-              return step();
-            });
+            const condVal = condNode ? this.evalNode(condNode, ctx) : a.COND;
+            if (truthy(condVal) || ctx.runtime.killed || ctx.runtime.steps > MAX_STEPS) return Promise.resolve();
+            return this.executeChain(body, ctx).then(() => step());
           };
-          return step();
+          return step().finally(() => this._popScope(ctx));
         }
         case 'for_each_in_list': {
           const list = ctx.state['list_' + a.NAME];
@@ -600,7 +598,7 @@
           for (let i = 0; i < list.length && !ctx.runtime.killed; i++) {
             this._pushScope(ctx);
             ctx.state['var_' + a.VAR] = list[i];
-            chains.push(node.body);
+            chains.push(...node.body);
           }
           return this.executeChain(chains, ctx).finally(() => {
             for (let i = 0; i < list.length; i++) this._popScope(ctx);
@@ -616,14 +614,14 @@
             for (let v = from; v <= to && !ctx.runtime.killed; v += step) {
               this._pushScope(ctx);
               ctx.state['var_' + a.VAR] = v;
-              chains.push(node.body);
+              chains.push(...node.body);
               count++;
             }
           } else {
             for (let v = from; v >= to && !ctx.runtime.killed; v += step) {
               this._pushScope(ctx);
               ctx.state['var_' + a.VAR] = v;
-              chains.push(node.body);
+              chains.push(...node.body);
               count++;
             }
           }
@@ -639,14 +637,15 @@
             this._pushScope(ctx);
             ctx.state['var_' + a.VAR] = list[i];
             ctx.state['var_' + a.IDX] = i;
-            chains.push(node.body);
+            chains.push(...node.body);
           }
           return this.executeChain(chains, ctx).finally(() => {
             for (let i = 0; i < list.length; i++) this._popScope(ctx);
           });
         }
         case 'while_loop': {
-          const cond = () => truthy(a.COND);
+          const condNode = node.args && node.args.COND;
+          const cond = () => truthy(condNode ? this.evalNode(condNode, ctx) : a.COND);
           const step = () => {
             if (!cond() || ctx.runtime.killed || ctx.runtime.steps > MAX_STEPS) return Promise.resolve();
             this._pushScope(ctx);
@@ -689,12 +688,11 @@
     }
 
     _setInScope(ctx, name, value) {
-      // Set in innermost scope if exists, else global
+      // Set in innermost scope if exists, AND always in global state for persistence
       if (ctx.scopeStack.length > 0) {
         ctx.scopeStack[ctx.scopeStack.length - 1].set(name, value);
-      } else {
-        ctx.state[name] = value;
       }
+      ctx.state[name] = value;
     }
 
     stepper(phase, node, ctx, msg) {
@@ -1067,8 +1065,11 @@
           case 'logic_compare': {
             const A = num(args.A), B = num(args.B);
             if (args.OP === '==') return A === B;
+            if (args.OP === '!=') return A !== B;
             if (args.OP === '>') return A > B;
             if (args.OP === '<') return A < B;
+            if (args.OP === '>=') return A >= B;
+            if (args.OP === '<=') return A <= B;
             return false;
           }
           case 'logic_and_or': {
