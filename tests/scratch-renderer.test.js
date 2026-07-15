@@ -189,8 +189,7 @@ test('AOT compile chains blocks', () => {
   };
   const machine = ScratchAOT.compile(scripts);
   assert(machine.blockCount === 2);
-  assert(machine.events.on_mode_init[0].next.length === 1);
-  assert(machine.events.on_mode_init[0].next[0].opcode === 'set_text_smooth');
+  assert(machine.events.on_mode_init[0].next.opcode === 'set_text_smooth');
 });
 
 test('AOT compile throws on non-hat event', () => {

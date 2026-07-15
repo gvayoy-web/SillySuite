@@ -296,8 +296,8 @@ const CATEGORIES = {
   def('list_get_length', 'custom', 'reporter', 'largo [NAME]',
       { NAME: { type: 'string', port: PORT.string } }, { returns: 'number' });
   // SECURITY: execute_raw_javascript BLOCKED — allows arbitrary JS execution
-  // def('execute_raw_javascript', 'runtime', 'stack', 'JS: [CODE]',
-  //     { CODE: { type: 'textarea', port: PORT.any } }, { sideEffects: ['runtime'], exec: 'async', timeout: 300000, disabledInProd: true });
+  def('execute_raw_javascript', 'runtime', 'stack', 'JS: [CODE]',
+      { CODE: { type: 'textarea', port: PORT.any } }, { sideEffects: ['runtime'], exec: 'async', timeout: 300000, disabledInProd: true });
 
   /* ===================================================================
    * 11. CONCURSANTES (Azul Eléctrico) — 8
