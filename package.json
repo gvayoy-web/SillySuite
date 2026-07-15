@@ -1,0 +1,13 @@
+{
+  "name": "sillyquiz-types",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TypeScript type definitions / SDK contracts for SillyQuiz mod creators.",
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  },
+  "scripts": {
+    "types": "tsc --noEmit",
+    "gen:types": "node scripts/gen_types.js"
+  }
+}
