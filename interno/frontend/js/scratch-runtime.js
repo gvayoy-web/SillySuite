@@ -481,38 +481,45 @@
     }
 
     runBlock(node, ctx) {
+      // Null/undefined protection
+      if (!node || !node.opcode) {
+        this.stepper('error', node, ctx, 'nodo inválido: opcode faltante');
+        return Promise.resolve();
+      }
+
       let def = ScratchBlocks.get(node.opcode);
       if (!def && DynamicBlocks) {
         def = DynamicBlocks.get(node.opcode);
-}
-    if (!def) {
-      this.stepper('error', node, ctx, 'opcode desconocido: ' + node.opcode);
-      return Promise.resolve();
-    }
-    // Presupuesto de ejecución (anti-hang): frena el show si se agota.
-    ctx.runtime.steps = (ctx.runtime.steps || 0) + 1;
-    if (ctx.runtime.steps > MAX_STEPS) {
-      this.panic();
-      this.stepper('error', node, ctx, 'presupuesto de ejecución agotado (' + MAX_STEPS + ')');
-      return Promise.resolve();
-    }
-    
-    // DEBUG: Check for breakpoints / step modes
-    if (this._debugMode && this._paused) {
-      if (this._checkPause(node, ctx)) {
-        this._notifyDebugPause(node, ctx, 'breakpoint');
-        return this._waitForResume().then(() => this.runBlock(node, ctx));
       }
-    }
-    
-    // Track call stack for step debugging
-    if (def.hasBody) {
-      this._callStack.push({ opcode: node.opcode, id: node._id, depth: this._callStack.length });
-    }
-    
-    this.stepper('start', node, ctx);
-    const startTime = performance.now();
-    try {
+      if (!def) {
+        this.stepper('error', node, ctx, 'opcode desconocido: ' + node.opcode);
+        return Promise.resolve();
+      }
+
+      // Presupuesto de ejecución (anti-hang): frena el show si se agota.
+      ctx.runtime.steps = (ctx.runtime.steps || 0) + 1;
+      if (ctx.runtime.steps > MAX_STEPS) {
+        this.panic();
+        this.stepper('error', node, ctx, 'presupuesto de ejecución agotado (' + MAX_STEPS + ')');
+        return Promise.resolve();
+      }
+
+      // DEBUG: Check for breakpoints / step modes
+      if (this._debugMode && this._paused) {
+        if (this._checkPause(node, ctx)) {
+          this._notifyDebugPause(node, ctx, 'breakpoint');
+          return this._waitForResume().then(() => this.runBlock(node, ctx));
+        }
+      }
+
+      // Track call stack for step debugging
+      if (def.hasBody) {
+        this._callStack.push({ opcode: node.opcode, id: node._id, depth: this._callStack.length });
+      }
+
+      this.stepper('start', node, ctx);
+      const startTime = performance.now();
+      try {
         if (def.hasBody) {
           return this.runContainer(node, def, ctx);
         } else if (def.type === 'hat') {
@@ -536,6 +543,10 @@
         this.stepper('error', node, ctx, e.message);
         throw e;
       } finally {
+        // Pop call stack for container blocks
+        if (def.hasBody && this._callStack.length > 0) {
+          this._callStack.pop();
+        }
         const elapsed = performance.now() - startTime;
         this._perfMetrics.blocks++;
         this._perfMetrics.totalTime += elapsed;
@@ -550,122 +561,144 @@
     }
 
     runContainer(node, def, ctx) {
+      // Null protection for container node
+      if (!node || !node.opcode) {
+        this.stepper('error', node, ctx, 'contenedor inválido: opcode faltante');
+        return Promise.resolve();
+      }
+
       const a = this.resolveArgs(node, ctx);
       node._resolved = a;
-      switch (node.opcode) {
-        case 'if_then': {
-          if (truthy(a.COND)) {
-            this._pushScope(ctx);
-            return this.executeChain(node.body, ctx).finally(() => this._popScope(ctx));
-          }
-          return Promise.resolve();
-        }
-        case 'if_then_else': {
-          if (truthy(a.COND)) {
-            this._pushScope(ctx);
-            return this.executeChain(node.body, ctx).finally(() => this._popScope(ctx));
-          } else {
-            this._pushScope(ctx);
-            return this.executeChain(node.elseBody, ctx).finally(() => this._popScope(ctx));
-          }
-        }
-        case 'repeat_times': {
-          const n = Math.max(0, Math.floor(Number(a.N) || 0));
-          let chain = [];
-          for (let i = 0; i < n && !ctx.runtime.killed; i++) {
-            this._pushScope(ctx);
-            chain.push(...node.body);
-          }
-          return this.executeChain(chain, ctx).finally(() => {
-            for (let i = 0; i < n; i++) this._popScope(ctx);
-          });
-        }
-        case 'repeat_until': {
-          const body = node.body;
-          const condNode = node.args && node.args.COND;
-          this._pushScope(ctx);
-          const step = () => {
-            const condVal = condNode ? this.evalNode(condNode, ctx) : a.COND;
-            if (truthy(condVal) || ctx.runtime.killed || ctx.runtime.steps > MAX_STEPS) return Promise.resolve();
-            return this.executeChain(body, ctx).then(() => step());
-          };
-          return step().finally(() => this._popScope(ctx));
-        }
-        case 'for_each_in_list': {
-          const list = ctx.state['list_' + a.NAME];
-          if (!Array.isArray(list)) return Promise.resolve();
-          const chains = [];
-          for (let i = 0; i < list.length && !ctx.runtime.killed; i++) {
-            this._pushScope(ctx);
-            ctx.state['var_' + a.VAR] = list[i];
-            chains.push(...node.body);
-          }
-          return this.executeChain(chains, ctx).finally(() => {
-            for (let i = 0; i < list.length; i++) this._popScope(ctx);
-          });
-        }
-        case 'repeat_for_range': {
-          const from = Math.floor(toNum(a.FROM, 0));
-          const to = Math.floor(toNum(a.TO, 0));
-          const step = toNum(a.STEP, 1) || 1;
-          const chains = [];
-          let count = 0;
-          if (step > 0) {
-            for (let v = from; v <= to && !ctx.runtime.killed; v += step) {
+      try {
+        switch (node.opcode) {
+          case 'if_then': {
+            if (truthy(a.COND)) {
               this._pushScope(ctx);
-              ctx.state['var_' + a.VAR] = v;
-              chains.push(...node.body);
-              count++;
+              return this.executeChain(node.body, ctx).finally(() => this._popScope(ctx));
             }
-          } else {
-            for (let v = from; v >= to && !ctx.runtime.killed; v += step) {
+            return Promise.resolve();
+          }
+          case 'if_then_else': {
+            if (truthy(a.COND)) {
               this._pushScope(ctx);
-              ctx.state['var_' + a.VAR] = v;
-              chains.push(...node.body);
-              count++;
+              return this.executeChain(node.body, ctx).finally(() => this._popScope(ctx));
+            } else {
+              this._pushScope(ctx);
+              return this.executeChain(node.elseBody, ctx).finally(() => this._popScope(ctx));
             }
           }
-          return this.executeChain(chains, ctx).finally(() => {
-            for (let i = 0; i < count; i++) this._popScope(ctx);
-          });
-        }
-        case 'for_each_with_index': {
-          const list = ctx.state['list_' + a.LIST];
-          if (!Array.isArray(list)) return Promise.resolve();
-          const chains = [];
-          for (let i = 0; i < list.length && !ctx.runtime.killed; i++) {
-            this._pushScope(ctx);
-            ctx.state['var_' + a.VAR] = list[i];
-            ctx.state['var_' + a.IDX] = i;
-            chains.push(...node.body);
-          }
-          return this.executeChain(chains, ctx).finally(() => {
-            for (let i = 0; i < list.length; i++) this._popScope(ctx);
-          });
-        }
-        case 'while_loop': {
-          const condNode = node.args && node.args.COND;
-          const cond = () => truthy(condNode ? this.evalNode(condNode, ctx) : a.COND);
-          const step = () => {
-            if (!cond() || ctx.runtime.killed || ctx.runtime.steps > MAX_STEPS) return Promise.resolve();
-            this._pushScope(ctx);
-            return this.executeChain(node.body, ctx).then(() => {
-              this._popScope(ctx);
-              return step();
+          case 'repeat_times': {
+            const n = Math.max(0, Math.floor(Number(a.N) || 0));
+            let chain = [];
+            for (let i = 0; i < n && !ctx.runtime.killed; i++) {
+              this._pushScope(ctx);
+              // Ensure body is an array
+              const body = Array.isArray(node.body) ? node.body : (node.body ? [node.body] : []);
+              chain.push(...body);
+            }
+            return this.executeChain(chain, ctx).finally(() => {
+              for (let i = 0; i < n; i++) this._popScope(ctx);
             });
-          };
-          return step();
-        }
-        case 'try_catch_fallback':
-          this._pushScope(ctx);
-          return this.executeChain(node.body, ctx).finally(() => this._popScope(ctx)).catch(e => {
-            if (e instanceof BreakSignal || e instanceof ContinueSignal) throw e;
-            this.stepper('catch', node, ctx, e.message);
+          }
+          case 'repeat_until': {
+            const body = Array.isArray(node.body) ? node.body : (node.body ? [node.body] : []);
+            const condNode = node.args && node.args.COND;
             this._pushScope(ctx);
-            return this.executeChain(node.fallback, ctx).finally(() => this._popScope(ctx));
-          });
-        default:
-          return Promise.resolve();
+            const step = () => {
+              // Check killed flag and step limit
+              if (ctx.runtime.killed || ctx.runtime.steps > MAX_STEPS) return Promise.resolve();
+              const condVal = condNode ? this.evalNode(condNode, ctx) : a.COND;
+              if (truthy(condVal)) return Promise.resolve();
+              return this.executeChain(body, ctx).then(() => step());
+            };
+            return step().finally(() => this._popScope(ctx));
+          }
+          case 'for_each_in_list': {
+            const list = ctx.state['list_' + a.NAME];
+            if (!Array.isArray(list)) return Promise.resolve();
+            const chains = [];
+            for (let i = 0; i < list.length && !ctx.runtime.killed; i++) {
+              this._pushScope(ctx);
+              ctx.state['var_' + a.VAR] = list[i];
+              const body = Array.isArray(node.body) ? node.body : (node.body ? [node.body] : []);
+              chains.push(...body);
+            }
+            return this.executeChain(chains, ctx).finally(() => {
+              for (let i = 0; i < list.length; i++) this._popScope(ctx);
+            });
+          }
+          case 'repeat_for_range': {
+            const from = Math.floor(toNum(a.FROM, 0));
+            const to = Math.floor(toNum(a.TO, 0));
+            const step = toNum(a.STEP, 1) || 1;
+            const chains = [];
+            let count = 0;
+            if (step > 0) {
+              for (let v = from; v <= to && !ctx.runtime.killed; v += step) {
+                this._pushScope(ctx);
+                ctx.state['var_' + a.VAR] = v;
+                const body = Array.isArray(node.body) ? node.body : (node.body ? [node.body] : []);
+                chains.push(...body);
+                count++;
+              }
+            } else {
+              for (let v = from; v >= to && !ctx.runtime.killed; v += step) {
+                this._pushScope(ctx);
+                ctx.state['var_' + a.VAR] = v;
+                const body = Array.isArray(node.body) ? node.body : (node.body ? [node.body] : []);
+                chains.push(...body);
+                count++;
+              }
+            }
+            return this.executeChain(chains, ctx).finally(() => {
+              for (let i = 0; i < count; i++) this._popScope(ctx);
+            });
+          }
+          case 'for_each_with_index': {
+            const list = ctx.state['list_' + a.LIST];
+            if (!Array.isArray(list)) return Promise.resolve();
+            const chains = [];
+            for (let i = 0; i < list.length && !ctx.runtime.killed; i++) {
+              this._pushScope(ctx);
+              ctx.state['var_' + a.VAR] = list[i];
+              ctx.state['var_' + a.IDX] = i;
+              const body = Array.isArray(node.body) ? node.body : (node.body ? [node.body] : []);
+              chains.push(...body);
+            }
+            return this.executeChain(chains, ctx).finally(() => {
+              for (let i = 0; i < list.length; i++) this._popScope(ctx);
+            });
+          }
+          case 'while_loop': {
+            const condNode = node.args && node.args.COND;
+            const cond = () => truthy(condNode ? this.evalNode(condNode, ctx) : a.COND);
+            const step = () => {
+              if (!cond() || ctx.runtime.killed || ctx.runtime.steps > MAX_STEPS) return Promise.resolve();
+              this._pushScope(ctx);
+              const body = Array.isArray(node.body) ? node.body : (node.body ? [node.body] : []);
+              return this.executeChain(body, ctx).then(() => {
+                this._popScope(ctx);
+                return step();
+              });
+            };
+            return step();
+          }
+          case 'try_catch_fallback':
+            this._pushScope(ctx);
+            const body = Array.isArray(node.body) ? node.body : (node.body ? [node.body] : []);
+            const fallback = Array.isArray(node.fallback) ? node.fallback : (node.fallback ? [node.fallback] : []);
+            return this.executeChain(body, ctx).finally(() => this._popScope(ctx)).catch(e => {
+              if (e instanceof BreakSignal || e instanceof ContinueSignal) throw e;
+              this.stepper('catch', node, ctx, e.message);
+              this._pushScope(ctx);
+              return this.executeChain(fallback, ctx).finally(() => this._popScope(ctx));
+            });
+          default:
+            return Promise.resolve();
+        }
+      } catch (e) {
+        this.stepper('error', node, ctx, 'Error en contenedor ' + node.opcode + ': ' + e.message);
+        throw e;
       }
     }
 
@@ -1117,6 +1150,11 @@
         }
       },
       sideEffect(opcode, args, ctx) {
+        // SECURITY: bloqueo duro de opcodes peligrosos ANTES de cualquier
+        // allow-list por prefijo (p.ej. 'inject_') para evitar que se aprueben.
+        if (opcode === 'execute_raw_javascript' || opcode === 'inject_css_raw') {
+          return { ok: false, error: 'SECURITY: ' + opcode + ' está bloqueado por razones de seguridad.' };
+        }
         // ---- Local Game Engine (RAM local del runtime) ----
         if (opcode === 'engine_create_player_client') {
           const base = args.BASE || 'persona';
@@ -1270,12 +1308,6 @@
         if (opcode === 'runtime_hot_reload') { return { ok: true }; }
         if (opcode === 'system_replicate_state_to_node') { return { ok: true }; }
         if (opcode === 'global_panic_reset') { ctx.runtime.panic(); return { ok: true }; }
-        if (opcode === 'execute_raw_javascript') {
-          return { ok: false, error: 'SECURITY: execute_raw_javascript está bloqueado por razones de seguridad.' };
-        }
-        if (opcode === 'inject_css_raw') {
-          return { ok: false, error: 'SECURITY: inject_css_raw está bloqueado por razones de seguridad.' };
-        }
         if (opcode === 'break_stack') { throw new BreakSignal(); }
         if (opcode === 'wait_seconds') {
           const sec = num(args.SEC, 1);

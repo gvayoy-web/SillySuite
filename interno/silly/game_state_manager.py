@@ -164,6 +164,15 @@ class GameStateManager:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_user_modes_autor ON user_modes(autor_hash)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_user_modes_publico ON user_modes(es_publico, descargas DESC)")
 
+            # Tabla de rate-limit persistente (Fase 3b)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS rate_limits (
+                    key TEXT NOT NULL,
+                    ts REAL NOT NULL
+                )
+            """)
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_rate_limits_key_ts ON rate_limits(key, ts)")
+
             # Configuración SQLite para rendimiento
             conn.execute("PRAGMA journal_mode=WAL")
             conn.execute("PRAGMA synchronous=NORMAL")
@@ -183,6 +192,30 @@ class GameStateManager:
             yield conn
         finally:
             conn.close()
+
+    # === RATE LIMIT PERSISTENCE (Fase 3b) ===
+
+    def record_rate_event(self, key: str, ts: float) -> None:
+        """Registra un hit de rate-limit y poda entradas muy antiguas."""
+        with self._get_connection() as conn:
+            conn.execute("INSERT INTO rate_limits (key, ts) VALUES (?, ?)", (key, ts))
+            conn.execute("DELETE FROM rate_limits WHERE ts < ?", (ts - 86400,))
+            conn.commit()
+
+    def count_rate_events(self, key: str, since_ts: float) -> int:
+        """Cuenta hits de `key` con ts >= since_ts (ventana deslizante)."""
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT COUNT(*) AS c FROM rate_limits WHERE key = ? AND ts >= ?",
+                (key, since_ts)
+            ).fetchone()
+            return int(row['c']) if row else 0
+
+    def reset_rate_limit(self, key: str) -> None:
+        """Elimina todos los hits de `key`."""
+        with self._get_connection() as conn:
+            conn.execute("DELETE FROM rate_limits WHERE key = ?", (key,))
+            conn.commit()
 
     # === OPERACIONES DE SESIÓN ===
 

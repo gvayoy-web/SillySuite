@@ -148,214 +148,7 @@
       if (global.ScratchStage) global.ScratchStage.mount(document.getElementById('sbStageWrap'));
     }
 
-    collectHats() {
-      ScratchBlocks.all().forEach(op => {
-        const def = ScratchBlocks.get(op);
-        if (def.type === 'hat') this.heads[op] = [ this.makeInst(op) ];
-      });
-    }
-
-    /* Devuelve el stack "principal" de un evento: el primero que empieza por un Hat. */
-    _mainStack(ev) {
-      const stacks = this.heads[ev];
-      if (!stacks || !stacks.length) return null;
-      return stacks.find(s => s && ScratchBlocks.get(s.opcode) && ScratchBlocks.get(s.opcode).type === 'hat') || stacks[0];
-    }
-
-    makeInst(opcode) {
-      const def = ScratchBlocks.get(opcode);
-      const args = {};
-      Object.keys(def.args).forEach(tok => {
-        const s = def.args[tok];
-        if (s.default !== undefined) args[tok] = s.default;
-        else if (s.type === 'boolean') args[tok] = false;
-        else if (s.type === 'number' || s.type === 'slider') args[tok] = 0;
-        else args[tok] = '';
-      });
-      return { opcode, args, next: null, _id: ++this._idCounter };
-    }
-
-    /* ---- Paleta Mejorada con Dropdowns ---- */
-    buildPalette() {
-      const cats = ScratchBlocks.categoriesOrdered();
-      let sectionsHtml = cats.map(cat => {
-        const list = ScratchBlocks.all()
-          .map(op => ScratchBlocks.get(op))
-          .filter(d => d && d.type !== 'hat' && d.category === cat.id)
-          .map(d => this._paletteBlockHtml(d, cat))
-          .join('');
-        const count = ScratchBlocks.byCategory(cat.id).filter(d => d.type !== 'hat').length;
-        const collapsed = (cat.id === 'debug' || cat.id === 'engine') ? ' collapsed' : '';
-        return (
-          '<div class="palette-category' + collapsed + '" data-cat="' + cat.id + '" style="--block-color:var(' + cat.colorVar + ')">' +
-            '<div class="palette-category-header" data-toggle-cat="' + cat.id + '">' +
-              '<span class="swatch"></span>' +
-              '<span class="cat-name">' + cat.label + '</span>' +
-              '<span class="cat-count">' + count + '</span>' +
-              '<span class="cat-chevron">▾</span>' +
-            '</div>' +
-            '<div class="palette-category-content">' + list + '</div>' +
-          '</div>'
-        );
-      }).join('');
-      this.elPalette.innerHTML =
-        '<div class="palette-search">' +
-          '<input type="search" id="sbPaletteSearch" placeholder="🔍 Buscar bloque…" autocomplete="off" />' +
-        '</div>' +
-        '<div class="palette-sections">' + sectionsHtml + '</div>';
-
-      const search = this.elPalette.querySelector('#sbPaletteSearch');
-      if (search) {
-        search.addEventListener('input', () => this.filterPalette(search.value));
-        search.addEventListener('keydown', (e) => e.stopPropagation());
-      }
-      this.elPalette.querySelectorAll('.palette-category-header').forEach(h => {
-        h.addEventListener('click', () => h.closest('.palette-category').classList.toggle('collapsed'));
-      });
-      this._bindPaletteBlocks();
-    }
-
-    _paletteBlockHtml(d, cat) {
-      const colorVar = (cat && cat.colorVar) || '--sq-cat-control';
-      const catIcon = (cat && cat.icon) || '🧩';
-      return (
-        '<div class="palette-block block-' + d.type + '" data-op="' + d.opcode + '" draggable="true" ' +
-          'style="--block-color:var(' + colorVar + ')" ' +
-          'role="option" aria-label="' + this.humanize(d.opcode) + '" title="' + this.humanize(d.opcode) + ' · ' + this.getBlockTypeLabel(d.type) + '">' +
-          '<span class="pb-icon">' + catIcon + '</span>' +
-          '<span class="pb-label">' + this.humanize(d.opcode) + '</span>' +
-          '<span class="pb-type ' + d.type + '">' + this.getBlockTypeLabel(d.type) + '</span>' +
-        '</div>'
-      );
-    }
-
-    _bindPaletteBlocks() {
-      this.elPalette.querySelectorAll('.palette-block').forEach(b => {
-        b.addEventListener('click', () => this.addBlock(b.dataset.op));
-        b.addEventListener('dragstart', (e) => this.handleDragStart(e, b.dataset.op));
-      });
-    }
-
-    /* Obtener etiqueta legible para el tipo de bloque */
-    getBlockTypeLabel(type) {
-      const labels = {
-        'hat': 'HAT',
-        'reporter': 'REPORTER',
-        'boolean': 'BOOLEAN',
-        'command': 'STACK',
-        'c': 'C-BLOCK',
-        'stack': 'STACK',
-        'motion': 'MOTION',
-        'looks': 'LOOKS',
-        'sound': 'SOUND',
-        'pen': 'PEN',
-        'data': 'DATA',
-        'event': 'EVENT',
-        'control': 'CONTROL',
-        'sensing': 'SENSING',
-        'operator': 'OPERATOR',
-        'variable': 'VARIABLE',
-        'list': 'LIST',
-        'procedure': 'PROCEDURE'
-      };
-      return labels[type] || type.toUpperCase();
-    }
-
-    /* Obtener indicador de estilo específico para el tipo de bloque */
-    getBlockStyleIndicator(type) {
-      const indicators = {
-        'hat': '<span class="block-style-indicator hat-indicator" aria-hidden="true">HAT</span>',
-        'reporter': '<span class="block-style-indicator reporter-indicator" aria-hidden="true">REPORTER</span>',
-        'boolean': '<span class="block-style-indicator boolean-indicator" aria-hidden="true">BOOLEAN</span>',
-        'command': '<span class="block-style-indicator command-indicator" aria-hidden="true">STACK</span>',
-        'c': '<span class="block-style-indicator c-indicator" aria-hidden="true">C-BLOCK</span>',
-        'stack': '<span class="block-style-indicator stack-indicator" aria-hidden="true">STACK</span>',
-        'control': '<span class="block-style-indicator control-indicator" aria-hidden="true">CONTROL</span>',
-        'operator': '<span class="block-style-indicator operator-indicator" aria-hidden="true">OPERATOR</span>',
-        'event': '<span class="block-style-indicator event-indicator" aria-hidden="true">EVENT</span>',
-        'variable': '<span class="block-style-indicator variable-indicator" aria-hidden="true">VAR</span>',
-        'list': '<span class="block-style-indicator list-indicator" aria-hidden="true">LIST</span>',
-      };
-      return indicators[type] || '';
-    }
-
-    /* Manejar el inicio del arrastre para bloques */
-    handleDragStart(e, opcode) {
-      const blockEl = e.target.closest('.palette-block');
-      if (blockEl) {
-        const def = ScratchBlocks.get(opcode);
-        e.dataTransfer.setData('text/plain', opcode);
-        e.dataTransfer.effectAllowed = 'copy';
-        
-        // Añadir clases para estilos visuales específicos
-        blockEl.classList.add('dragging', `dragging-${def.type}`);
-        
-        if (def.type === 'hat') {
-          blockEl.classList.add('hat-dragging');
-        } else if (def.type === 'reporter') {
-          blockEl.classList.add('reporter-dragging');
-        } else if (def.type === 'boolean') {
-          blockEl.classList.add('boolean-dragging');
-        }
-        
-        // Forzar la visibilidad del elemento para drag & drop
-        blockEl.style.display = 'block';
-        
-        // Guardar el elemento para el dragend
-        if (this._dragElementCleanup) clearTimeout(this._dragElementCleanup);
-        this._dragElementCleanup = setTimeout(() => {
-          blockEl.classList.remove('dragging', 'dragging-hat', 'dragging-reporter', 'dragging-boolean');
-          blockEl.style.display = '';
-        }, 100);
-      }
-    }
-
-    /* Filtra la paleta por opcode o etiqueta legible en vivo. Soporte fuzzy. */
-    filterPalette(q) {
-      q = (q || '').toLowerCase().trim();
-      this.elPalette.querySelectorAll('.palette-block').forEach(b => {
-        const op = b.dataset.op;
-        const label = this.humanize(op).toLowerCase();
-        const hit = !q || this._fuzzyMatch(q, op.toLowerCase()) || this._fuzzyMatch(q, label);
-        b.classList.toggle('hidden', !hit);
-        if (hit && q) {
-          b.style.order = this._fuzzyScore(q, label);
-        } else {
-          b.style.order = '';
-        }
-      });
-      this.elPalette.querySelectorAll('.palette-category').forEach(cat => {
-        const anyVisible = cat.querySelector('.palette-block:not(.hidden)');
-        cat.classList.toggle('hidden', !anyVisible);
-        if (anyVisible && q) {
-          cat.classList.remove('collapsed');
-        }
-      });
-    }
-
-    _fuzzyMatch(query, target) {
-      let qi = 0;
-      for (let ti = 0; ti < target.length && qi < query.length; ti++) {
-        if (target[ti] === query[qi]) qi++;
-      }
-      return qi === query.length;
-    }
-
-    _fuzzyScore(query, target) {
-      let score = 0;
-      let qi = 0;
-      for (let ti = 0; ti < target.length && qi < query.length; ti++) {
-        if (target[ti] === query[qi]) {
-          score += (ti === 0 || target[ti - 1] === ' ') ? 10 : 1;
-          qi++;
-        }
-      }
-      return -score;
-    }
-
-    humanize(op) {
-      return op.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    }
+    /* ---- Paleta, búsqueda y helpers delegados a módulos de builder/ (builder/util.js, builder/palette.js) ---- */
 
     /* ---- Pestañas de evento ---- */
     renderTabs() {
@@ -539,8 +332,30 @@
         el.appendChild(badge);
       }
       el.setAttribute('role', 'listitem');
+      el.setAttribute('tabindex', '0');
       el.setAttribute('aria-label', this.humanize(inst.opcode));
       el.setAttribute('aria-roledescription', def.type + ' block');
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.selectBlock(inst);
+          return;
+        }
+        const nav = ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'];
+        if (nav.indexOf(e.key) < 0) return;
+        const blocks = Array.prototype.slice.call(this.elCanvas.querySelectorAll('.scratch-block[tabindex]'));
+        const idx = blocks.indexOf(el);
+        let next = null;
+        if (e.key === 'ArrowDown') next = blocks[idx + 1];
+        else if (e.key === 'ArrowUp') next = blocks[idx - 1];
+        else if (e.key === 'ArrowRight') {
+          const parentBlock = el.parentElement ? el.parentElement.closest('.scratch-block[tabindex]') : null;
+          next = (parentBlock && parentBlock !== el) ? parentBlock : null;
+        } else if (e.key === 'ArrowLeft') {
+          next = el.querySelector('.scratch-block[tabindex]');
+        }
+        if (next) { e.preventDefault(); next.focus(); }
+      });
       el.querySelectorAll('[data-arg]').forEach(inp => {
         const handler = () => {
           const spec = def.args[inp.dataset.arg];
@@ -3575,6 +3390,31 @@
       }
     }
   }
+
+  /* ---- Integración de módulos de builder/ (extraídos para mantenibilidad) ----
+     Los métodos de paleta/búsqueda y los helpers puros se definen en
+     builder/util.js y builder/palette.js y se adjuntan aquí al prototipo,
+     preservando la superficie pública de ScratchUI (window.ScratchUI). */
+  (function applyBuilderMixins() {
+    const SB = (typeof window !== 'undefined' ? window.ScratchBuilder
+              : (typeof globalThis !== 'undefined' ? globalThis.ScratchBuilder : null)) || {};
+    const U = SB.util || {};
+    if (U.humanize) ScratchUI.prototype.humanize = U.humanize;
+    if (U.fuzzyMatch) {
+      ScratchUI.prototype._fuzzyMatch = U.fuzzyMatch;
+      ScratchUI.prototype._fuzzyScore = U.fuzzyScore;
+    }
+    if (U.getBlockTypeLabel) {
+      ScratchUI.prototype.getBlockTypeLabel = U.getBlockTypeLabel;
+      ScratchUI.prototype.getBlockStyleIndicator = U.getBlockStyleIndicator;
+    }
+    if (SB.palette) Object.assign(ScratchUI.prototype, SB.palette);
+    if (!SB.util && !SB.palette) {
+      if (typeof console !== 'undefined') {
+        console.warn('[ScratchUI] Módulos de builder/ no cargados: paleta/búsqueda pueden fallar.');
+      }
+    }
+  })();
 
   global.ScratchUI = ScratchUI;
   if (typeof module !== 'undefined' && module.exports) module.exports = { ScratchUI };

@@ -10,7 +10,6 @@ import secrets
 import sys
 import time
 import threading
-from collections import defaultdict
 from functools import wraps
 
 from flask import Response, request, g, jsonify, session
@@ -153,35 +152,50 @@ def csrf_proteccion(f):
 
 
 # =============================================================================
-# Rate Limiting (in-memory, per-IP)
+# Rate Limiting (persistente en SQLite vía game_state_manager, per-IP)
 # =============================================================================
-class RateLimiter:
-    """Simple sliding-window rate limiter per key, thread-safe."""
+from silly.game_state_manager import game_state_manager
 
-    def __init__(self):
-        self._requests = defaultdict(list)
+
+class RateLimiter:
+    """Rate limiter de ventana deslizante persistente (SQLite), thread-safe.
+    Mantiene la MISMA interfaz pública que la versión en memoria:
+    is_allowed(key, limit, window), remaining(key, limit, window), reset(key).
+
+    Cada instancia usa un namespace para aislar sus claves (las claves
+    persisten en SQLite y sobreviven reinicios del proceso)."""
+
+    def __init__(self, manager=None):
+        self._manager = manager or game_state_manager
+        self._ns = "rl_" + secrets.token_hex(8)
         self._lock = threading.Lock()
+
+    def _k(self, key):
+        return f"{self._ns}:{key}"
 
     def is_allowed(self, key, limit=60, window=60):
         """Check if key exceeds the limit within the window (seconds)."""
         now = time.time()
+        cutoff = now - window
+        k = self._k(key)
         with self._lock:
-            reqs = self._requests[key]
-            self._requests[key] = [t for t in reqs if now - t < window]
-            if len(self._requests[key]) >= limit:
+            count = self._manager.count_rate_events(k, cutoff)
+            if count >= limit:
                 return False
-            self._requests[key].append(now)
+            self._manager.record_rate_event(k, now)
             return True
 
     def remaining(self, key, limit=60, window=60):
         now = time.time()
+        cutoff = now - window
+        k = self._k(key)
         with self._lock:
-            reqs = [t for t in self._requests.get(key, []) if now - t < window]
-            return max(0, limit - len(reqs))
+            count = self._manager.count_rate_events(k, cutoff)
+            return max(0, limit - count)
 
     def reset(self, key):
         with self._lock:
-            self._requests.pop(key, None)
+            self._manager.reset_rate_limit(self._k(key))
 
 
 rate_limiter = RateLimiter()

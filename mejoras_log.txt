@@ -1,0 +1,235 @@
+2026-07-15 08:26:26  === INICIO sesion de mejoras automaticas ===
+2026-07-15 08:26:27  Modelos: opencode/hy3-free, opencode/nemotron-3-ultra-free, opencode/north-mini-code-free | Timeout: 30 min/modelo | Max ciclos: infinito
+2026-07-15 08:26:27  ----- CICLO #1 -----
+2026-07-15 08:26:27  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 08:26:27  >>> Interrupcion (Ctrl+C). Se detiene tras la iteracion actual.
+2026-07-15 08:29:23  === INICIO sesion de mejoras automaticas ===
+2026-07-15 08:29:23  Modelos: opencode/hy3-free, opencode/nemotron-3-ultra-free, opencode/north-mini-code-free | Timeout: 30 min/modelo | Max ciclos: infinito
+2026-07-15 08:29:23  ----- CICLO #1 -----
+2026-07-15 08:29:23  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 08:29:23  !!! No se pudo iniciar opencode para opencode/hy3-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:29:23  <<< opencode/hy3-free error de arranque
+2026-07-15 08:29:33  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:29:33  >>> Lanzando modelo: opencode/nemotron-3-ultra-free
+2026-07-15 08:29:33  !!! No se pudo iniciar opencode para opencode/nemotron-3-ultra-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:29:33  <<< opencode/nemotron-3-ultra-free error de arranque
+2026-07-15 08:29:38  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:29:38  >>> Lanzando modelo: opencode/north-mini-code-free
+2026-07-15 08:29:38  !!! No se pudo iniciar opencode para opencode/north-mini-code-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:29:38  <<< opencode/north-mini-code-free error de arranque
+2026-07-15 08:29:42  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:29:42  ----- Fin CICLO #1 (reiniciando rotacion) -----
+2026-07-15 08:29:42  ----- CICLO #2 -----
+2026-07-15 08:29:42  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 08:29:42  !!! No se pudo iniciar opencode para opencode/hy3-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:29:42  <<< opencode/hy3-free error de arranque
+2026-07-15 08:29:46  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:29:46  >>> Lanzando modelo: opencode/nemotron-3-ultra-free
+2026-07-15 08:29:46  !!! No se pudo iniciar opencode para opencode/nemotron-3-ultra-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:29:46  <<< opencode/nemotron-3-ultra-free error de arranque
+2026-07-15 08:29:50  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:29:50  >>> Lanzando modelo: opencode/north-mini-code-free
+2026-07-15 08:29:50  !!! No se pudo iniciar opencode para opencode/north-mini-code-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:29:50  <<< opencode/north-mini-code-free error de arranque
+2026-07-15 08:29:54  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:29:54  ----- Fin CICLO #2 (reiniciando rotacion) -----
+2026-07-15 08:29:54  ----- CICLO #3 -----
+2026-07-15 08:29:54  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 08:29:54  !!! No se pudo iniciar opencode para opencode/hy3-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:29:54  <<< opencode/hy3-free error de arranque
+2026-07-15 08:29:58  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:29:58  >>> Lanzando modelo: opencode/nemotron-3-ultra-free
+2026-07-15 08:29:58  !!! No se pudo iniciar opencode para opencode/nemotron-3-ultra-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:29:58  <<< opencode/nemotron-3-ultra-free error de arranque
+2026-07-15 08:30:02  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:30:02  >>> Lanzando modelo: opencode/north-mini-code-free
+2026-07-15 08:30:02  !!! No se pudo iniciar opencode para opencode/north-mini-code-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:30:03  <<< opencode/north-mini-code-free error de arranque
+2026-07-15 08:30:08  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:30:08  ----- Fin CICLO #3 (reiniciando rotacion) -----
+2026-07-15 08:30:08  ----- CICLO #4 -----
+2026-07-15 08:30:08  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 08:30:08  !!! No se pudo iniciar opencode para opencode/hy3-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:30:08  <<< opencode/hy3-free error de arranque
+2026-07-15 08:30:12  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:30:12  >>> Lanzando modelo: opencode/nemotron-3-ultra-free
+2026-07-15 08:30:12  !!! No se pudo iniciar opencode para opencode/nemotron-3-ultra-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:30:12  <<< opencode/nemotron-3-ultra-free error de arranque
+2026-07-15 08:30:16  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:30:16  >>> Lanzando modelo: opencode/north-mini-code-free
+2026-07-15 08:30:16  !!! No se pudo iniciar opencode para opencode/north-mini-code-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:30:16  <<< opencode/north-mini-code-free error de arranque
+2026-07-15 08:30:20  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:30:20  ----- Fin CICLO #4 (reiniciando rotacion) -----
+2026-07-15 08:30:20  ----- CICLO #5 -----
+2026-07-15 08:30:20  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 08:30:20  !!! No se pudo iniciar opencode para opencode/hy3-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:30:20  <<< opencode/hy3-free error de arranque
+2026-07-15 08:30:24  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:30:24  >>> Lanzando modelo: opencode/nemotron-3-ultra-free
+2026-07-15 08:30:24  !!! No se pudo iniciar opencode para opencode/nemotron-3-ultra-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:30:24  <<< opencode/nemotron-3-ultra-free error de arranque
+2026-07-15 08:30:28  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:30:28  >>> Lanzando modelo: opencode/north-mini-code-free
+2026-07-15 08:30:28  !!! No se pudo iniciar opencode para opencode/north-mini-code-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:30:28  <<< opencode/north-mini-code-free error de arranque
+2026-07-15 08:30:32  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:30:32  ----- Fin CICLO #5 (reiniciando rotacion) -----
+2026-07-15 08:30:32  ----- CICLO #6 -----
+2026-07-15 08:30:32  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 08:30:32  !!! No se pudo iniciar opencode para opencode/hy3-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:30:32  <<< opencode/hy3-free error de arranque
+2026-07-15 08:30:38  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:30:38  >>> Lanzando modelo: opencode/nemotron-3-ultra-free
+2026-07-15 08:30:38  !!! No se pudo iniciar opencode para opencode/nemotron-3-ultra-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:30:38  <<< opencode/nemotron-3-ultra-free error de arranque
+2026-07-15 08:30:42  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:30:42  >>> Lanzando modelo: opencode/north-mini-code-free
+2026-07-15 08:30:42  !!! No se pudo iniciar opencode para opencode/north-mini-code-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:30:42  <<< opencode/north-mini-code-free error de arranque
+2026-07-15 08:30:47  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:30:47  ----- Fin CICLO #6 (reiniciando rotacion) -----
+2026-07-15 08:30:47  ----- CICLO #7 -----
+2026-07-15 08:30:47  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 08:30:47  !!! No se pudo iniciar opencode para opencode/hy3-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:30:47  <<< opencode/hy3-free error de arranque
+2026-07-15 08:30:52  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:30:52  >>> Lanzando modelo: opencode/nemotron-3-ultra-free
+2026-07-15 08:30:52  !!! No se pudo iniciar opencode para opencode/nemotron-3-ultra-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:30:52  <<< opencode/nemotron-3-ultra-free error de arranque
+2026-07-15 08:30:55  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:30:55  >>> Lanzando modelo: opencode/north-mini-code-free
+2026-07-15 08:30:55  !!! No se pudo iniciar opencode para opencode/north-mini-code-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:30:55  <<< opencode/north-mini-code-free error de arranque
+2026-07-15 08:30:59  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:30:59  ----- Fin CICLO #7 (reiniciando rotacion) -----
+2026-07-15 08:30:59  ----- CICLO #8 -----
+2026-07-15 08:30:59  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 08:30:59  !!! No se pudo iniciar opencode para opencode/hy3-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:30:59  <<< opencode/hy3-free error de arranque
+2026-07-15 08:31:03  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:31:03  >>> Lanzando modelo: opencode/nemotron-3-ultra-free
+2026-07-15 08:31:03  !!! No se pudo iniciar opencode para opencode/nemotron-3-ultra-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:31:03  <<< opencode/nemotron-3-ultra-free error de arranque
+2026-07-15 08:31:07  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:31:07  >>> Lanzando modelo: opencode/north-mini-code-free
+2026-07-15 08:31:07  !!! No se pudo iniciar opencode para opencode/north-mini-code-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:31:07  <<< opencode/north-mini-code-free error de arranque
+2026-07-15 08:31:11  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:31:11  ----- Fin CICLO #8 (reiniciando rotacion) -----
+2026-07-15 08:31:11  ----- CICLO #9 -----
+2026-07-15 08:31:11  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 08:31:11  !!! No se pudo iniciar opencode para opencode/hy3-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:31:11  <<< opencode/hy3-free error de arranque
+2026-07-15 08:31:15  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:31:15  >>> Lanzando modelo: opencode/nemotron-3-ultra-free
+2026-07-15 08:31:15  !!! No se pudo iniciar opencode para opencode/nemotron-3-ultra-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:31:15  <<< opencode/nemotron-3-ultra-free error de arranque
+2026-07-15 08:31:19  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:31:19  >>> Lanzando modelo: opencode/north-mini-code-free
+2026-07-15 08:31:19  !!! No se pudo iniciar opencode para opencode/north-mini-code-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:31:19  <<< opencode/north-mini-code-free error de arranque
+2026-07-15 08:31:23  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:31:23  ----- Fin CICLO #9 (reiniciando rotacion) -----
+2026-07-15 08:31:23  ----- CICLO #10 -----
+2026-07-15 08:31:23  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 08:31:23  !!! No se pudo iniciar opencode para opencode/hy3-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:31:23  <<< opencode/hy3-free error de arranque
+2026-07-15 08:31:27  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:31:27  >>> Lanzando modelo: opencode/nemotron-3-ultra-free
+2026-07-15 08:31:27  !!! No se pudo iniciar opencode para opencode/nemotron-3-ultra-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:31:27  <<< opencode/nemotron-3-ultra-free error de arranque
+2026-07-15 08:31:31  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:31:31  >>> Lanzando modelo: opencode/north-mini-code-free
+2026-07-15 08:31:31  !!! No se pudo iniciar opencode para opencode/north-mini-code-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:31:31  <<< opencode/north-mini-code-free error de arranque
+2026-07-15 08:31:35  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:31:35  ----- Fin CICLO #10 (reiniciando rotacion) -----
+2026-07-15 08:31:35  ----- CICLO #11 -----
+2026-07-15 08:31:35  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 08:31:35  !!! No se pudo iniciar opencode para opencode/hy3-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:31:35  <<< opencode/hy3-free error de arranque
+2026-07-15 08:31:40  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:31:40  >>> Lanzando modelo: opencode/nemotron-3-ultra-free
+2026-07-15 08:31:40  !!! No se pudo iniciar opencode para opencode/nemotron-3-ultra-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:31:40  <<< opencode/nemotron-3-ultra-free error de arranque
+2026-07-15 08:31:44  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:31:44  >>> Lanzando modelo: opencode/north-mini-code-free
+2026-07-15 08:31:44  !!! No se pudo iniciar opencode para opencode/north-mini-code-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:31:44  <<< opencode/north-mini-code-free error de arranque
+2026-07-15 08:31:56  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:31:56  ----- Fin CICLO #11 (reiniciando rotacion) -----
+2026-07-15 08:31:56  ----- CICLO #12 -----
+2026-07-15 08:31:56  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 08:31:56  !!! No se pudo iniciar opencode para opencode/hy3-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:31:56  <<< opencode/hy3-free error de arranque
+2026-07-15 08:32:02  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:32:02  >>> Lanzando modelo: opencode/nemotron-3-ultra-free
+2026-07-15 08:32:02  !!! No se pudo iniciar opencode para opencode/nemotron-3-ultra-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:32:02  <<< opencode/nemotron-3-ultra-free error de arranque
+2026-07-15 08:32:08  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:32:08  >>> Lanzando modelo: opencode/north-mini-code-free
+2026-07-15 08:32:08  !!! No se pudo iniciar opencode para opencode/north-mini-code-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:32:08  <<< opencode/north-mini-code-free error de arranque
+2026-07-15 08:32:13  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:32:13  ----- Fin CICLO #12 (reiniciando rotacion) -----
+2026-07-15 08:32:13  ----- CICLO #13 -----
+2026-07-15 08:32:13  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 08:32:13  !!! No se pudo iniciar opencode para opencode/hy3-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:32:13  <<< opencode/hy3-free error de arranque
+2026-07-15 08:32:17  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:32:17  >>> Lanzando modelo: opencode/nemotron-3-ultra-free
+2026-07-15 08:32:17  !!! No se pudo iniciar opencode para opencode/nemotron-3-ultra-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:32:17  <<< opencode/nemotron-3-ultra-free error de arranque
+2026-07-15 08:32:20  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:32:20  >>> Lanzando modelo: opencode/north-mini-code-free
+2026-07-15 08:32:20  !!! No se pudo iniciar opencode para opencode/north-mini-code-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:32:20  <<< opencode/north-mini-code-free error de arranque
+2026-07-15 08:32:24  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:32:24  ----- Fin CICLO #13 (reiniciando rotacion) -----
+2026-07-15 08:32:24  ----- CICLO #14 -----
+2026-07-15 08:32:24  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 08:32:24  !!! No se pudo iniciar opencode para opencode/hy3-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:32:24  <<< opencode/hy3-free error de arranque
+2026-07-15 08:32:28  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 08:32:28  >>> Lanzando modelo: opencode/nemotron-3-ultra-free
+2026-07-15 08:32:28  !!! No se pudo iniciar opencode para opencode/nemotron-3-ultra-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 08:32:28  <<< opencode/nemotron-3-ultra-free error de arranque
+2026-07-15 09:45:52  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 09:45:52  >>> Lanzando modelo: opencode/north-mini-code-free
+2026-07-15 09:45:52  !!! No se pudo iniciar opencode para opencode/north-mini-code-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 09:45:52  <<< opencode/north-mini-code-free error de arranque
+2026-07-15 09:52:39  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 09:52:39  ----- Fin CICLO #14 (reiniciando rotacion) -----
+2026-07-15 09:52:39  ----- CICLO #15 -----
+2026-07-15 09:52:39  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 09:52:39  !!! No se pudo iniciar opencode para opencode/hy3-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 09:52:39  <<< opencode/hy3-free error de arranque
+2026-07-15 09:52:44  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 09:52:44  >>> Lanzando modelo: opencode/nemotron-3-ultra-free
+2026-07-15 09:52:44  !!! No se pudo iniciar opencode para opencode/nemotron-3-ultra-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 09:52:44  <<< opencode/nemotron-3-ultra-free error de arranque
+2026-07-15 09:52:48  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 09:52:48  >>> Lanzando modelo: opencode/north-mini-code-free
+2026-07-15 09:52:48  !!! No se pudo iniciar opencode para opencode/north-mini-code-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 09:52:48  <<< opencode/north-mini-code-free error de arranque
+2026-07-15 09:52:52  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 09:52:52  ----- Fin CICLO #15 (reiniciando rotacion) -----
+2026-07-15 09:52:52  ----- CICLO #16 -----
+2026-07-15 09:52:52  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 09:52:52  !!! No se pudo iniciar opencode para opencode/hy3-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 09:52:52  <<< opencode/hy3-free error de arranque
+2026-07-15 09:52:56  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 09:52:56  >>> Lanzando modelo: opencode/nemotron-3-ultra-free
+2026-07-15 09:52:56  !!! No se pudo iniciar opencode para opencode/nemotron-3-ultra-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 09:52:56  <<< opencode/nemotron-3-ultra-free error de arranque
+2026-07-15 09:53:00  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 09:53:00  >>> Lanzando modelo: opencode/north-mini-code-free
+2026-07-15 09:53:00  !!! No se pudo iniciar opencode para opencode/north-mini-code-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 09:53:00  <<< opencode/north-mini-code-free error de arranque
+2026-07-15 09:53:03  :: Verificacion JS: 2 error(es) detectado(s). Se pasaran al siguiente modelo.
+2026-07-15 09:53:03  ----- Fin CICLO #16 (reiniciando rotacion) -----
+2026-07-15 09:53:03  ----- CICLO #17 -----
+2026-07-15 09:53:03  >>> Lanzando modelo: opencode/hy3-free
+2026-07-15 09:53:03  !!! No se pudo iniciar opencode para opencode/hy3-free : Excepción al llamar a "Start" con los argumentos "1": "El sistema no puede encontrar el archivo especificado"
+2026-07-15 09:53:03  <<< opencode/hy3-free error de arranque

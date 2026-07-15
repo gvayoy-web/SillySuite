@@ -1,0 +1,351 @@
+/* =====================================================================
+   display-questions.css
+   Extracted from display-base.css (SillyQuiz display aggregator).
+   Loaded via @import at the top of display-base.css — keep this file
+   self-contained for its mode/feature only.
+   ===================================================================== */
+            .q-eyebrow {
+                font-size: clamp(14px, 1.5vw, 18px);
+                font-weight: 900;
+                background: var(--jovenes);
+                color: #fff;
+                padding: 6px 20px;
+                border: 4px solid var(--border);
+                box-shadow: var(--shadow-sm);
+                margin-bottom: clamp(12px, 2vh, 24px);
+                transform: rotate(-2deg) translateY(-10px);
+                opacity: 0;
+                transition: all 0.5s var(--ease);
+                position: relative;
+            }
+            .q-eyebrow::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+                pointer-events: none;
+            }
+            .q-eyebrow.visible {
+                opacity: 1;
+                transform: rotate(-2deg) translateY(0);
+            }
+
+            .q-text {
+                font-weight: 900;
+                line-height: 1.05;
+                text-align: center;
+                letter-spacing: -0.03em;
+                color: #fff;
+                text-shadow:
+                    4px 4px 0 var(--border),
+                    8px 8px 0 var(--border),
+                    0 0 40px rgba(255,255,255,0.08),
+                    0 0 80px rgba(255,255,255,0.04);
+                max-width: 92vw;
+                width: 100%;
+                opacity: 0;
+                transform: scale(0.85) translateY(20px);
+                transition: all 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.375);
+                position: relative;
+                overflow-wrap: break-word;
+                word-break: break-word;
+                hyphens: auto;
+                padding: 0 clamp(100px, 12vw, 150px) 0 24px;
+                -webkit-text-stroke: 1px rgba(0,0,0,0.1);
+                paint-order: stroke fill;
+                will-change: transform, opacity;
+                backface-visibility: hidden;
+            }
+            .q-progress {
+                display: none;
+                align-items: center;
+                gap: 12px;
+                width: min(60%, 500px);
+                margin-bottom: 8px;
+                z-index: 5;
+            }
+            .q-progress.active { display: flex; }
+            .q-progress-bar {
+                flex: 1;
+                height: 6px;
+                background: rgba(255,255,255,0.15);
+                border: 2px solid var(--border);
+                position: relative;
+                overflow: hidden;
+            }
+            .q-progress-bar::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                width: 0%;
+                background: var(--accent);
+                transition: width 0.6s var(--ease);
+            }
+            .q-progress.active .q-progress-bar::after { width: var(--pct, 0%); }
+            .q-progress-text {
+                font-size: 12px;
+                font-weight: 700;
+                color: var(--border);
+                white-space: nowrap;
+                letter-spacing: 0.05em;
+            }
+            .q-category-badge {
+                display: none;
+                align-items: center;
+                gap: 6px;
+                font-size: 12px;
+                font-weight: 700;
+                letter-spacing: 0.15em;
+                text-transform: uppercase;
+                padding: 5px 16px;
+                border: 3px solid var(--border);
+                color: #fff;
+                position: absolute;
+                top: 20px;
+                left: 40px;
+                z-index: 10;
+                opacity: 0;
+                transform: translateY(-16px);
+                transition: opacity 0.4s var(--ease), transform 0.5s var(--ease);
+                box-shadow: var(--shadow-sm);
+            }
+            .q-category-badge.show {
+                opacity: 1;
+                transform: translateY(0);
+                animation: catBadgeGlow 2s ease-in-out infinite alternate;
+            }
+            .q-category-badge .cat-icon {
+                font-size: 16px;
+                line-height: 1;
+            }
+            @keyframes catBadgeGlow {
+                0% { box-shadow: var(--shadow-sm); transform: scale(1); }
+                50% { box-shadow: 0 0 24px var(--glow), 0 0 48px var(--glow); transform: scale(1.04); }
+                100% { box-shadow: 0 0 12px var(--glow), var(--shadow-sm); transform: scale(1.02); }
+            }
+            .q-text.visible {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+                animation: qShadowPulse 3s ease-in-out infinite alternate;
+                filter: drop-shadow(0 0 30px rgba(255,255,255,0.06));
+            }
+            .q-text.empty {
+                color: rgba(255, 255, 255, 0.85);
+                text-shadow: 3px 3px 0 var(--border);
+                font-size: 3rem;
+                animation: none;
+                background: rgba(0, 0, 0, 0.12);
+                padding: 20px 40px;
+                border: 3px dashed rgba(255, 255, 255, 0.3);
+                animation: emptyBorderPulse 2.5s ease-in-out infinite alternate;
+                transform: none;
+            }
+            @keyframes qShadowPulse {
+                0% { text-shadow: 4px 4px 0 var(--border), 8px 8px 0 var(--border); }
+                100% { text-shadow: 4px 4px 0 var(--border), 8px 8px 0 var(--border), 0 0 30px var(--glow); }
+            }
+            @keyframes qSlideUp {
+                0% { opacity: 0; transform: translateY(40px) scale(0.95); }
+                100% { opacity: 1; transform: translateY(0) scale(1); }
+            }
+            @keyframes qFlip3D {
+                0% { opacity: 0; transform: perspective(800px) rotateX(-15deg) scale(0.9); }
+                100% { opacity: 1; transform: perspective(800px) rotateX(0deg) scale(1); }
+            }
+            @keyframes qScaleBounce {
+                0% { opacity: 0; transform: scale(0.5); }
+                60% { opacity: 1; transform: scale(1.08); }
+                100% { transform: scale(1); }
+            }
+            @keyframes qGlitchReveal {
+                0% { opacity: 0; clip-path: inset(0 100% 0 0); }
+                10% { opacity: 1; }
+                90% { clip-path: inset(0 0 0 0); }
+                92% { clip-path: inset(20% 0 60% 0); transform: translate(3px, -2px); }
+                94% { clip-path: inset(50% 0 10% 0); transform: translate(-2px, 1px); }
+                96% { clip-path: inset(10% 0 70% 0); transform: translate(4px, -1px); }
+                100% { clip-path: inset(0 0 0 0); transform: translate(0, 0); }
+            }
+            @keyframes emptyBorderPulse {
+                0% {
+                    border-color: rgba(255, 255, 255, 0.2);
+                }
+                100% {
+                    border-color: rgba(255, 255, 255, 0.6);
+                }
+            }
+
+            @keyframes qShadowPulseFilter {
+                0% {
+                    filter: drop-shadow(0 0 0px rgba(255, 255, 255, 0));
+                }
+                100% {
+                    filter: drop-shadow(0 0 60px rgba(255, 255, 255, 0.25));
+                }
+            }
+
+            /* ── Random entrance keyframes for question text ── */
+            @keyframes qSlideFromRight {
+                0% { opacity: 0; transform: scale(0.8) translateX(200px) rotate(2deg); }
+                60% { opacity: 1; transform: scale(1.05) translateX(-10px) rotate(-1deg); }
+                100% { opacity: 1; transform: scale(1) translateX(0) rotate(0deg); }
+            }
+            @keyframes qSlideFromLeft {
+                0% { opacity: 0; transform: scale(0.8) translateX(-200px) rotate(-2deg); }
+                60% { opacity: 1; transform: scale(1.05) translateX(10px) rotate(1deg); }
+                100% { opacity: 1; transform: scale(1) translateX(0) rotate(0deg); }
+            }
+            @keyframes qScaleRotateIn {
+                0% { opacity: 0; transform: scale(0.3) rotate(-10deg); }
+                50% { opacity: 1; transform: scale(1.08) rotate(2deg); }
+                100% { opacity: 1; transform: scale(1) rotate(0deg); }
+            }
+            @keyframes qFlipInX {
+                0% { opacity: 0; transform: perspective(800px) rotateX(80deg); }
+                50% { opacity: 1; transform: perspective(800px) rotateX(-10deg); }
+                100% { opacity: 1; transform: perspective(800px) rotateX(0deg); }
+            }
+            @keyframes qBounceInUp {
+                0% { opacity: 0; transform: translateY(200px) scale(0.9); }
+                50% { opacity: 1; transform: translateY(-15px) scale(1.02); }
+                70% { transform: translateY(5px) scale(0.99); }
+                100% { opacity: 1; transform: translateY(0) scale(1); }
+            }
+
+            .answer-block {
+                margin-top: clamp(16px, 3vh, 40px);
+                padding: clamp(10px, 1.5vh, 16px) clamp(90px, 10vw, 130px) clamp(10px, 1.5vh, 16px) clamp(20px, 3vw, 40px);
+                background: var(--surface);
+                border: 6px solid var(--border);
+                box-shadow: none;
+                filter: drop-shadow(8px 8px 0 var(--border));
+                transform: rotate(-3deg) translateY(30px) scale(0.9);
+                opacity: 0;
+                transition: none;
+                position: relative;
+                will-change: filter, transform;
+                background-image: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 50%);
+            }
+            .answer-block.visible {
+                animation:
+                    ansStampIn 0.6s var(--ease) forwards,
+                    ansShadowPulse 2s ease-in-out 0.6s infinite alternate;
+            }
+
+            @keyframes ansStampIn {
+                0% {
+                    transform: rotate(-3deg) translateY(30px) scale(0.85);
+                    opacity: 0;
+                }
+                45% {
+                    transform: rotate(2deg) translateY(-4px) scale(1.06);
+                    opacity: 1;
+                }
+                75% {
+                    transform: rotate(0.5deg) translateY(2px) scale(0.98);
+                    opacity: 1;
+                }
+                100% {
+                    transform: rotate(1deg) translateY(0) scale(1);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes ansShadowPulse {
+                0% {
+                    filter: drop-shadow(8px 8px 0 var(--border));
+                    box-shadow: none;
+                }
+                100% {
+                    filter: drop-shadow(14px 18px 0 var(--border))
+                        drop-shadow(0 0 8px rgba(255, 255, 255, 0.12));
+                    box-shadow: none;
+                }
+            }
+
+            .ans-label {
+                font-size: clamp(16px, 1.5vw, 24px);
+                font-weight: 900;
+                margin-bottom: 4px;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+            .ans-text {
+                font-size: clamp(2.5rem, 5vw, 5rem);
+                font-weight: 900;
+                color: var(--border);
+                letter-spacing: -0.02em;
+                line-height: 1.1;
+            }
+
+            .timer-badge {
+                position: absolute;
+                top: clamp(8px, 1.5vh, 16px);
+                right: clamp(8px, 1.5vw, 16px);
+                z-index: 10;
+                background: var(--surface);
+                border: 4px solid var(--border);
+                box-shadow: 6px 6px 0 var(--border);
+                padding: 4px 18px 2px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 70px;
+                transition: all 0.3s var(--ease);
+                transform: rotate(1deg);
+                will-change: transform;
+                isolation: isolate;
+                background-image: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 50%);
+            }
+            .timer-badge.urgent {
+                background: var(--red);
+                border-color: var(--red) !important;
+                box-shadow: none;
+                filter: drop-shadow(8px 8px 0 var(--red)) drop-shadow(0 0 30px rgba(255,0,0,0.4));
+                animation: badgeUrgent 0.25s ease-in-out infinite alternate;
+                will-change: filter;
+            }
+            @keyframes badgeUrgent {
+                0% {
+                    transform: scale(1) rotate(-2deg);
+                    filter: drop-shadow(8px 8px 0 var(--red)) drop-shadow(0 0 15px rgba(255,0,0,0.2));
+                }
+                100% {
+                    transform: scale(1.12) rotate(2deg);
+                    filter: drop-shadow(12px 12px 0 var(--red)) drop-shadow(0 0 30px rgba(255,0,0,0.4));
+                }
+            }
+
+            .timer-num {
+                font-size: clamp(5rem, 10vw, 11rem);
+                font-weight: 900;
+                letter-spacing: -0.05em;
+                line-height: 0.8;
+                color: var(--surface);
+                text-shadow: 6px 6px 0 var(--border);
+                -webkit-text-stroke: 3px var(--border);
+                transition: all 0.3s;
+                font-variant-numeric: tabular-nums;
+                will-change: transform;
+            }
+            .timer-num.active {
+                color: var(--surface);
+            }
+            .timer-num.urgent {
+                color: var(--red);
+                text-shadow:
+                    0 0 50px rgba(255, 0, 0, 0.8),
+                    0 0 100px rgba(255, 0, 0, 0.4),
+                    0 0 150px rgba(255, 0, 0, 0.2),
+                    4px 4px 0 var(--border);
+                animation: urgentBeat 0.25s ease-in-out infinite alternate;
+            }
+            @keyframes urgentBeat {
+                0% {
+                    transform: scale(1) rotate(0deg);
+                }
+                100% {
+                    transform: scale(1.2) rotate(-6deg);
+                }
+            }

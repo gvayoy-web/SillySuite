@@ -25,8 +25,8 @@
   const ScratchAOT = {
     VERSION: 2,
 
-    MAX_CHAIN: 1000,
-    MAX_NESTING: 8,
+    // Removed artificial limits: MAX_CHAIN, MAX_NESTING
+    // Unlimited blocks, unlimited nesting for maximum flexibility
 
     _coerce(token, spec, raw) {
       if (spec == null) return raw;
@@ -61,10 +61,7 @@
 
     _validateBlock(block, depth, errors) {
       if (!block) return true;
-      if (depth > this.MAX_NESTING) {
-        errors.push('Anidación máxima de ' + this.MAX_NESTING + ' niveles excedida');
-        return false;
-      }
+      // No artificial nesting limit - removed MAX_NESTING
       if (!block.opcode || !ScratchBlocks.exists(block.opcode)) {
         errors.push('Opcode inválido: ' + (block.opcode || 'null'));
         return false;
@@ -89,9 +86,7 @@
     _serialize(block, depth) {
       if (!block || !ScratchBlocks.exists(block.opcode)) return null;
       depth = depth || 0;
-      if (depth >= ScratchAOT.MAX_CHAIN) {
-        throw new Error('AOT: cadena supera el máximo de ' + ScratchAOT.MAX_CHAIN + ' bloques');
-      }
+      // No artificial depth limit - removed MAX_CHAIN
       const defn = REGISTRY[block.opcode];
       const args = {};
       Object.keys(defn.args).forEach(token => {

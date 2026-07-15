@@ -33,7 +33,7 @@
       </div>
       <h1 id="splash-title">BuildSilly</h1>
       <p class="splash-tagline">Crea tus locuras sin programar</p>
-      <div class="splash-progress">
+      <div class="splash-progress" role="progressbar" aria-label="Progreso de carga" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="splashProgress">
         <div class="splash-bar" id="splashBar"></div>
       </div>
       <p class="splash-status" id="splashStatus">Cargando motor de bloques...</p>
@@ -42,7 +42,7 @@
   </div>
 
   <!-- El editor (ScratchUI) se construye aquí mismo al cargar. -->
-  <div id="scratchBuilder" style="display:none;"></div>
+  <div id="scratchBuilder" style="display:none;" role="application" aria-label="Editor visual de bloques BuildSilly"></div>
 
   <!-- Menú flotante de esquina (accesos rápidos) -->
   <div id="sq-float-toolbar" class="sq-float-toolbar" role="toolbar" aria-label="Acciones rápidas" style="display:none;">
@@ -125,6 +125,10 @@
   <script src="../js/silly-package.js"></script>
   <script src="../js/asset-sanitize.js"></script>
 
+  <!-- Módulos extraídos del Builder (Fase 2c) — DEBEN cargarse antes de scratch-ui.js -->
+  <script src="../js/builder/util.js"></script>
+  <script src="../js/builder/palette.js"></script>
+
   <!-- Editor + orquestador -->
   <script src="../js/scratch-ui.js"></script>
   <script src="../js/scratch-ui-control-definition.js"></script>
@@ -186,6 +190,8 @@
         const s = loadSteps[step];
         progress = s.p;
         splashBar.style.width = progress + '%';
+        const sp = document.getElementById('splashProgress');
+        if (sp) sp.setAttribute('aria-valuenow', progress);
         splashStatus.textContent = s.msg;
         step++;
         setTimeout(nextStep, 300 + Math.random() * 200);

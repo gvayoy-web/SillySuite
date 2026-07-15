@@ -1,0 +1,290 @@
+/* =====================================================================
+   display-animations.css
+   Extracted from display-base.css (SillyQuiz display aggregator).
+   Loaded via @import at the top of display-base.css — keep this file
+   self-contained for its mode/feature only.
+   ===================================================================== */
+            /* ─── Dynamic theme event classes ─── */
+            body.event-hangman-1 { filter: brightness(0.92); }
+            body.event-hangman-2 { filter: brightness(0.85); }
+            body.event-hangman-3 { filter: brightness(0.78); }
+            body.event-hangman-4 { filter: brightness(0.70); }
+            body.event-hangman-5 { filter: brightness(0.60); }
+            body.event-hangman-6 { filter: brightness(0.45); }
+
+            body.event-correct {
+                animation: flashCorrect 0.8s ease-out;
+            }
+            @keyframes flashCorrect {
+                0% { filter: brightness(1) hue-rotate(0deg); }
+                25% { filter: brightness(1.8) hue-rotate(60deg); }
+                50% { filter: brightness(1.4) hue-rotate(30deg); }
+                100% { filter: brightness(1) hue-rotate(0deg); }
+            }
+
+            body.event-incorrect {
+                animation: flashIncorrect 0.5s ease-out;
+            }
+            @keyframes flashIncorrect {
+                0% { filter: brightness(1); }
+                20% { filter: brightness(0.3) saturate(2); }
+                40% { filter: brightness(1.5) saturate(1.5); }
+                100% { filter: brightness(1); }
+            }
+
+            body.event-round-final {
+                --bg: #1a0a00 !important;
+                --accent: #ffd700 !important;
+                --glow: rgba(255,215,0,0.5) !important;
+                animation: epicGlow 2s ease-in-out infinite alternate;
+            }
+            @keyframes epicGlow {
+                0% { box-shadow: inset 0 0 60px rgba(255,215,0,0.1); }
+                100% { box-shadow: inset 0 0 120px rgba(255,215,0,0.25); }
+            }
+
+            body.event-penalty {
+                animation: flashPenalty 1s ease-out;
+            }
+            @keyframes flashPenalty {
+                0% { filter: brightness(1); transform: translate(0); }
+                10% { filter: brightness(0.2) saturate(3); transform: translate(-4px, 2px); }
+                20% { filter: brightness(1.8); transform: translate(4px, -2px); }
+                30% { filter: brightness(0.4); transform: translate(-2px, 1px); }
+                40% { filter: brightness(1.5); transform: translate(2px, -1px); }
+                50% { filter: brightness(0.6); transform: translate(0); }
+                100% { filter: brightness(1); transform: translate(0); }
+            }
+
+            body.event-streak-3 {
+                border-left: 4px solid #ff6600;
+                border-right: 4px solid #ff6600;
+                animation: streakGlow3 1.5s ease-in-out infinite alternate;
+            }
+            @keyframes streakGlow3 {
+                0% { box-shadow: inset -4px 0 20px rgba(255,102,0,0.2), inset 4px 0 20px rgba(255,102,0,0.2); }
+                100% { box-shadow: inset -4px 0 40px rgba(255,102,0,0.4), inset 4px 0 40px rgba(255,102,0,0.4); }
+            }
+
+            body.event-streak-5 {
+                border-left: 6px solid #ffd700;
+                border-right: 6px solid #ffd700;
+                animation: streakGlow5 1s ease-in-out infinite alternate;
+            }
+            @keyframes streakGlow5 {
+                0% { box-shadow: inset -6px 0 30px rgba(255,215,0,0.3), inset 6px 0 30px rgba(255,215,0,0.3); }
+                100% { box-shadow: inset -6px 0 60px rgba(255,215,0,0.6), inset 6px 0 60px rgba(255,215,0,0.6); }
+            }
+
+            body.event-timer-low {
+                animation: timerPulse 0.5s ease-in-out infinite alternate;
+            }
+            @keyframes timerPulse {
+                0% { filter: brightness(1); }
+                100% { filter: brightness(1.3) saturate(1.2); }
+            }
+
+            body.event-timer-zero {
+                animation: timerFreeze 2s ease-out forwards;
+            }
+            @keyframes timerFreeze {
+                0% { filter: brightness(1) contrast(1); }
+                30% { filter: brightness(2) contrast(1.5); }
+                50% { filter: brightness(0.8) contrast(1.2); }
+                100% { filter: brightness(1) contrast(1); }
+            }
+
+            body.event-record {
+                animation: recordBroken 3s ease-out;
+            }
+            @keyframes recordBroken {
+                0% { filter: brightness(1); }
+                15% { filter: brightness(2.5) saturate(2); }
+                30% { filter: brightness(0.5); }
+                45% { filter: brightness(2) saturate(1.5); }
+                60% { filter: brightness(1); }
+                100% { filter: brightness(1); }
+            }
+
+            /* ─── Hard question warning ─── */
+            body.event-hard-question {
+                animation: hardQuestionPulse 1.5s ease-in-out infinite;
+            }
+            @keyframes hardQuestionPulse {
+                0% { box-shadow: inset 0 0 30px rgba(255,0,0,0.1); }
+                50% { box-shadow: inset 0 0 60px rgba(255,0,0,0.25); }
+                100% { box-shadow: inset 0 0 30px rgba(255,0,0,0.1); }
+            }
+
+            .hard-question-banner {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) scale(0);
+                z-index: 10000;
+                background: rgba(255,0,0,0.9);
+                color: #fff;
+                padding: 20px 40px;
+                border-radius: 12px;
+                font-size: clamp(20px, 4vw, 36px);
+                font-weight: 900;
+                text-align: center;
+                pointer-events: none;
+                opacity: 0;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+            }
+            .hard-question-banner.show {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+                animation: hardQuestionBanner 2s ease-out forwards;
+            }
+            @keyframes hardQuestionBanner {
+                0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+                20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+                40% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            }
+
+            /* ─── Epic correct answer overlay ─── */
+            .epic-correct-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 9998;
+                pointer-events: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 0;
+            }
+            .epic-correct-overlay.show {
+                animation: epicCorrectShow 1.2s ease-out forwards;
+            }
+            @keyframes epicCorrectShow {
+                0% { opacity: 0; }
+                15% { opacity: 1; }
+                70% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+            .epic-correct-overlay .epic-text {
+                font-size: clamp(40px, 8vw, 80px);
+                font-weight: 900;
+                color: #ffd700;
+                text-shadow: 0 0 40px rgba(255,215,0,0.8), 0 0 80px rgba(255,215,0,0.4);
+                animation: epicTextPulse 0.5s ease-in-out infinite alternate;
+            }
+            @keyframes epicTextPulse {
+                0% { transform: scale(1); }
+                100% { transform: scale(1.1); }
+            }
+
+            /* ─── Last second freeze visual ─── */
+            body.event-freeze-visual {
+                animation: freezeVisual 2s ease-out forwards;
+            }
+            @keyframes freezeVisual {
+                0% { filter: brightness(1) contrast(1); }
+                10% { filter: brightness(1.5) contrast(1.3); }
+                20% { filter: brightness(0.8) contrast(1.1) saturate(0.5); }
+                100% { filter: brightness(1) contrast(1) saturate(1); }
+            }
+
+            .freeze-text {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 10000;
+                font-size: clamp(30px, 6vw, 60px);
+                font-weight: 900;
+                color: #fff;
+                text-shadow: 0 0 30px rgba(255,255,255,0.8);
+                pointer-events: none;
+                opacity: 0;
+            }
+            .freeze-text.show {
+                animation: freezeTextShow 2s ease-out forwards;
+            }
+            @keyframes freezeTextShow {
+                0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+                20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+                40% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                80% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+
+/* ---- (continuation of non-adjacent block) ---- */
+            /* ── Tension keyframes ── */
+            @keyframes timerHeartbeat {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.06); }
+            }
+            @keyframes glitchScan {
+                0% { transform: translateY(-100%); }
+                10% { transform: translateY(20%); }
+                20% { transform: translateY(-30%); }
+                30% { transform: translateY(10%); }
+                40% { transform: translateY(-5%); }
+                50%, 100% { transform: translateY(100%); }
+            }
+            @keyframes vignettePulse {
+                0%, 100% { box-shadow: inset 0 0 120px rgba(0,0,0,0.4); }
+                50% { box-shadow: inset 0 0 200px rgba(0,0,0,0.7); }
+            }
+            @keyframes suspenseFlicker {
+                0%, 100% { opacity: 1; }
+                5% { opacity: 0.6; }
+                10% { opacity: 1; }
+                15% { opacity: 0.3; }
+                20% { opacity: 1; }
+                30% { opacity: 0.8; }
+                40% { opacity: 1; }
+            }
+            .timer-heartbeat {
+                animation: timerHeartbeat 0.5s ease-in-out 3;
+            }
+            .glitch-scan {
+                animation: glitchScan 0.6s ease-in-out forwards;
+            }
+            .vignette-pulse {
+                animation: vignettePulse 0.8s ease-in-out 3;
+            }
+            .suspense-flicker {
+                animation: suspenseFlicker 1.2s ease-in-out;
+            }
+
+/* ---- (continuation of non-adjacent block) ---- */
+            /* ══════════════════════════════════════════════════════
+        TYPEWRITER CURSOR
+        ══════════════════════════════════════════════════════ */
+            .ans-text.typing::after {
+                content: "|";
+                animation: cursorBlink 0.7s step-end infinite;
+                font-weight: 900;
+                color: var(--border);
+            }
+            @keyframes cursorBlink {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0;
+                }
+            }
+
+/* ---- (continuation of non-adjacent block) ---- */
+            @keyframes glitchWordIn {
+                0% { clip-path: inset(0 100% 0 0); transform: translateX(-20px); opacity: 0; }
+                20% { clip-path: inset(0 0 0 0); transform: translateX(0); opacity: 1; }
+                21% { clip-path: inset(0 0 80% 0); transform: skewX(-10deg); }
+                22% { clip-path: inset(20% 0 60% 0); transform: skewX(5deg); }
+                23% { clip-path: inset(40% 0 40% 0); transform: skewX(-3deg); }
+                24% { clip-path: inset(60% 0 20% 0); transform: skewX(2deg); }
+                25% { clip-path: inset(80% 0 0 0); transform: skewX(0deg); }
+                26% { clip-path: inset(0 0 0 0); transform: translateX(0); }
+                100% { clip-path: inset(0 0 0 0); transform: translateX(0); opacity: 1; }
+            }
+            .word-glitch {
+                animation: glitchWordIn 0.8s ease-out forwards;
+            }

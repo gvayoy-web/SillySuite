@@ -35,27 +35,27 @@
 <!-- Sidebar -->
 <nav class="sidebar" id="sidebar" aria-label="Panel de navegación" role="navigation">
   <div class="sidebar-brand" title="SillyQuiz">SQ</div>
-  <div class="sidebar-nav">
-    <button class="tab-btn active" data-tab="dashboard" title="Dashboard" aria-label="Dashboard">🏆</button>
-    <button class="tab-btn" data-tab="preguntas" title="Preguntas" aria-label="Preguntas">❓</button>
-    <button class="tab-btn" data-tab="ahorcado" title="Ahorcado" aria-label="Ahorcado">🪢</button>
-    <button class="tab-btn" data-tab="grupos" title="Grupos" aria-label="Grupos">👥</button>
-    <button class="tab-btn" data-tab="temas" title="Apariencia" aria-label="Apariencia">🎨</button>
-    <button class="tab-btn" data-tab="pantallas" title="Pantallas" aria-label="Pantallas">🖵</button>
-    <button class="tab-btn" data-tab="editor" title="Editor de Temas" aria-label="Editor de Temas">🖌️</button>
-    <button class="tab-btn" data-tab="presentador" title="Presentador" aria-label="Presentador">🎤</button>
-    <button class="tab-btn" data-tab="modos" title="Modos (Builder)" aria-label="Modos">🧩</button>
-    <button class="tab-btn" data-tab="canva" title="Infinite Canvas (Scratch Builder)" aria-label="Infinite Canvas">🎨</button>
-    <button class="tab-btn" data-tab="config" title="Configuración" aria-label="Configuración">⚙️</button>
+  <div class="sidebar-nav" role="tablist" aria-label="Secciones del panel">
+    <button class="tab-btn active" data-tab="dashboard" role="tab" aria-selected="true" title="Dashboard" aria-label="Dashboard">🏆</button>
+    <button class="tab-btn" data-tab="preguntas" role="tab" aria-selected="false" title="Preguntas" aria-label="Preguntas">❓</button>
+    <button class="tab-btn" data-tab="ahorcado" role="tab" aria-selected="false" title="Ahorcado" aria-label="Ahorcado">🪢</button>
+    <button class="tab-btn" data-tab="grupos" role="tab" aria-selected="false" title="Grupos" aria-label="Grupos">👥</button>
+    <button class="tab-btn" data-tab="temas" role="tab" aria-selected="false" title="Apariencia" aria-label="Apariencia">🎨</button>
+    <button class="tab-btn" data-tab="pantallas" role="tab" aria-selected="false" title="Pantallas" aria-label="Pantallas">🖵</button>
+    <button class="tab-btn" data-tab="editor" role="tab" aria-selected="false" title="Editor de Temas" aria-label="Editor de Temas">🖌️</button>
+    <button class="tab-btn" data-tab="presentador" role="tab" aria-selected="false" title="Presentador" aria-label="Presentador">🎤</button>
+    <button class="tab-btn" data-tab="modos" role="tab" aria-selected="false" title="Modos (Builder)" aria-label="Modos">🧩</button>
+    <button class="tab-btn" data-tab="canva" role="tab" aria-selected="false" title="Infinite Canvas (Scratch Builder)" aria-label="Infinite Canvas">🎨</button>
+    <button class="tab-btn" data-tab="config" role="tab" aria-selected="false" title="Configuración" aria-label="Configuración">⚙️</button>
   </div>
   <div class="sidebar-nav-mode-builder">
     <!-- Se inyecta dinámicamente el panel del builder -->
   </div>
   <div class="sidebar-footer">
     <div id="sidebarStatus" class="sidebar-status" title="Estado de conexión">🔴</div>
-    <button class="tab-btn" id="themeToggle" title="Tema (Oscuro/Claro)" aria-label="Alternar tema oscuro/claro" onclick="toggleSillyTheme()">◐</button>
-      <button class="tab-btn" id="displayPreviewToggle" title="Vista Display" aria-label="Alternar vista display">📺</button>
-      <button class="tab-btn" id="btnPersonalizar" title="Personalizar" aria-label="Personalizar panel">🎛️</button>
+      <button class="tab-btn" id="themeToggle" role="switch" aria-checked="false" title="Tema (Oscuro/Claro)" aria-label="Alternar tema oscuro/claro" onclick="toggleSillyTheme()">◐</button>
+      <button class="tab-btn" id="displayPreviewToggle" role="switch" aria-checked="false" title="Vista Display" aria-label="Alternar vista display">📺</button>
+      <button class="tab-btn" id="btnPersonalizar" role="switch" aria-checked="false" title="Personalizar" aria-label="Personalizar panel">🎛️</button>
     </div>
 </nav>
 
@@ -231,7 +231,7 @@
           <input type="text" id="inRespuesta" placeholder="Respuesta…" />
           <div class="flex-row gap-4">
             <select id="inCategoria" style="flex:1;"><option value="">Sin categoría</option></select>
-            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('catModal').classList.remove('hidden');renderCatModal()" title="Gestionar categorías">⚙</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('catModal').classList.remove('hidden');renderCatModal()" title="Gestionar categorías" aria-label="Gestionar categorías">⚙</button>
           </div>
           <label class="flex-row" style="font-size:10px;cursor:pointer;">
             <input type="checkbox" id="chkMulti" onchange="ctrl.toggleMultiChoice()" />
@@ -288,10 +288,10 @@
             <select id="filterCategoria" aria-label="Filtrar por categoría" onchange="ctrl.filtrarPreguntas()" style="width:auto;font-size:10px;padding:2px 4px;">
               <option value="">Todas</option>
             </select>
-            <button class="btn btn-ghost btn-sm" onclick="ctrl.exportarPreguntas()" title="Exportar">↓</button>
-            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFile').click()" title="Importar">↑</button>
+            <button class="btn btn-ghost btn-sm" onclick="ctrl.exportarPreguntas()" title="Exportar" aria-label="Exportar preguntas">↓</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFile').click()" title="Importar" aria-label="Importar preguntas">↑</button>
             <input type="file" id="importFile" accept=".json" aria-label="Importar preguntas desde archivo" onchange="ctrl.importarPreguntas(event)" />
-            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('catModal').classList.remove('hidden');renderCatModal()" title="Gestionar categorías">⚙</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('catModal').classList.remove('hidden');renderCatModal()" title="Gestionar categorías" aria-label="Gestionar categorías">⚙</button>
           </div>
           <div class="flex-row justify-between mt-4">
             <span class="text-sm text-muted" id="qCountFooter">0 total</span>
@@ -1286,7 +1286,7 @@
   <div class="modal">
     <div class="modal-header">
       <span class="modal-title">Administrar Categorías</span>
-      <button class="btn btn-ghost btn-sm" onclick="id('catModal').classList.add('hidden')">✕</button>
+      <button class="btn btn-ghost btn-sm" onclick="id('catModal').classList.add('hidden')" aria-label="Cerrar gestor de categorías">✕</button>
     </div>
     <div class="modal-body">
       <div id="catList"></div>
@@ -1302,11 +1302,11 @@
 <div class="display-preview" id="displayPreview">
   <div class="display-preview-header">
     <span>📺 Display en vivo</span>
-    <div class="display-preview-actions">
-      <button id="displayPreviewFull" title="Abrir en pestaña real">🔗</button>
-      <button id="displayPreviewInteract" title="Alternar interacción">🖱️</button>
-      <button id="displayPreviewClose" title="Minimizar">—</button>
-    </div>
+      <div class="display-preview-actions">
+        <button id="displayPreviewFull" title="Abrir en pestaña real" aria-label="Abrir display en pestaña nueva">🔗</button>
+        <button id="displayPreviewInteract" title="Alternar interacción" aria-label="Alternar interacción con el display">🖱️</button>
+        <button id="displayPreviewClose" title="Minimizar" aria-label="Minimizar vista previa del display">—</button>
+      </div>
   </div>
   <iframe src="/display" class="display-preview-iframe" title="Vista previa del display en tiempo real"></iframe>
 </div>
@@ -1316,7 +1316,7 @@
   <div class="modal personalizar-modal" role="dialog" aria-label="Personalización">
     <div class="modal-header">
       <h2>🎛️ PERSONALIZAR PANEL</h2>
-      <button class="btn btn-ghost btn-sm" id="personalizarCerrar">✕</button>
+      <button class="btn btn-ghost btn-sm" id="personalizarCerrar" aria-label="Cerrar personalización">✕</button>
     </div>
     <div class="modal-body">
       <div class="pers-section">
@@ -1420,6 +1420,8 @@ window.addEventListener('DOMContentLoaded', function() {
     try {
       localStorage.setItem('silly-control-theme', html.classList.contains('control-light') ? 'light' : 'dark');
     } catch (e) {}
+    var t = document.getElementById('themeToggle');
+    if (t) t.setAttribute('aria-checked', String(html.classList.contains('control-light')));
   };
   (function () {
     var el = document.getElementById('appHudClock');

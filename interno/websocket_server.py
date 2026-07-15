@@ -57,29 +57,39 @@ HEARTBEAT_TIMEOUT = 10   # timeout pong 10s
 
 
 @dataclass
-class RateLimiter:
-    """Token bucket rate limiter por socket."""
-    events: dict = field(default_factory=lambda: defaultdict(list))
-    window: float = RATE_LIMIT_WINDOW
-    max_events: int = MAX_EVENTS_PER_WINDOW
+class TokenBucketRateLimiter:
+    """Token bucket rate limiter por token/clave."""
+    rate: int = 20          # tokens por ventana
+    per: int = 60           # segundos de ventana
+    burst: int = 50         # máximo tokens acumulados
+    buckets: dict = field(default_factory=dict)  # key -> (tokens, last_update)
 
-    def allow(self, key: str) -> bool:
+    def _refill(self, key: str) -> float:
         now = time.time()
-        events = self.events[key]
-        # Limpiar eventos antiguos
-        while events and events[0] < now - self.window:
-            events.pop(0)
-        if len(events) >= self.max_events:
-            return False
-        events.append(now)
-        return True
+        tokens, last = self.buckets.get(key, (self.burst, now))
+        elapsed = now - last
+        tokens = min(self.burst, tokens + elapsed * self.rate / self.per)
+        self.buckets[key] = (tokens, now)
+        return tokens
+
+    def consume(self, key: str, amount: int = 1) -> bool:
+        tokens = self._refill(key)
+        if tokens >= amount:
+            self.buckets[key] = (tokens - amount, time.time())
+            return True
+        return False
+
+    def allow(self, key: str, amount: int = 1) -> bool:
+        """Alias para compatibilidad con código que usa allow()."""
+        return self.consume(key, amount)
 
     def cleanup(self):
-        """Limpia claves sin actividad reciente."""
+        """Elimina buckets vacíos/antiguos."""
         now = time.time()
-        dead = [k for k, v in self.events.items() if not v or v[-1] < now - 60]
+        dead = [k for k, (t, last) in self.buckets.items() 
+                if t >= self.burst and now - last > self.per * 2]
         for k in dead:
-            del self.events[k]
+            self.buckets.pop(k, None)
 
 
 def create_jwt(payload: dict) -> str:
@@ -122,11 +132,13 @@ class SyncServer:
         self.tokens = {}             # token -> (session_id, client_id)
         self.leaderboards = {}
         self.mobile_clients = {}     # token -> websocket
+        self.mobile_sessions = {}    # token -> session_id (reverse lookup)
         # Seguridad
-        self.rate_limiter = RateLimiter()
+        self.rate_limiter = TokenBucketRateLimiter()
         self.heartbeats = {}         # token -> last_pong_time
         self._heartbeat_task = None
-        self.rate_limiter = RateLimiter()
+        self._shutdown_event = asyncio.Event()
+        self._cleanup_task = None
 
     async def broadcast(self, payload):
         dead = []
@@ -156,12 +168,20 @@ class SyncServer:
 
     async def fifo_consumer(self):
         """Consume la cola FIFO en orden estricto y la reenvía al canal de juego."""
-        while True:
-            event = await self.fifo.get()
-            LOG.info("FIFO <- %s (us=%d)", event.get("type"), event.get("server_us"))
-            # Aquí se dispatchaba al motor de juego; en MVP se retransmite a displays.
-            await self.broadcast({"type": "hardware_event", "event": event})
-            self.fifo.task_done()
+        while not self._shutdown_event.is_set():
+            try:
+                event = await asyncio.wait_for(self.fifo.get(), timeout=1.0)
+                LOG.info("FIFO <- %s (us=%d)", event.get("type"), event.get("server_us"))
+                # Aquí se dispatchaba al motor de juego; en MVP se retransmite a displays.
+                await self.broadcast({"type": "hardware_event", "event": event})
+                self.fifo.task_done()
+            except asyncio.TimeoutError:
+                continue
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                LOG.error("Error en fifo_consumer: %s", e)
+                self.fifo.task_done()
 
     async def handler(self, ws):
         display_id = None
@@ -235,6 +255,14 @@ class SyncServer:
                         "displays": len(self.displays),
                         "sessions": len(self.play_sessions),
                         "flask": flask_ok,
+                    }))
+                # --- Health-check mutuo Flask<->WS (Fase 3a) ---
+                elif mtype == "ping":
+                    await ws.send(json.dumps({
+                        "type": "pong",
+                        "ts": time.time(),
+                        "displays": len(self.displays),
+                        "sessions": len(self.play_sessions),
                     }))
                 else:
                     await ws.send(json.dumps({"type": "error", "msg": "tipo desconocido: " + str(mtype)}))
@@ -343,33 +371,110 @@ class SyncServer:
         return {"session_id": session_id, "metric": metric or "kills",
                 "leaderboard": [{"client_id": k, "value": v} for k, v in top]}
 
-# ===================== HEARTBEAT & RATE LIMIT =====================
+    async def _disconnect_mobile(self, token):
+        """Desconecta un cliente móvil limpiamente."""
+        ws = self.mobile_clients.pop(token, None)
+        self.heartbeats.pop(token, None)
+        pair = self.tokens.pop(token, (None, None))
+        session_id, client_id = pair if isinstance(pair, tuple) else (None, None)
+        if session_id and session_id in self.play_sessions:
+            self.play_sessions[session_id]["players"][client_id]["connected"] = False
+        if ws:
+            try:
+                await ws.close()
+            except Exception:
+                pass
+        LOG.info("Jugador %s desconectado", token[:8] + "...")
+
+    async def _cleanup_loop(self):
+        """Limpieza periódica de estructuras de datos."""
+        while not self._shutdown_event.is_set():
+            try:
+                await asyncio.sleep(60)
+                self.rate_limiter.cleanup()
+                # Limpieza de tokens expirados
+                now = time.time()
+                expired = [t for t, (sid, cid) in self.tokens.items() 
+                          if t not in self.mobile_clients and t not in self.heartbeats]
+                for t in expired:
+                    self.tokens.pop(t, None)
+                LOG.debug("Limpieza: rate_limiter buckets=%d, tokens=%d", 
+                          len(self.rate_limiter.buckets), len(self.tokens))
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                LOG.error("Error en cleanup_loop: %s", e)
+
+    async def shutdown(self):
+        """Apagado graceful del servidor WebSocket."""
+        LOG.info("Iniciando apagado graceful del servidor WebSocket...")
+        self._shutdown_event.set()
+        
+        # Cancelar tareas periódicas
+        for task in (self._fifo_task, self._heartbeat_task, self._cleanup_task):
+            if task and not task.done():
+                task.cancel()
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    pass
+        
+        # Desconectar todos los clientes móviles
+        for token in list(self.mobile_clients.keys()):
+            await self._disconnect_mobile(token)
+        
+        # Desconectar displays
+        for did, ws in list(self.displays.items()):
+            try:
+                await ws.close()
+            except Exception:
+                pass
+        
+        # Vaciar FIFO
+        while not self.fifo.empty():
+            try:
+                self.fifo.get_nowait()
+                self.fifo.task_done()
+            except asyncio.QueueEmpty:
+                break
+        
+        LOG.info("Servidor WebSocket detenido correctamente")
+
+    # ===================== HEARTBEAT & RATE LIMIT =====================
 
     async def heartbeat_loop(self):
         """Envía ping a todos los móviles conectados y desconecta los que no responden."""
-        while True:
-            await asyncio.sleep(HEARTBEAT_INTERVAL)
-            now = time.time()
-            dead = []
-            for token, ws in list(self.mobile_clients.items()):
-                last_pong = self.heartbeats.get(token, 0)
-                if now - last_pong > HEARTBEAT_TIMEOUT:
-                    dead.append(token)
-                    continue
-                try:
-                    await ws.send(json.dumps({"type": "ping", "ts": time.time()}))
-                except Exception:
-                    dead.append(token)
-            for token in dead:
-                await self._disconnect_mobile(token)
-                LOG.warning("Jugador %s desconectado por heartbeat timeout", token)
-            self.rate_limiter.cleanup()
+        while not self._shutdown_event.is_set():
+            try:
+                await asyncio.sleep(HEARTBEAT_INTERVAL)
+                if self._shutdown_event.is_set():
+                    break
+                now = time.time()
+                dead = []
+                for token, ws in list(self.mobile_clients.items()):
+                    last_pong = self.heartbeats.get(token, 0)
+                    if now - last_pong > HEARTBEAT_TIMEOUT:
+                        dead.append(token)
+                        continue
+                    try:
+                        await ws.send(json.dumps({"type": "ping", "ts": time.time()}))
+                    except Exception:
+                        dead.append(token)
+                for token in dead:
+                    await self._disconnect_mobile(token)
+                    LOG.warning("Jugador %s desconectado por heartbeat timeout", token[:8] + "...")
+                self.rate_limiter.cleanup()
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                LOG.error("Error en heartbeat_loop: %s", e)
 
     async def handle_pong(self, token):
         """Registra pong recibido del móvil."""
-        self.heartbeats[token] = time.time()
+        if token in self.mobile_clients:
+            self.heartbeats[token] = time.time()
 
-    def rehydrate_leaderboard(self, session_id, metric, leaderboard):
+    async def rehydrate_leaderboard(self, session_id, metric, leaderboard):
         """Restaura leaderboard desde estado persistido."""
         if not session_id or not metric or not leaderboard:
             return {"ok": False, "reason": "parámetros inválidos"}
@@ -385,44 +490,19 @@ def _rand_token():
     return secrets.token_urlsafe(16)
 
 
-class RateLimiter:
-    """Token bucket rate limiter por token/clave."""
-    def __init__(self, rate=20, per=60, burst=50):
-        self.rate = rate      # tokens por ventana
-        self.per = per        # segundos de ventana
-        self.burst = burst    # máximo tokens acumulados
-        self.buckets = {}     # key -> (tokens, last_update)
-
-    def _refill(self, key):
-        now = time.time()
-        tokens, last = self.buckets.get(key, (self.burst, now))
-        elapsed = now - last
-        tokens = min(self.burst, tokens + elapsed * self.rate / self.per)
-        self.buckets[key] = (tokens, now)
-        return tokens
-
-    def consume(self, key, amount=1):
-        tokens = self._refill(key)
-        if tokens >= amount:
-            self.buckets[key] = (tokens - amount, time.time())
-            return True
-        return False
-
-    def cleanup(self):
-        """Elimina buckets vacíos/antiguos."""
-        now = time.time()
-        dead = [k for k, (t, last) in self.buckets.items() if t >= self.burst and now - last > self.per * 2]
-        for k in dead:
-            self.buckets.pop(k, None)
-
-
 async def main_async(host, port):
     server = SyncServer()
     server._fifo_task = asyncio.create_task(server.fifo_consumer())
     server._heartbeat_task = asyncio.create_task(server.heartbeat_loop())
+    server._cleanup_task = asyncio.create_task(server._cleanup_loop())
     LOG.info("WebSocket sync escuchando en ws://%s:%d", host, port)
-    async with websockets.serve(server.handler, host, port):
-        await asyncio.Future()  # corre para siempre
+    try:
+        async with websockets.serve(server.handler, host, port):
+            await server._shutdown_event.wait()
+    except asyncio.CancelledError:
+        pass
+    finally:
+        await server.shutdown()
 
 
 def main():

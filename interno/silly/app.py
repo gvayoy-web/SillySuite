@@ -7,7 +7,10 @@ import atexit
 import logging
 import os
 import secrets
+import signal
+import sys
 import time
+from contextlib import contextmanager
 from flask import Flask, jsonify, request, session
 from flask_cors import CORS
 
@@ -36,6 +39,16 @@ DATA_FILE = os.getenv("SILLY_DATA_FILE", "silly.json")
 SERVER_PORT = int(os.getenv("SILLY_PORT", "8080"))
 SERVER_DEBUG = os.getenv("SILLY_DEBUG", "false").lower() in ("true", "1")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# CORS origins from env or defaults
+_cors_origins_env = os.getenv("SILLY_CORS_ORIGINS", "")
+DEFAULT_CORS_ORIGINS = [
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    "http://localhost:5000",
+    "http://127.0.0.1:5000",
+]
+ALLOWED_CORS_ORIGINS = [o.strip() for o in _cors_origins_env.split(",") if o.strip()] or DEFAULT_CORS_ORIGINS
 
 try:
     from waitress import serve as waitress_serve
@@ -120,6 +133,15 @@ mode_manager.register(HangmanMode(state, event_bus, config))
 mode_manager.register(VersesMode(state, event_bus, config))
 
 
+_shutdown_event = None
+_shutdown_handlers = []
+
+
+def register_shutdown_handler(handler):
+    """Register a handler to be called on graceful shutdown."""
+    _shutdown_handlers.append(handler)
+
+
 def _shutdown():
     log.info("Deteniendo servidor SILLY...")
     cronometro.stop_thread()
@@ -129,27 +151,45 @@ def _shutdown():
             mode._cronometro.stop_thread()
     with event_bus.suscriptores_lock:
         event_bus.suscriptores.clear()
+    # Call registered shutdown handlers
+    for handler in _shutdown_handlers:
+        try:
+            handler()
+        except Exception as e:
+            log.error("Error en handler de apagado: %s", e)
+    # Persist state
+    try:
+        from silly.services.persistence import guardar_datos
+        guardar_datos(state.datos_persistibles())
+    except Exception as e:
+        log.error("Error guardando datos al apagar: %s", e)
     log.info("Servidor SILLY detenido.")
 
 
-atexit.register(_shutdown)
+def _signal_handler(signum, frame):
+    log.info("Señal %s recibida, iniciando apagado graceful...", signum)
+    _shutdown()
+    sys.exit(0)
 
 
 def create_app():
+    global _shutdown_event
+    import threading
+    _shutdown_event = threading.Event()
+
     app = Flask(__name__, static_folder=None)
     app.secret_key = os.environ.get("FLASK_SECRET_KEY") or secrets.token_hex(32)
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     app.config["SESSION_COOKIE_NAME"] = "silly_session"
+    app.config["SESSION_PERMANENT"] = True
+    app.config["PERMANENT_SESSION_LIFETIME"] = 86400 * 30  # 30 days
 
-    # CORS: only allow same origin (localhost dev or self-hosted)
-    _allowed_origins = [
-        "http://localhost:8080",
-        "http://127.0.0.1:8080",
-        "http://localhost:5000",
-        "http://127.0.0.1:5000",
-    ]
-    CORS(app, origins=_allowed_origins, supports_credentials=True)
+    # CORS: configurable origins with credentials support
+    CORS(app, origins=ALLOWED_CORS_ORIGINS, supports_credentials=True,
+         allow_headers=["Content-Type", "Authorization", "X-CSRF-Token"],
+         expose_headers=["X-CSRF-Token"],
+         max_age=3600)
 
     from silly.services.theme_service import ThemeService
     THEMES_DIR = os.path.join(container.BASE_DIR, "themes")
@@ -184,6 +224,7 @@ def create_app():
     from silly.blueprints.communication import comm_bp
     from silly.blueprints.docs import docs_bp
     from silly.blueprints.control import control_bp
+    from silly.blueprints.sync_bridge import sync_bp
 
     app.register_blueprint(static_bp)
     app.register_blueprint(api_bp)
@@ -209,6 +250,7 @@ def create_app():
     app.register_blueprint(docs_bp)
     app.register_blueprint(qr_bp)
     app.register_blueprint(control_bp)
+    app.register_blueprint(sync_bp)
 
     # =========================================================================
     # AUTH ROUTES — login/logout endpoints
@@ -281,6 +323,44 @@ button:hover{background:#FF7A5C}
         return redirect("/login", code=302)
 
     # =========================================================================
+    # HEALTH CHECK & SHUTDOWN
+    # =========================================================================
+    @app.route("/api/health", methods=["GET"])
+    def health_check():
+        """Health check endpoint for load balancers and monitoring."""
+        return jsonify({
+            "status": "ok",
+            "timestamp": time.time(),
+            "version": "6.0",
+            "uptime": time.time() - app.config.get("START_TIME", time.time()),
+        })
+
+    @app.route("/api/shutdown", methods=["POST"])
+    def shutdown():
+        """Graceful shutdown endpoint (requires auth in production)."""
+        if not SERVER_DEBUG:
+            from silly.blueprints._security import require_auth
+            # Simple auth check for shutdown
+            auth_header = request.headers.get("Authorization", "")
+            expected = os.environ.get("SHUTDOWN_TOKEN", "")
+            if not expected or auth_header != f"Bearer {expected}":
+                return jsonify({"error": "Unauthorized"}), 401
+        
+        log.info("Apagado solicitado via endpoint")
+        _shutdown_event.set()
+        
+        # Schedule actual shutdown after response
+        def delayed_shutdown():
+            time.sleep(0.5)
+            _shutdown()
+            os._exit(0)
+        
+        import threading
+        threading.Thread(target=delayed_shutdown, daemon=True).start()
+        
+        return jsonify({"status": "shutting down"})
+
+    # =========================================================================
     # RATE LIMITING & REQUEST MIDDLEWARE
     # =========================================================================
     _SENSITIVE_ROUTES = {
@@ -298,12 +378,12 @@ button:hover{background:#FF7A5C}
         _PAGE_ROOTS = (
             "/sillycontrol", "/sillycontrol/",
             "/display", "/displaysilly", "/canva", "/play", "/",
-            "/login", "/logout",
+            "/login", "/logout", "/api/health",
         )
         if p.startswith(_STATIC_PREFIXES) or p in _PAGE_ROOTS:
             return
 
-        # Stricter rate limit for sensitive routes (login, import)
+        # Stricter rate limit for sensitive routes (login, import, shutdown)
         if any(s in p for s in ("/preguntas/importar", "/login", "/shutdown")):
             ip = request.remote_addr or "unknown"
             if not rate_limiter.is_allowed(f"sensitive:{ip}", limit=10, window=60):
@@ -316,6 +396,11 @@ button:hover{background:#FF7A5C}
         if not rate_limiter.is_allowed(f"global:{ip}", limit=300, window=60):
             from flask import jsonify as _jsonify
             return _jsonify({"error": "Rate limit excedido"}), 429
+
+        # Request size limit
+        if request.content_length and request.content_length > 10 * 1024 * 1024:  # 10MB
+            from flask import jsonify as _jsonify
+            return _jsonify({"error": "Payload demasiado grande"}), 413
 
     @app.after_request
     def _log_request(response):
@@ -337,10 +422,46 @@ button:hover{background:#FF7A5C}
             log.info(msg, request.method, request.path, status, duration)
         return response
 
+    @app.errorhandler(400)
+    def _handle_400(exc):
+        log.warning("Bad request: %s %s - %s", request.method, request.path, exc)
+        return jsonify({"error": "Solicitud inválida"}), 400
+
+    @app.errorhandler(401)
+    def _handle_401(exc):
+        log.warning("Unauthorized: %s %s", request.method, request.path)
+        return jsonify({"error": "No autorizado"}), 401
+
+    @app.errorhandler(403)
+    def _handle_403(exc):
+        log.warning("Forbidden: %s %s", request.method, request.path)
+        return jsonify({"error": "Prohibido"}), 403
+
+    @app.errorhandler(404)
+    def _handle_404(exc):
+        log.debug("Not found: %s %s", request.method, request.path)
+        return jsonify({"error": "No encontrado"}), 404
+
+    @app.errorhandler(429)
+    def _handle_429(exc):
+        log.warning("Rate limited: %s %s from %s", request.method, request.path, request.remote_addr)
+        return jsonify({"error": "Demasiadas solicitudes"}), 429
+
     @app.errorhandler(500)
     def _handle_500(exc):
         log.exception("Error interno del servidor en %s %s", request.method, request.path)
         return jsonify({"error": "Error interno del servidor"}), 500
+
+    @app.errorhandler(Exception)
+    def _handle_exception(exc):
+        log.exception("Excepción no manejada: %s", exc)
+        return jsonify({"error": "Error interno del servidor"}), 500
+
+    # Register signal handlers for graceful shutdown
+    signal.signal(signal.SIGTERM, _signal_handler)
+    signal.signal(signal.SIGINT, _signal_handler)
+
+    app.config["START_TIME"] = time.time()
 
     return app
 

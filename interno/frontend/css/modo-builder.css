@@ -928,3 +928,55 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ==========================================
+   ACCESIBILIDAD (Fase 5) — Foco visible y navegación por teclado
+   ========================================== */
+
+/* Foco visible y consistente para elementos operables del Builder.
+   Se usa :focus-visible para no mostrar el anillo en clics de ratón. */
+.palette-block:focus-visible,
+.palette-category-header:focus-visible,
+.event-tab:focus-visible,
+.scratch-block:focus-visible,
+.scratch-block-body-zone:focus-visible,
+.toolbar-btn:focus-visible,
+.sq-fab-btn:focus-visible,
+.sq-fab-item:focus-visible,
+.console-clear:focus-visible,
+.debug-tab:focus-visible,
+.btn-sm:focus-visible {
+    outline: 3px solid var(--builder-primary, #0038ff);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--builder-bg, #07070e);
+    z-index: 5;
+}
+
+/* Estado de foco persistente para bloques de paleta (compat. navegación flechas) */
+.palette-block:focus,
+.event-tab:focus,
+.scratch-block:focus {
+    outline: none;
+}
+
+/* Indicador de que un bloque de paleta está enfocado por teclado */
+.palette-block:focus-visible {
+    background: var(--builder-surface, #0e0e1a);
+    border-color: var(--builder-primary, #0038ff);
+    transform: translateX(2px);
+}
+
+/* La paleta de bloques es un listbox accesible: resalta la opción activa */
+.palette-block[aria-selected="true"],
+.palette-block.active {
+    border-color: var(--builder-primary, #0038ff);
+}
+
+/* Respeta la preferencia de reducir movimiento */
+@media (prefers-reduced-motion: reduce) {
+    .palette-block:focus-visible,
+    .scratch-block:focus-visible {
+        transform: none;
+        transition: none;
+    }
+}

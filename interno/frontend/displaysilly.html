@@ -152,7 +152,7 @@
                 </div>
             </section>
 
-            <div class="options-container" id="optionsContainer" role="group" aria-label="Opciones de respuesta"></div>
+            <div class="options-container" id="optionsContainer" role="group" aria-label="Opciones de respuesta" aria-live="polite"></div>
 
             <div class="scores-zone" id="scoresZone" role="region" aria-label="Puntajes"></div>
         </div>
@@ -204,7 +204,7 @@
         </div>
         <canvas id="celebCanvas"></canvas>
         <!-- W I N N E R   O V E R L A Y -->
-        <div id="winnerOverlay">
+        <div id="winnerOverlay" aria-live="assertive" role="alert">
             <div class="winner-crown" id="winnerCrown"></div>
             <div class="winner-box" id="winnerBox">
                 <div class="winner-team-name" id="winnerName"></div>
@@ -213,7 +213,7 @@
         </div>
 
         <!-- Final Results Podium -->
-        <div id="finalResultsOverlay">
+        <div id="finalResultsOverlay" aria-live="assertive" role="alert">
             <div class="fr-title">🏆 RESULTADOS FINALES</div>
             <div class="fr-podium" id="frPodium"></div>
             <div class="fr-close-hint">Presiona "Ocultar Resultados" en el panel de control</div>

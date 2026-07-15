@@ -1,0 +1,94 @@
+/* =====================================================================
+   display-themes.css
+   Extracted from display-base.css (SillyQuiz display aggregator).
+   Loaded via @import at the top of display-base.css — keep this file
+   self-contained for its mode/feature only.
+   ===================================================================== */
+            body.theme-custom {
+                --bg: var(--custom-primary);
+                --surface: var(--custom-surface, #111);
+                --border: var(--custom-border, var(--custom-accent));
+                --text: var(--custom-secondary);
+                --wc: var(--custom-secondary);
+                --accent: var(--custom-accent);
+                --glow: var(--custom-glow, rgba(124,58,237,0.3));
+                --bg-gradient: var(--custom-bg-gradient, var(--bg-gradient));
+                --font-heading: var(--custom-font-heading, var(--font-heading));
+                --font-body: var(--custom-font-body, var(--font-body));
+                --font-timer: var(--custom-font-timer, var(--font-timer));
+                --font-score: var(--custom-font-score, var(--font-score));
+                --font-size-scale: var(--custom-font-size-scale, 1);
+                --text-shadow: var(--custom-text-shadow, none);
+                --text-glow: var(--custom-text-glow, none);
+                --timer-style: var(--custom-timer-style, circle);
+                --timer-pos-x: var(--custom-timer-pos-x, auto);
+                --timer-pos-y: var(--custom-timer-pos-y, auto);
+                --timer-size: var(--custom-timer-size, 80px);
+                --timer-color-bg: var(--custom-timer-color-bg, rgba(0,0,0,0.6));
+                --timer-color-text: var(--custom-timer-color-text, #ffffff);
+                --timer-color-progress: var(--custom-timer-color-progress, var(--accent));
+                --timer-color-glow: var(--custom-timer-color-glow, var(--glow));
+                --timer-color-urgent: var(--custom-timer-color-urgent, #ff4444);
+                --timer-animation: var(--custom-timer-animation, pulse);
+                --scores-position: var(--custom-scores-position, bottom);
+                --header-display: var(--custom-header-display, flex);
+                --question-height: var(--custom-question-height, 1fr);
+                --logo-display: var(--custom-logo-display, block);
+                --decorations-display: var(--custom-decorations-display, block);
+                --scores-height: var(--custom-scores-height, 300px);
+                --shape-opacity: var(--custom-shape-opacity, 0.8);
+                --shape-speed: var(--custom-shape-speed, 1);
+                --shape-count: var(--custom-shape-count, 15);
+                --shape-behavior: var(--custom-shape-behavior, float);
+            }
+            body.theme-custom .score-card,
+            body.theme-custom .card-name,
+            body.theme-custom .card-rank,
+            body.theme-custom .card-pts {
+                color: var(--custom-secondary);
+                text-shadow: 0 0 20px var(--custom-accent);
+            }
+            body.theme-roulette {
+                --bg: #1a0000;
+                --surface: #2a0000;
+                --border: #441111;
+                --text: #ffdd99;
+                --wc: #ffdd99;
+                --accent: #ffd700;
+                --glow: rgba(255,215,0,0.4);
+                --bg-gradient: radial-gradient(ellipse at 30% 20%, rgba(255,215,0,0.12) 0%, transparent 60%), radial-gradient(ellipse at 70% 80%, rgba(139,0,0,0.2) 0%, transparent 50%);
+            }
+body.theme-hangman {
+    --bg: #0a1628;
+    --surface: #0f1f3a;
+    --border: #1e3a5f;
+    --text: #d0d8f0;
+    --wc: #e0e0f0;
+    --accent: #e94560;
+    --glow: rgba(233,69,96,0.5);
+    --bg-gradient: radial-gradient(ellipse at 50% 50%, rgba(233,69,96,0.08) 0%, transparent 70%);
+}
+            body.theme-versos {
+                --bg: #020020;
+                --surface: #0a0040;
+                --border: #1a1a66;
+                --text: #c0d8ff;
+                --wc: #c0d8ff;
+                --accent: #ffd700;
+                --glow: rgba(255,215,0,0.4);
+            }
+
+            body.theme-roulette .score-card,
+            body.theme-roulette .card-name,
+            body.theme-roulette .card-rank,
+            body.theme-roulette .card-pts,
+            body.theme-hangman .score-card,
+            body.theme-hangman .card-name,
+            body.theme-hangman .card-rank,
+            body.theme-hangman .card-pts,
+            body.theme-versos .score-card,
+            body.theme-verses .card-name,
+            body.theme-verses .card-rank,
+            body.theme-verses .card-pts {
+                color: var(--text);
+            }
