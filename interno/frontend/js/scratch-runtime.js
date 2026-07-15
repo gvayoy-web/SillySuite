@@ -918,17 +918,17 @@
             try { return JSON.parse(args.J || '{}')[args.K]; } catch (e) { return null; }
           case 'state_get_memory_value':
             return ctx.state[args.KEY];
-          case 'quiz_get_current_question_text': return '(pregunta)';
-          case 'quiz_get_answer_text': return '(respuesta ' + args.OPT + ')';
-          case 'quiz_get_leaderboard_json': return '{}';
-          case 'get_ndi_latency': return 12;
-          case 'players_get_name': return 'Jugador';
-          case 'players_get_fastest_buzzer': return 'p1';
-          case 'db_query_get_unanswered_count': return 10;
-          case 'db_query_search_by_keyword': return 1;
-          case 'db_query_get_hint_text': return '(pista)';
-          case 'list_get_item_at': return '';
-          case 'list_get_length': return 0;
+          case 'quiz_get_current_question_text': return ctx.state['current_question'] || '(pregunta)';
+          case 'quiz_get_answer_text': return ctx.state['answer_' + args.OPT] || '(respuesta ' + args.OPT + ')';
+          case 'quiz_get_leaderboard_json': return JSON.stringify(ctx.state['leaderboard'] || []);
+          case 'get_ndi_latency': return num(ctx.state['ndi_latency_' + args.SRC], 12);
+          case 'players_get_name': return ctx.state['player_name_' + args.PLAYER] || args.PLAYER || 'Jugador';
+          case 'players_get_fastest_buzzer': return ctx.state['fastest_buzzer'] || '';
+          case 'db_query_get_unanswered_count': return num(ctx.state['db_unanswered_count'], 10);
+          case 'db_query_search_by_keyword': return num(ctx.state['db_search_' + args.KW], 0);
+          case 'db_query_get_hint_text': return ctx.state['db_hint_' + args.QID] || '(pista)';
+          case 'list_get_item_at': { const l = ctx.state['list_' + args.NAME]; return Array.isArray(l) ? (l[num(args.IDX) - 1] || '') : ''; }
+          case 'list_get_length': { const l = ctx.state['list_' + args.NAME]; return Array.isArray(l) ? l.length : 0; }
           case 'list_get_item': { const l = ctx.state['list_' + args.NAME]; return Array.isArray(l) ? (l[num(args.IDX) - 1] || '') : ''; }
           case 'list_length': { const l = ctx.state['list_' + args.NAME]; return Array.isArray(l) ? l.length : 0; }
           case 'get_display_connection_count': return 1;
@@ -1038,6 +1038,27 @@
             }
             return results;
           }
+          case 'proc_param': {
+            const params = ctx._procParams || {};
+            return params[args.NAME] != null ? params[args.NAME] : null;
+          }
+          case 'proc_call_reporter': {
+            const scripts = ctx.runtime._engineScripts || {};
+            const procName = 'proc_def_' + args.NAME;
+            const chain = scripts[procName];
+            if (Array.isArray(chain) && chain.length) {
+              const prevParams = ctx._procParams;
+              ctx._procParams = ctx._procParams || {};
+              this._pushScope(ctx);
+              try {
+                this.executeChain(chain, ctx);
+              } finally {
+                this._popScope(ctx);
+                ctx._procParams = prevParams;
+              }
+            }
+            return ctx._procReturnValue || null;
+          }
           default: return null;
         }
       },
@@ -1070,11 +1091,27 @@
             try { return new RegExp(String(args.PAT || '')).test(String(args.TXT || '')); } catch (e) { return false; }
           }
           case 'is_ndi_source_online': return false;
-          case 'players_is_alive': return true;
+          case 'players_is_alive': return ctx.state['alive_' + args.PLAYER] !== false;
           case 'key_pressed': return false;
           case 'list_contains': { const l = ctx.state['list_' + args.NAME]; return Array.isArray(l) && l.indexOf(args.VAL) >= 0; }
           case 'quiz_is_paused': return truthy(ctx.state['quiz_paused']);
           case 'timer_is_paused': return truthy(ctx.state['timer_paused']);
+          case 'sprite_is_touching': {
+            const sprites = ctx.state.__sprites || {};
+            const sa = sprites[args.A], sb = sprites[args.B];
+            if (!sa || !sb) return false;
+            const dx = (sa.x || 0) - (sb.x || 0), dy = (sa.y || 0) - (sb.y || 0);
+            return Math.hypot(dx, dy) < 2;
+          }
+          case 'proc_call_boolean': {
+            const scripts = ctx.runtime._engineScripts || {};
+            const chain = scripts['proc_def_' + args.NAME];
+            if (Array.isArray(chain) && chain.length) {
+              this._pushScope(ctx);
+              try { this.executeChain(chain, ctx); } finally { this._popScope(ctx); }
+            }
+            return truthy(ctx._procReturnValue);
+          }
           default: return false;
         }
       },
@@ -1224,7 +1261,7 @@
         // Listas
         if (opcode === 'list_create') { ctx.state['list_' + args.NAME] = []; return { ok: true }; }
         if (opcode === 'list_add_item') { const l = ctx.state['list_' + args.NAME]; if (Array.isArray(l)) l.push(args.VAL); return { ok: true }; }
-        if (opcode === 'list_delete_item') { const l = ctx.state['list_' + args.NAME]; if (Array.isArray(l)) l.splice(num(args.IDX) - 1, 1); return { ok: true }; }
+        if (opcode === 'list_delete_item' || opcode === 'list_remove_index') { const l = ctx.state['list_' + args.NAME]; if (Array.isArray(l)) l.splice(num(args.IDX) - 1, 1); return { ok: true }; }
         if (opcode === 'list_insert_item') { const l = ctx.state['list_' + args.NAME]; if (Array.isArray(l)) l.splice(num(args.IDX) - 1, 0, args.VAL); return { ok: true }; }
         if (opcode === 'list_delete_all') { ctx.state['list_' + args.NAME] = []; return { ok: true }; }
         // Runtime / sistema
@@ -1525,6 +1562,39 @@
           const chain = scripts['proc_def_' + args.NAME];
           if (Array.isArray(chain) && chain.length) {
             ctx.runtime.start('proc_def_' + args.NAME, scripts, {});
+          }
+          return { ok: true };
+        }
+        if (opcode === 'proc_return') {
+          ctx._procReturnValue = args.VAL;
+          return { ok: true };
+        }
+        // ===== LOOKS / UI (local) =====
+        if (opcode === 'load_font') {
+          if (typeof document !== 'undefined' && args.URL && args.NAME) {
+            try {
+              const link = document.createElement('link');
+              link.rel = 'stylesheet';
+              link.href = args.URL;
+              document.head.appendChild(link);
+            } catch (e) { /* ignore */ }
+          }
+          return { ok: true };
+        }
+        if (opcode === 'create_overlay' || opcode === 'create_tween') {
+          return { ok: true };
+        }
+        if (opcode === 'move_component') {
+          return { ok: true };
+        }
+        // ===== VARIABLES =====
+        if (opcode === 'variable_init') {
+          if (!(('var_' + args.VAR) in ctx.state)) {
+            if (ctx.runtime && typeof ctx.runtime._setInScope === 'function') {
+              ctx.runtime._setInScope(ctx, 'var_' + args.VAR, args.VAL);
+            } else {
+              ctx.state['var_' + args.VAR] = args.VAL;
+            }
           }
           return { ok: true };
         }

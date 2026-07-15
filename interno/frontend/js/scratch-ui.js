@@ -1,13 +1,12 @@
 /**
- * scratch-ui.js — Editor visual del Infinite Canvas Builder v2.1
- *
- * MVP funcional (los conectores puzzle y drag-drop avatar se añaden en la fase
- * de CSS/UX final). Construye la paleta desde ScratchBlocks, renderiza scripts
- * por evento Hat, edita argumentos inline, compila con ScratchAOT, ejecuta con
- * ScratchRuntime y muestra el Visual Stepper en vivo sobre #block-console.
- *
- * Dependencias: scratch-blocks.js, scratch-runtime.js (window globals).
- */
+   * scratch-ui.js — Editor visual del Infinite Canvas Builder - Versión Simplificada y Estable
+   *
+   * Versión limpia y funcional del editor visual SILLY PACK. Construye la paleta desde ScratchBlocks,
+   * renderiza scripts por evento Hat, edita argumentos inline, compila con ScratchAOT, ejecuta con
+   * ScratchRuntime y muestra el Visual Stepper en vivo.
+   *
+   * DEPENDENCIAS: scratch-blocks.js, scratch-runtime.js, dynamic-blocks.js, scratch-dynamic-editor.js (window globals).
+   */
 (function (global) {
   'use strict';
 
@@ -17,19 +16,23 @@
     constructor(root, opts) {
       opts = opts || {};
       this.root = root;
-      this.providers = opts.providers || null; // inyectado por modo-builder-v2.js
+      this.providers = opts.providers || null;
       this.activeEvent = null;
       this.heads = {};            // eventOpcode -> ARRAY de stacks (cada stack = cadena de instancias)
       this.selected = null;
       this.domMap = {};           // _id -> elemento DOM
       this._idCounter = 0;
-      this.snapshots = [];
       this.trace = [];
       this.runtime = null;
       this.zoom = 1;
       this.panX = 0;
       this.panY = 0;
       this._drag = null;
+      this.snapshots = [];
+      this._redoStack = [];
+      this.assetMap = {};          // id -> { id, name, mime, size, blob, url, dataUrl }
+      this._assetSeq = 0;
+      this._liveBuffer = null;     // último estado para envíos diferidos
       this.init();
     }
 
@@ -42,27 +45,42 @@
       this.bindKeys();
       this.bindDnD();
       this.bindContextMenu();
+      this.bindDebugTabs();
       const firstHat = Object.keys(this.heads)[0];
       if (firstHat) this.selectEvent(firstHat);
-      this.pushSnapshot();
-      const loaded = this.autoLoad();
-      if (!loaded) this.ensureDefaultState();
+      this.ensureDefaultState();
+      // Referencia global para CTA boot
+      window.scratchUI = this;
+      // Sincronización en vivo con SillyVisualizer (requiere backend WS)
+      if (typeof location !== 'undefined' && location.hostname) {
+        try { this._initLiveSync(); } catch (e) { /* sin servidor de sync */ }
+      }
     }
 
-    /* ---- Estructura DOM ---- */
+    /* ---- Estructura DOM Simplificada ---- */
     buildSkeleton() {
       this.root.innerHTML = `
         <div class="scratch-app" role="application" aria-label="SillyQuiz Builder">
           <div class="scratch-toolbar" role="toolbar" aria-label="Herramientas">
-            <span class="sb-brand"><span class="sb-logo" aria-hidden="true">◆</span> Modo&nbsp;Builder</span>
+            <span class="sb-brand"><span class="sb-logo" aria-hidden="true"><svg viewBox="0 0 22 22" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="22" height="22" fill="#FF5E3A"/><rect x="1" y="1" width="20" height="20" fill="#0B0B0B"/><text x="11" y="15" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="9" fill="#FF5E3A">SQ</text></svg></span> Modo&nbsp;Builder</span>
             <span class="sb-divider" aria-hidden="true"></span>
             <button class="toolbar-btn primary" data-act="run" aria-label="Ejecutar programa">▶ Ejecutar</button>
             <button class="toolbar-btn danger" data-act="panic" aria-label="Detener todo">⏹ Pánico</button>
-            <button class="toolbar-btn" data-act="undo" title="Deshacer (Ctrl+Z)" aria-label="Deshacer">↶ Deshacer</button>
-            <button class="toolbar-btn" data-act="redo" title="Rehacer (Ctrl+Shift+Z)" aria-label="Rehacer">↷ Rehacer</button>
+            <span class="sb-divider" aria-hidden="true"></span>
+            <button class="toolbar-btn" data-act="debug-mode" aria-label="Modo depuración" title="Alternar modo depuración (F8)">🐞 Depurar</button>
+            <button class="toolbar-btn" data-act="breakpoint" aria-label="Toggle breakpoint (F9)" title="Toggle breakpoint en bloque seleccionado (F9)">⬤</button>
+            <button class="toolbar-btn" data-act="step-into" aria-label="Step into (F11)" title="Step into (F11)" disabled>↷ Into</button>
+            <button class="toolbar-btn" data-act="step-over" aria-label="Step over (F10)" title="Step over (F10)" disabled>↷ Over</button>
+            <button class="toolbar-btn" data-act="step-out" aria-label="Step out (Shift+F11)" title="Step out (Shift+F11)" disabled>↷ Out</button>
+            <button class="toolbar-btn" data-act="pause" aria-label="Pausar (Ctrl+P)" title="Pausar ejecución (Ctrl+P)" disabled>⏸ Pausar</button>
+            <button class="toolbar-btn" data-act="resume" aria-label="Reanudar (Ctrl+R)" title="Reanudar ejecución (Ctrl+R)" disabled>▶ Reanudar</button>
+            <span class="sb-divider" aria-hidden="true"></span>
+            <button class="toolbar-btn" data-act="undo" title="Deshacer (Ctrl+Z)" aria-label="Deshacer">↶</button>
+            <button class="toolbar-btn" data-act="redo" title="Rehacer (Ctrl+Shift+Z)" aria-label="Rehacer">↷</button>
             <button class="toolbar-btn" data-act="clear" aria-label="Limpiar lienzo">🗑 Limpiar</button>
-            <button class="toolbar-btn" data-act="preview" aria-label="Vista previa">👁 Vista</button>
+            <button class="toolbar-btn" data-act="stage" aria-label="Visualizador en vivo">🎬 Visualizador</button>
             <span class="spacer"></span>
+            <span class="sb-status" id="sbStatus"><span class="sb-status-dot"></span> Listo</span>
             <button class="toolbar-btn" data-act="context" aria-label="Menú">⋮</button>
           </div>
           <div class="scratch-body">
@@ -70,24 +88,64 @@
             <div class="scratch-canvas-wrap">
               <div class="event-tabs" id="sbTabs" role="tablist" aria-label="Eventos"></div>
               <div class="scratch-canvas" id="sbCanvas" role="region" aria-label="Lienzo de bloques" tabindex="0"></div>
-              <div class="block-console" id="sbConsole" role="log" aria-label="Consola de depuración" aria-live="polite"></div>
+              <div class="block-console-wrap">
+                <div class="block-console-head">
+                  <span class="bch-title">🐞 Consola · Depurador</span>
+                  <button class="console-clear" data-act="clear-console" type="button">Limpiar</button>
+                </div>
+                <div class="block-console" id="sbConsole" role="log" aria-label="Consola de depuración" aria-live="polite"></div>
+              </div>
               <div class="live-preview" id="sbPreview" data-open="0" role="region" aria-label="Vista previa"></div>
             </div>
             <div class="scratch-stage-wrap" id="sbStageWrap" role="region" aria-label="Stage Preview" data-open="0"></div>
             <aside class="scratch-inspector" id="sbInspector" role="region" aria-label="Inspector de bloques"></aside>
+            <aside class="scratch-debug" id="sbDebug" role="region" aria-label="Depurador">
+              <div class="debug-tabs" role="tablist" aria-label="Paneles de depuración">
+                <button class="debug-tab active" data-debug-tab="watch" role="tab" aria-selected="true">👁 Watch</button>
+                <button class="debug-tab" data-debug-tab="stack" role="tab" aria-selected="false">📚 Stack</button>
+                <button class="debug-tab" data-debug-tab="breakpoints" role="tab" aria-selected="false">🔴 Breakpoints</button>
+              </div>
+              <div class="debug-panels">
+                <div class="debug-panel active" id="debugWatch" role="tabpanel" aria-label="Watch expressions">
+                  <div class="debug-panel-head">
+                    <span>Watch Expressions</span>
+                    <button class="btn-sm" data-act="add-watch">+</button>
+                  </div>
+                  <ul class="debug-watch-list" id="debugWatchList"></ul>
+                </div>
+                <div class="debug-panel" id="debugStack" role="tabpanel" aria-label="Call stack">
+                  <div class="debug-panel-head"><span>Call Stack</span></div>
+                  <ul class="debug-stack-list" id="debugStackList"></ul>
+                </div>
+                <div class="debug-panel" id="debugBreakpoints" role="tabpanel" aria-label="Breakpoints">
+                  <div class="debug-panel-head">
+                    <span>Breakpoints</span>
+                    <button class="btn-sm" data-act="clear-all-breakpoints">Clear All</button>
+                  </div>
+                  <ul class="debug-breakpoint-list" id="debugBreakpointList"></ul>
+                </div>
+              </div>
+            </aside>
           </div>
         </div>`;
       this.elPalette = this.root.querySelector('#sbPalette');
       this.elTabs = this.root.querySelector('#sbTabs');
       this.elCanvas = this.root.querySelector('#sbCanvas');
       this.elConsole = this.root.querySelector('#sbConsole');
+      const clearBtn = this.root.querySelector('[data-act="clear-console"]');
+      if (clearBtn) clearBtn.addEventListener('click', () => this.clearConsole());
       this.elInspector = this.root.querySelector('#sbInspector');
       this.elPreview = this.root.querySelector('#sbPreview');
+      this.elStatus = this.root.querySelector('#sbStatus');
+      this.elDebug = this.root.querySelector('#sbDebug');
+      this.elDebugWatch = this.root.querySelector('#debugWatchList');
+      this.elDebugStack = this.root.querySelector('#debugStackList');
+      this.elDebugBreakpoints = this.root.querySelector('#debugBreakpointList');
       this._previewTimer = null;
-      this._currentCategory = null; // Para trackear la categoría seleccionada
       // Cualquier edición inline en el lienzo actualiza la vista previa en vivo.
       this.elCanvas.addEventListener('input', () => this.schedulePreview());
       this.elCanvas.addEventListener('change', () => this.schedulePreview());
+      if (global.ScratchStage) global.ScratchStage.mount(document.getElementById('sbStageWrap'));
     }
 
     collectHats() {
@@ -120,191 +178,103 @@
     /* ---- Paleta Mejorada con Dropdowns ---- */
     buildPalette() {
       const cats = ScratchBlocks.categoriesOrdered();
-      const searchBox = `
-        <div class="palette-search">
-          <input type="search" id="sbPaletteSearch" placeholder="🔍 Buscar bloque…" autocomplete="off" />
-        </div>`;
-      const dropdownMenu = `
-        <div class="palette-dropdown-container">
-          <button class="dropdown-btn" data-toggle="palette-dropdown" aria-expanded="false" aria-haspopup="true">
-            <span class="dropdown-icon">📦</span>
-            <span class="dropdown-text">Categorías de bloques</span>
-            <span class="dropdown-arrow">▼</span>
-          </button>
-          <div class="palette-dropdown" id="paletteDropdown">
-            ${cats.map(cat => `
-              <div class="dropdown-category-item" data-cat="${cat.id}" role="option" aria-label="${cat.label}">
-                <span class="category-badge" style="background:var(${cat.colorVar})" aria-hidden="true"></span>
-                <span class="category-label">${cat.label}</span>
-                <span class="category-count">${ScratchBlocks.byCategory(cat.id).length}</span>
-              </div>
-            `).join('')
-            }
-          </div>
-        </div>`;
-      
-      this.elPalette.innerHTML = searchBox + dropdownMenu;
-
-      this.setupPaletteDropdown();
+      let sectionsHtml = cats.map(cat => {
+        const list = ScratchBlocks.all()
+          .map(op => ScratchBlocks.get(op))
+          .filter(d => d && d.type !== 'hat' && d.category === cat.id)
+          .map(d => this._paletteBlockHtml(d, cat))
+          .join('');
+        const count = ScratchBlocks.byCategory(cat.id).filter(d => d.type !== 'hat').length;
+        const collapsed = (cat.id === 'debug' || cat.id === 'engine') ? ' collapsed' : '';
+        return (
+          '<div class="palette-category' + collapsed + '" data-cat="' + cat.id + '" style="--block-color:var(' + cat.colorVar + ')">' +
+            '<div class="palette-category-header" data-toggle-cat="' + cat.id + '">' +
+              '<span class="swatch"></span>' +
+              '<span class="cat-name">' + cat.label + '</span>' +
+              '<span class="cat-count">' + count + '</span>' +
+              '<span class="cat-chevron">▾</span>' +
+            '</div>' +
+            '<div class="palette-category-content">' + list + '</div>' +
+          '</div>'
+        );
+      }).join('');
+      this.elPalette.innerHTML =
+        '<div class="palette-search">' +
+          '<input type="search" id="sbPaletteSearch" placeholder="🔍 Buscar bloque…" autocomplete="off" />' +
+        '</div>' +
+        '<div class="palette-sections">' + sectionsHtml + '</div>';
 
       const search = this.elPalette.querySelector('#sbPaletteSearch');
       if (search) {
         search.addEventListener('input', () => this.filterPalette(search.value));
-        search.addEventListener('keydown', e => e.stopPropagation());
+        search.addEventListener('keydown', (e) => e.stopPropagation());
       }
-    }
-
-    /* Configurar menú desplegable para la paleta */
-    setupPaletteDropdown() {
-      const dropdownBtn = this.elPalette.querySelector('.dropdown-btn');
-      const paletteDropdown = this.elPalette.querySelector('#paletteDropdown');
-      
-      if (!dropdownBtn || !paletteDropdown) return;
-      
-      // Toggle del menú desplegable
-      dropdownBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isExpanded = dropdownBtn.getAttribute('aria-expanded') === 'true';
-        dropdownBtn.setAttribute('aria-expanded', String(!isExpanded));
-        paletteDropdown.classList.toggle('show');
+      this.elPalette.querySelectorAll('.palette-category-header').forEach(h => {
+        h.addEventListener('click', () => h.closest('.palette-category').classList.toggle('collapsed'));
       });
-      
-      // Cerrar el menú al hacer clic fuera
-      document.addEventListener('click', () => {
-        if (paletteDropdown.classList.contains('show')) {
-          paletteDropdown.classList.remove('show');
-          dropdownBtn.setAttribute('aria-expanded', 'false');
-        }
+      this._bindPaletteBlocks();
+    }
+
+    _paletteBlockHtml(d, cat) {
+      const colorVar = (cat && cat.colorVar) || '--sq-cat-control';
+      const catIcon = (cat && cat.icon) || '🧩';
+      return (
+        '<div class="palette-block block-' + d.type + '" data-op="' + d.opcode + '" draggable="true" ' +
+          'style="--block-color:var(' + colorVar + ')" ' +
+          'role="option" aria-label="' + this.humanize(d.opcode) + '" title="' + this.humanize(d.opcode) + ' · ' + this.getBlockTypeLabel(d.type) + '">' +
+          '<span class="pb-icon">' + catIcon + '</span>' +
+          '<span class="pb-label">' + this.humanize(d.opcode) + '</span>' +
+          '<span class="pb-type ' + d.type + '">' + this.getBlockTypeLabel(d.type) + '</span>' +
+        '</div>'
+      );
+    }
+
+    _bindPaletteBlocks() {
+      this.elPalette.querySelectorAll('.palette-block').forEach(b => {
+        b.addEventListener('click', () => this.addBlock(b.dataset.op));
+        b.addEventListener('dragstart', (e) => this.handleDragStart(e, b.dataset.op));
       });
-      
-      // Seleccionar categoría desde el desplegable
-      paletteDropdown.querySelectorAll('.dropdown-category-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const catId = item.dataset.cat;
-          this.selectCategoryFromDropdown(catId);
-          paletteDropdown.classList.remove('show');
-          dropdownBtn.setAttribute('aria-expanded', 'false');
-        });
-        
-        // Añadir soporte para teclado
-        item.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            item.click();
-          }
-        });
-      });
-      
-      // Cargar las categorías visibles inicialmente
-      this.updatePaletteDisplay();
     }
 
-    /* Seleccionar una categoría desde el dropdown */
-    selectCategoryFromDropdown(catId) {
-      // Guardar la categoría seleccionada
-      this._currentCategory = catId;
-      
-      // Mover los bloques de la categoría seleccionada a la vista principal
-      this.updatePaletteDisplay();
-      
-      // Log para debugging
-      this.log('info', 'Categoría seleccionada: ' + ScratchBlocks.categoriesOrdered().find(c => c.id === catId)?.label || catId);
-    }
-
-    /* Actualizar el display de la paleta basado en la categoría seleccionada */
-    updatePaletteDisplay() {
-      const catId = this._currentCategory || 'all';
-      let blocks;
-      
-      if (catId === 'all') {
-        blocks = ScratchBlocks.all().filter(def => def.type !== 'hat');
-        this.elPalette.classList.add('show-all');
-      } else {
-        blocks = ScratchBlocks.byCategory(catId);
-        this.elPalette.classList.remove('show-all');
-      }
-      
-      // Generar HTML de bloques con diseños específicos por tipo
-      const items = blocks.map(def => {
-        const category = ScratchBlocks.categoriesOrdered().find(c => c.id === catId) || {
-          label: 'Other',
-          colorVar: '--builder-primary'
-        };
-        
-        const blockHtml = `
-          <div class="palette-block block-${def.type} block-${def.category}" 
-               data-op="${def.opcode}" 
-               draggable="true" 
-               style="--block-color:var(${category.colorVar})" 
-               role="option" 
-               aria-label="${this.humanize(def.opcode)} - ${def.type}"
-               title="${def.type}: ${this.humanize(def.opcode)}">
-            <span class="pb-icon" aria-hidden="true">${BLOCK_ICON}</span>
-            <span class="pb-label">${this.humanize(def.opcode)}</span>
-            <span class="pb-type ${def.type}">${this.getBlockTypeIcon(def.type)}</span>
-            <span class="pb-category-tag">${def.category}</span>
-            ${this.getBlockStyleIndicator(def.type)}
-          </div>`;
-        
-        return blockHtml;
-      }).join('');
-      
-      // Añadir el contenido al palette (si existe)
-      if (this.elPalette) {
-        // Obtener el contenedor de bloques, si existe
-        const paletteContent = this.elPalette.querySelector('.palette-category-content') || this.elPalette;
-        if (paletteContent) {
-          paletteContent.innerHTML = items;
-          
-          // Añadir event listeners a los nuevos bloques
-          paletteContent.querySelectorAll('.palette-block').forEach(b => {
-            b.addEventListener('click', () => this.addBlock(b.dataset.op));
-            b.addEventListener('dragstart', (e) => this.handleDragStart(e, b.dataset.op));
-          });
-        } else {
-          this.elPalette.innerHTML = items;
-        }
-      }
-    }
-
-    /* Obtener icono para el tipo de bloque */
-    getBlockTypeIcon(type) {
-      const icons = {
-        'hat': '🧢',
-        'reporter': '📊',
-        'boolean': '⭕',
-        'command': '▶',
-        'motion': '🚶',
-        'looks': '🎨',
-        'sound': '🔊',
-        'pen': '✏️',
-        'data': '📊',
-        'event': '⚡',
-        'control': '🔧',
-        'sensing': '👁️',
-        'operator': '⚙️',
-        'variable': '📝',
-        'list': '📋',
-        'procedure': '📖'
+    /* Obtener etiqueta legible para el tipo de bloque */
+    getBlockTypeLabel(type) {
+      const labels = {
+        'hat': 'HAT',
+        'reporter': 'REPORTER',
+        'boolean': 'BOOLEAN',
+        'command': 'STACK',
+        'c': 'C-BLOCK',
+        'stack': 'STACK',
+        'motion': 'MOTION',
+        'looks': 'LOOKS',
+        'sound': 'SOUND',
+        'pen': 'PEN',
+        'data': 'DATA',
+        'event': 'EVENT',
+        'control': 'CONTROL',
+        'sensing': 'SENSING',
+        'operator': 'OPERATOR',
+        'variable': 'VARIABLE',
+        'list': 'LIST',
+        'procedure': 'PROCEDURE'
       };
-      return icons[type] || '📦';
+      return labels[type] || type.toUpperCase();
     }
 
     /* Obtener indicador de estilo específico para el tipo de bloque */
     getBlockStyleIndicator(type) {
       const indicators = {
-        'hat': '<div class="block-style-indicator hat-indicator" aria-hidden="true">H</div>',
-        'reporter': '<div class="block-style-indicator reporter-indicator" aria-hidden="true">R</div>',
-        'boolean': '<div class="block-style-indicator boolean-indicator" aria-hidden="true">○</div>',
-        'command': '<div class="block-style-indicator command-indicator" aria-hidden="true">▶</div>',
-        'control': '<div class="block-style-indicator control-indicator" aria-hidden="true">⚙️</div>',
-        'operator': '<div class="block-style-indicator operator-indicator" aria-hidden="true">∑</div>',
-        'event': '<div class="block-style-indicator event-indicator" aria-hidden="true">⚡</div>',
-        'variable': '<div class="block-style-indicator variable-indicator" aria-hidden="true">?</div>',
-        'list': '<div class="block-style-indicator list-indicator" aria-hidden="true">[]</div>',
-        'reporter': '<div class="block-style-indicator reporter-indicator" aria-hidden="true">□</div>',
-        'boolean': '<div class="block-style-indicator boolean-indicator" aria-hidden="true">⬚</div>'
+        'hat': '<span class="block-style-indicator hat-indicator" aria-hidden="true">HAT</span>',
+        'reporter': '<span class="block-style-indicator reporter-indicator" aria-hidden="true">REPORTER</span>',
+        'boolean': '<span class="block-style-indicator boolean-indicator" aria-hidden="true">BOOLEAN</span>',
+        'command': '<span class="block-style-indicator command-indicator" aria-hidden="true">STACK</span>',
+        'c': '<span class="block-style-indicator c-indicator" aria-hidden="true">C-BLOCK</span>',
+        'stack': '<span class="block-style-indicator stack-indicator" aria-hidden="true">STACK</span>',
+        'control': '<span class="block-style-indicator control-indicator" aria-hidden="true">CONTROL</span>',
+        'operator': '<span class="block-style-indicator operator-indicator" aria-hidden="true">OPERATOR</span>',
+        'event': '<span class="block-style-indicator event-indicator" aria-hidden="true">EVENT</span>',
+        'variable': '<span class="block-style-indicator variable-indicator" aria-hidden="true">VAR</span>',
+        'list': '<span class="block-style-indicator list-indicator" aria-hidden="true">LIST</span>',
       };
       return indicators[type] || '';
     }
@@ -442,7 +412,44 @@
       this.domMap = {};
       const stacks = this.heads[this.activeEvent] || [];
       if (!stacks.length) {
-        this.elCanvas.innerHTML = '<div class="empty-hint">Arrastra bloques desde la paleta, o pulsa un bloque para añadirlo.</div>';
+        this.elCanvas.innerHTML = '<div class="empty-hint cta-brutalist">' +
+          '<span class="cta-icon">◆</span>' +
+          '<span class="cta-text">SillyBuilder</span>' +
+          '<span class="cta-hint">Elige una plantilla para comenzar</span>' +
+          '<div class="empty-template-grid">' +
+            '<div class="empty-template-card" data-cat="quiz" data-tpl="quiz-basic">' +
+              '<span class="tpl-icon" style="color:var(--cat-control)">⚡</span>' +
+              '<span class="tpl-title">Quiz Básico</span>' +
+              '<span class="tpl-desc">Pregunta → respuesta → resultado. El flujo esencial.</span>' +
+            '</div>' +
+            '<div class="empty-template-card" data-cat="show" data-tpl="show-lights">' +
+              '<span class="tpl-icon" style="color:var(--cat-sound)">🔊</span>' +
+              '<span class="tpl-title">Show de Luces</span>' +
+              '<span class="tpl-desc">Flash, anuncio y animación de pantalla.</span>' +
+            '</div>' +
+            '<div class="empty-template-card" data-cat="trivia" data-tpl="trivia-mp">' +
+              '<span class="tpl-icon" style="color:var(--cat-players)">👥</span>' +
+              '<span class="tpl-title">Trivia Multi</span>' +
+              '<span class="tpl-desc">Modo multijugador con puntuaciones.</span>' +
+            '</div>' +
+            '<div class="empty-template-card" data-cat="blank" data-tpl="blank">' +
+              '<span class="tpl-icon" style="color:var(--ink)">□</span>' +
+              '<span class="tpl-title">En Blanco</span>' +
+              '<span class="tpl-desc">Canvas vacío. Tú defines la locura.</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+        this.elCanvas.querySelectorAll('.empty-template-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const tpl = card.dataset.tpl;
+            if (tpl === 'blank') {
+              this.toast('Canvas listo para crear', 'info');
+              this.renderCanvas();
+            } else {
+              this._loadPresetTemplate(tpl);
+            }
+          });
+        });
         return;
       }
       this.elCanvas.innerHTML = '';
@@ -453,26 +460,35 @@
         const wrap = document.createElement('div');
         wrap.className = 'scratch-stack';
         wrap.dataset.stack = i;
-        this.renderChain(stack, wrap, 0);
+        const connected = !!(stack.opcode && ScratchBlocks.get(stack.opcode) && ScratchBlocks.get(stack.opcode).type === 'hat');
+        wrap.classList.toggle('stack-connected', connected);
+        wrap.classList.toggle('stack-orphan', !connected);
+        const status = document.createElement('div');
+        status.className = 'stack-status';
+        status.textContent = connected ? '▶ conectado' : '⚠ suelto';
+        wrap.appendChild(status);
+        this.renderChain(stack, wrap, 0, connected);
         inner.appendChild(wrap);
       });
       this.elCanvas.appendChild(inner);
       this.applyTransform();
     }
 
-    renderChain(inst, container, depth) {
+    renderChain(inst, container, depth, connected) {
       const frag = document.createDocumentFragment();
       let cur = inst;
+      let idx = 0;
       while (cur) {
-        const el = this.blockEl(cur, depth);
+        const el = this.blockEl(cur, depth, connected, idx === 0);
         frag.appendChild(el);
         if (cur._id != null) this.domMap[cur._id] = el;
         cur = cur.next;
+        idx++;
       }
       container.appendChild(frag);
     }
 
-    blockEl(inst, depth) {
+    blockEl(inst, depth, connected, isRoot) {
       const def = ScratchBlocks.get(inst.opcode);
       if (!def) {
         const el = document.createElement('div');
@@ -482,12 +498,25 @@
         el.innerHTML = '<span style="color:#f7768e;">⚠ opcode inválido: ' + this._esc(inst.opcode || '?') + '</span>';
         return el;
       }
-      const el = document.createElement('div');
-      el.className = 'scratch-block block-' + def.category +
+      const orphan = !connected;
+      let cls = 'scratch-block block-' + def.category +
         (def.type === 'hat' ? ' block-hat' :
          def.type === 'reporter' ? ' block-reporter' :
          def.type === 'boolean' ? ' block-boolean' : '');
+      cls += orphan ? ' block-orphan' : ' block-connected';
+      if (orphan && isRoot) cls += ' block-orphan-root';
+      const el = document.createElement('div');
+      el.className = cls;
       el.style.marginLeft = (depth * 22) + 'px';
+      if (!this._catColors) {
+        this._catColors = {};
+        this._catIcons = {};
+        ScratchBlocks.categoriesOrdered().forEach(c => { 
+          this._catColors[c.id] = c.colorVar; 
+          this._catIcons[c.id] = c.icon || '🧩';
+        });
+      }
+      el.style.setProperty('--block-color', 'var(' + (this._catColors[def.category] || '--accent') + ')');
       el.dataset.bid = inst._id;
       el.dataset.op = inst.opcode;
       el.setAttribute('draggable', 'true');
@@ -497,7 +526,18 @@
         el.classList.add('block-dragging');
       });
       el.addEventListener('dragend', () => { el.classList.remove('block-dragging'); this._clearDropMarkers(); });
-      el.innerHTML = this.renderText(def, inst);
+      
+      // Render text with category glyph
+      const glyph = this._catIcons[def.category] || '🧩';
+      const blockText = this.renderText(def, inst);
+      el.innerHTML = '<span class="block-cat-glyph">' + glyph + '</span>' + blockText;
+      
+      if (orphan && isRoot) {
+        const badge = document.createElement('span');
+        badge.className = 'orphan-badge';
+        badge.textContent = '⚠ desconectado';
+        el.appendChild(badge);
+      }
       el.setAttribute('role', 'listitem');
       el.setAttribute('aria-label', this.humanize(inst.opcode));
       el.setAttribute('aria-roledescription', def.type + ' block');
@@ -551,7 +591,7 @@
           // Render nested blocks if they exist
           const bodyData = inst[b];
           if (bodyData && ((Array.isArray(bodyData) && bodyData.length > 0) || (bodyData.opcode))) {
-            this.renderChain(bodyData, content, depth + 2);
+            this.renderChain(bodyData, content, depth + 2, connected);
           } else {
             const placeholder = document.createElement('div');
             placeholder.className = 'scratch-block-body-placeholder';
@@ -597,22 +637,180 @@
 
     argInput(spec, token, value) {
       const v = value == null ? '' : value;
+      const portClass = spec.port ? ` port-${spec.port}` : '';
+      const portLabel = spec.port ? `<span class="port-hint" title="Puerto: ${spec.port}">${this._getPortIcon(spec.port)}</span>` : '';
+      const returnsLabel = spec.returns ? `<span class="returns-hint" title="Retorna: ${spec.returns}">→ ${spec.returns}</span>` : '';
+      
       if (spec.type === 'boolean') {
-        return `<input class="arg" data-arg="${token}" type="checkbox" ${v ? 'checked' : ''}>`;
+        return `<span class="arg-wrapper boolean-input${portClass}">${portLabel}<input class="arg" data-arg="${token}" type="checkbox" ${v ? 'checked' : ''}>${returnsLabel}</span>`;
       }
       if (spec.type === 'textarea') {
-        return `<textarea class="arg" data-arg="${token}" rows="2" style="width:160px">${v}</textarea>`;
+        return `<span class="arg-wrapper${portClass}">${portLabel}<textarea class="arg" data-arg="${token}" rows="2" style="width:160px">${v}</textarea>${returnsLabel}</span>`;
       }
       if (spec.type === 'dropdown') {
         const opts = Array.isArray(spec.options) ? spec.options : ['auto'];
-        return `<select class="arg" data-arg="${token}">` +
-          opts.map(o => `<option value="${o}" ${o === v ? 'selected' : ''}>${o}</option>`).join('') + `</select>`;
+        return `<span class="arg-wrapper${portClass}">${portLabel}<select class="arg" data-arg="${token}">` +
+          opts.map(o => `<option value="${o}" ${o === v ? 'selected' : ''}>${o}</option>`).join('') + `</select>${returnsLabel}</span>`;
       }
       if (spec.type === 'slider') {
-        return `<input class="arg" data-arg="${token}" type="range" min="0" max="100" value="${v}">`;
+        return `<span class="arg-wrapper${portClass}">${portLabel}<input class="arg" data-arg="${token}" type="range" min="0" max="100" value="${v}">${returnsLabel}</span>`;
+      }
+      if (spec.type === 'image_file' || spec.type === 'audio_file') {
+        return this._renderAssetField(spec, token, value);
       }
       const inputType = (spec.type === 'number') ? 'number' : 'text';
-      return `<input class="arg" data-arg="${token}" type="${inputType}" value="${v}" style="width:70px">`;
+      return `<span class="arg-wrapper${portClass}">${portLabel}<input class="arg" data-arg="${token}" type="${inputType}" value="${v}" style="width:70px">${returnsLabel}</span>`;
+    }
+
+    _getPortIcon(port) {
+      const icons = {
+        'port-number': '🔢',
+        'port-string': '📝',
+        'port-boolean': '✅',
+        'port-color': '🎨',
+        'port-ndi': '📡',
+        'port-display': '🖥️',
+        'port-any': '❓'
+      };
+      return icons[port] || '⚪';
+    }
+
+    /* ---- Assets (media saneada) ---- */
+    _esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    _renderAssetField(spec, token, value) {
+      const Sz = window.SillyAssetSanitizer;
+      const isImg = spec.type === 'image_file';
+      const kind = isImg ? 'imagen' : 'audio';
+      let current = '';
+      if (Sz && Sz.isAssetRef(value) && this.assetMap[Sz.assetIdFromRef(value)]) {
+        const a = this.assetMap[Sz.assetIdFromRef(value)];
+        const safeUrl = this._safeMediaUrl(a.url || a.dataUrl);
+        if (isImg && safeUrl) current = '<img class="asset-thumb" src="' + this._esc(safeUrl) + '" alt="">';
+        else if (!isImg) current = '<span class="asset-audio">🔊 ' + this._esc(a.name) + '</span>';
+        current += ' <button class="btn-xs" data-asset-remove="' + token + '">Quitar</button>';
+      } else if (value) {
+        const safeUrl = this._safeMediaUrl(value);
+        current = '<span class="asset-url">🔗 ' + this._esc(safeUrl || String(value)) + '</span> <button class="btn-xs" data-asset-remove="' + token + '">Quitar</button>';
+      }
+      const accept = isImg
+        ? 'image/png,image/jpeg,image/gif,image/webp,image/avif'
+        : 'audio/mpeg,audio/wav,audio/ogg,audio/webm,audio/mp4,audio/aac';
+      return '<div class="asset-field" data-asset-field="' + token + '">' + current +
+        '<input type="file" class="asset-input" data-asset-pick="' + token + '" accept="' + accept + '" style="display:none">' +
+        '<button class="btn-sm" data-asset-upload="' + token + '">' + (current ? 'Reemplazar' : 'Subir ' + kind) + '</button>' +
+        '</div>';
+    }
+
+    _nextAssetId() {
+      return 'a' + (++this._assetSeq) + '_' + Date.now().toString(36);
+    }
+
+    _revokeAsset(id) {
+      const a = this.assetMap[id];
+      if (!a) return;
+      try { if (a.url) URL.revokeObjectURL(a.url); } catch (_) {}
+      delete this.assetMap[id];
+    }
+
+    async _addAssetFromFile(inst, token, file) {
+      if (!inst || !window.SillyAssetSanitizer) return;
+      const Sz = window.SillyAssetSanitizer;
+      const def = ScratchBlocks.get(inst.opcode);
+      const isImg = def && def.args && def.args[token] && def.args[token].type === 'image_file';
+      this.toast('🔍 Verificando ' + (file.name || 'archivo') + '…', 'info');
+      try {
+        const cleanBlob = isImg ? await Sz.sanitizeImageFile(file) : await Sz.sanitizeAudioFile(file);
+        const id = this._nextAssetId();
+        const url = URL.createObjectURL(cleanBlob);
+        const dataUrl = await Sz.blobToDataUrl(cleanBlob);
+        const name = Sz.sanitizeAssetName(file.name);
+        const prev = inst.args[token];
+        if (Sz.isAssetRef(prev)) this._revokeAsset(Sz.assetIdFromRef(prev));
+        this.assetMap[id] = { id: id, name: name, mime: cleanBlob.type, size: cleanBlob.size, blob: cleanBlob, url: url, dataUrl: dataUrl };
+        inst.args[token] = Sz.ASSET_REF_PREFIX + id;
+        this.selectBlock(inst);
+        this.schedulePreview();
+        this.pushSnapshot();
+        this.publishLiveState();
+        this.toast('✓ Asset añadido (' + name + ')', 'success');
+        this.log('info', 'Asset saneado: ' + name + ' (' + cleanBlob.size + ' bytes)');
+      } catch (err) {
+        this.toast('⛔ Asset rechazado: ' + err.message, 'error');
+        this.log('warn', 'Asset rechazado: ' + err.message);
+      }
+    }
+
+    _removeAssetRef(inst, token) {
+      if (!inst || !window.SillyAssetSanitizer) return;
+      const Sz = window.SillyAssetSanitizer;
+      const prev = inst.args[token];
+      if (Sz.isAssetRef(prev)) this._revokeAsset(Sz.assetIdFromRef(prev));
+      inst.args[token] = '';
+      this.selectBlock(inst);
+      this.schedulePreview();
+      this.pushSnapshot();
+      this.publishLiveState();
+    }
+
+    resolveAsset(v) {
+      const Sz = window.SillyAssetSanitizer;
+      if (Sz && Sz.isAssetRef(v)) {
+        const a = this.assetMap[Sz.assetIdFromRef(v)];
+        if (!a) return null;
+        return a.url || a.dataUrl || null;
+      }
+      return v || null;
+    }
+
+    _safeMediaUrl(v) {
+      if (typeof v !== 'string' || !v) return '';
+      if (/^(https?:|blob:)/i.test(v)) return v;
+      if (/^data:(image\/|audio\/)/i.test(v)) return v;
+      return '';
+    }
+
+    _serializeAssets() {
+      const out = {};
+      Object.keys(this.assetMap).forEach(id => {
+        const a = this.assetMap[id];
+        if (!a) return;
+        out[id] = { id: a.id, name: a.name, mime: a.mime, size: a.size, dataUrl: a.dataUrl };
+      });
+      return out;
+    }
+
+    _restoreAssets(assetsObj) {
+      Object.keys(this.assetMap).forEach(id => { try { if (this.assetMap[id].url) URL.revokeObjectURL(this.assetMap[id].url); } catch (_) {} });
+      this.assetMap = {};
+      if (!assetsObj || typeof assetsObj !== 'object') return;
+      const Sz = window.SillyAssetSanitizer;
+      const toBlob = (du) => {
+        if (Sz && Sz.dataUrlToBlob) { try { return Sz.dataUrlToBlob(du); } catch (_) {} }
+        try {
+          const idx = du.indexOf(',');
+          const b64 = du.slice(idx + 1);
+          const bin = atob(b64);
+          const arr = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+          const m = (du.match(/data:([^;]+)/) || [])[1] || 'application/octet-stream';
+          return new Blob([arr], { type: m });
+        } catch (_) { return null; }
+      };
+      Object.keys(assetsObj).forEach(id => {
+        const a = assetsObj[id];
+        if (!a || !a.dataUrl) return;
+        try {
+          const blob = toBlob(a.dataUrl);
+          if (!blob) return;
+          const url = URL.createObjectURL(blob);
+          this.assetMap[id] = { id: a.id || id, name: a.name || 'asset', mime: a.mime || blob.type, size: a.size || blob.size, blob: blob, url: url, dataUrl: a.dataUrl };
+        } catch (_) { /* asset corrupto: ignorar */ }
+      });
     }
 
     /* ---- Inspector + selección ---- */
@@ -622,15 +820,66 @@
       const fields = Object.keys(def.args).map(tok => {
         const spec = def.args[tok];
         const label = this.humanize(tok) + (spec.port ? ` <span class="port-dot ${spec.port}"></span>` : '');
-        return `<div class="inspector-field"><label>${label}</label><code>${JSON.stringify(inst.args[tok])}</code></div>`;
+        const inputHtml = this.argInput(spec, tok, inst.args[tok]);
+        return `<div class="inspector-field"><label>${label}</label>${inputHtml}</div>`;
       }).join('');
+
+      const sideEffectsText = def.sideEffects && def.sideEffects.length ? def.sideEffects.join(', ') : 'ninguna';
+      const returnType = def.returns || (def.type === 'boolean' ? 'boolean' : 'void');
+      const docHtml = '<div class="inspector-doc">' +
+        '<strong>Documentación</strong><br>' +
+        'Categoría: <code>' + def.category + '</code> · ' +
+        'Tipo: <code>' + def.type + '</code> · ' +
+        'Retorna: <code>' + returnType + '</code><br>' +
+        'Efectos secundarios: <code>' + sideEffectsText + '</code>' +
+        (def.exec !== 'sync' ? ' · Exec: <code>' + def.exec + '</code>' : '') +
+        '</div>';
+
       this.elInspector.innerHTML = `
         <h4>${this.humanize(inst.opcode)}</h4>
-        <div class="inspector-meta">categoría: <code>${def.category}</code> · tipo: <code>${def.type}</code></div>
+        ${docHtml}
         ${fields || '<div class="inspector-empty">Sin argumentos</div>'}
         ${this._renderUIControlSummary(inst)}
         <button class="btn-sm" data-act="delete">🗑 Eliminar bloque</button>`;
       this.elInspector.querySelector('[data-act="delete"]').addEventListener('click', () => this.deleteSelected());
+
+      this.elInspector.querySelectorAll('[data-arg]').forEach(inp => {
+        const handler = () => {
+          const spec = def.args[inp.dataset.arg];
+          let val;
+          if (inp.type === 'checkbox') val = inp.checked;
+          else if (spec.type === 'number' || spec.type === 'slider') val = inp.value === '' ? (spec.default || 0) : Number(inp.value);
+          else val = inp.value;
+          inst.args[inp.dataset.arg] = val;
+          this.schedulePreview();
+        };
+        inp.addEventListener('input', handler);
+        inp.addEventListener('change', handler);
+      });
+
+      this.elInspector.querySelectorAll('[data-asset-upload]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tok = btn.dataset.assetUpload;
+          const inp = this.elInspector.querySelector('[data-asset-pick="' + tok + '"]');
+          if (inp) inp.click();
+        });
+      });
+      this.elInspector.querySelectorAll('[data-asset-pick]').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const tok = inp.dataset.assetPick;
+          const file = inp.files && inp.files[0];
+          if (!file) return;
+          this._addAssetFromFile(this.selected, tok, file);
+          inp.value = '';
+        });
+      });
+      this.elInspector.querySelectorAll('[data-asset-remove]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tok = btn.dataset.assetRemove;
+          this._removeAssetRef(this.selected, tok);
+        });
+      });
+
       this.elCanvas.querySelectorAll('.scratch-block').forEach(e => e.style.outline = '');
       const el = this.domMap[inst._id];
       if (el) el.style.outline = '2px solid var(--cat-control,#ff6b4a)';
@@ -639,6 +888,34 @@
     deleteSelected() {
       if (!this.selected) return;
       const stacks = this.heads[this.activeEvent] || [];
+      
+      // Helper to search and delete in chain including bodies
+      const searchAndDelete = (node, target) => {
+        if (!node) return false;
+        const def = node.opcode ? ScratchBlocks.get(node.opcode) : null;
+        
+        // Check bodies
+        if (def && def.hasBody && def.bodies) {
+          for (const b of def.bodies) {
+            const body = node[b];
+            if (Array.isArray(body)) {
+              const idx = body.indexOf(target);
+              if (idx >= 0) { body.splice(idx, 1); return true; }
+              for (const child of body) {
+                if (searchAndDelete(child, target)) return true;
+              }
+            } else if (body === target) {
+              node[b] = null;
+              return true;
+            }
+          }
+        }
+        
+        // Check next
+        if (node.next === target) { node.next = target.next; target.next = null; return true; }
+        return searchAndDelete(node.next, target);
+      };
+      
       for (let s = 0; s < stacks.length; s++) {
         let cur = stacks[s];
         if (cur === this.selected) {
@@ -650,9 +927,8 @@
           // No borrar la raíz Hat del stack principal
           if (this.selected === cur) return;
         }
-        while (cur.next) {
-          if (cur.next === this.selected) { cur.next = this.selected.next; break; }
-          cur = cur.next;
+        if (searchAndDelete(cur, this.selected)) {
+          this.selected = null; this.renderCanvas(); this.pushSnapshot(); return;
         }
       }
       this.selected = null;
@@ -664,7 +940,7 @@
       if (!dragData || !parentInst) return;
       let droppedInst = null;
       if (dragData.type === 'new') {
-        droppedInst = this.newInstance(dragData.opcode);
+        droppedInst = this.makeInst(dragData.opcode);
       } else if (dragData.type === 'move') {
         droppedInst = this._findInstance(dragData.id);
         if (droppedInst) this._removeFromCurrentParent(droppedInst);
@@ -745,7 +1021,15 @@
         else if (act === 'redo') this.redo();
         else if (act === 'clear') this.clearCanvas();
         else if (act === 'preview') this.togglePreview();
-        else if (act === 'context') this.toggleContextMenu();
+        else if (act === 'stage') this.toggleStage();
+        else if (act === 'context') { e.stopPropagation(); this.toggleContextMenu(); }
+        else if (act === 'debug-mode') this.toggleDebugMode();
+        else if (act === 'breakpoint') this.toggleBreakpointOnSelected();
+        else if (act === 'step-into') this.debugStepInto();
+        else if (act === 'step-over') this.debugStepOver();
+        else if (act === 'step-out') this.debugStepOut();
+        else if (act === 'pause') this.debugPause();
+        else if (act === 'resume') this.debugResume();
       });
     }
 
@@ -759,6 +1043,14 @@
         if (e.key === 'Escape') {
           this._hideContextMenu();
         }
+        // Debug keybindings
+        if (e.key === 'F8') { e.preventDefault(); this.toggleDebugMode(); }
+        if (e.key === 'F9') { e.preventDefault(); this.toggleBreakpointOnSelected(); }
+        if (e.key === 'F11') { e.preventDefault(); this.debugStepInto(); }
+        if (e.key === 'F10') { e.preventDefault(); this.debugStepOver(); }
+        if (e.key === 'F11' && e.shiftKey) { e.preventDefault(); this.debugStepOut(); }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') { e.preventDefault(); this.debugPause(); }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r') { e.preventDefault(); this.debugResume(); }
       });
       this._boundKeyup = (e => {
         if (e.code === 'Space') { window.__sbSpaceDown = false; }
@@ -858,9 +1150,42 @@
     toggleContextMenu() {
       if (this._contextMenu) {
         this._hideContextMenu();
-      } else {
-        this._showContextMenu(this._lastContextX, this._lastContextY);
+        return;
       }
+      const btn = this.root.querySelector('[data-act="context"]');
+      const rect = btn ? btn.getBoundingClientRect() : { left: 0, top: 0, bottom: 24 };
+      const cats = ScratchBlocks.categoriesOrdered().length;
+      const blocks = ScratchBlocks.all().length;
+      const menu = document.createElement('div');
+      menu.className = 'scratch-context-menu project-menu';
+      menu.innerHTML =
+        '<div class="context-menu-label">📦 Proyecto</div>' +
+        '<div class="context-menu-item" data-act="new"><span class="context-menu-icon">🆕</span> Nuevo proyecto</div>' +
+        '<div class="context-menu-item" data-act="recipe"><span class="context-menu-icon">🍳</span> Cargar receta inicial</div>' +
+        '<div class="context-menu-item" data-act="preview"><span class="context-menu-icon">👁</span> Vista previa (diseño)</div>' +
+        '<div class="context-menu-item" data-act="export"><span class="context-menu-icon">💾</span> Exportar (.silly)</div>' +
+        '<div class="context-menu-item" data-act="import"><span class="context-menu-icon">📂</span> Importar (.silly)</div>' +
+        '<div class="context-menu-item" data-act="run"><span class="context-menu-icon">▶️</span> Ejecutar</div>' +
+        '<div class="context-menu-item" data-act="clear"><span class="context-menu-icon">🗑️</span> Limpiar lienzo</div>' +
+        '<div class="context-menu-label">' + cats + ' categorías · ' + blocks + ' bloques</div>';
+      const left = Math.max(8, Math.min(rect.left - 232, window.innerWidth - 264));
+      menu.style.left = left + 'px';
+      menu.style.top = (rect.bottom + 8) + 'px';
+      document.body.appendChild(menu);
+      this._contextMenu = menu;
+      menu.querySelectorAll('.context-menu-item[data-act]').forEach(it => {
+        it.addEventListener('click', () => {
+          const a = it.dataset.act;
+          if (a === 'new') { if (window.confirm('¿Empezar un proyecto nuevo? Se perderá el actual.')) this.clearCanvas(true); }
+          else if (a === 'recipe') this.loadStarterRecipe();
+          else if (a === 'preview') this.togglePreview();
+          else if (a === 'export') this.exportToFile();
+          else if (a === 'import') this.importFromFile();
+          else if (a === 'run') this.run();
+          else if (a === 'clear') this.clearCanvas();
+          this._hideContextMenu();
+        });
+      });
     }
 
     _getRecentBlocks() {
@@ -892,6 +1217,178 @@
       }
       localStorage.setItem('sillyquiz-favorite-blocks', JSON.stringify(favs));
       this.toast(favs.includes(op) ? '⭐ Añadido a favoritos' : '☆ Eliminado de favoritos', 'info');
+    }
+
+    toggleFavorite(op) {
+      let favs = this._getFavoriteBlocks();
+      if (favs.includes(op)) {
+        favs = favs.filter(f => f !== op);
+      } else {
+        favs.push(op);
+      }
+      localStorage.setItem('sillyquiz-favorite-blocks', JSON.stringify(favs));
+      this.toast(favs.includes(op) ? '⭐ Añadido a favoritos' : '☆ Eliminado de favoritos', 'info');
+    }
+
+    /* ===================================================================
+       DEBUGGING SYSTEM
+       =================================================================== */
+
+    /** Alterna el modo de depuración */
+    toggleDebugMode() {
+      this._debugMode = !this._debugMode;
+      this.runtime = this.runtime || new global.ScratchRuntime({ state: {} });
+      this.runtime.setDebugMode(this._debugMode);
+      this.elCanvas.classList.toggle('debug-mode', this._debugMode);
+      this.root.querySelector('[data-act="debug-mode"]').classList.toggle('active', this._debugMode);
+      this.root.querySelector('[data-act="breakpoint"]').disabled = !this._debugMode;
+      this.root.querySelector('[data-act="step-into"]').disabled = !this._debugMode;
+      this.root.querySelector('[data-act="step-over"]').disabled = !this._debugMode;
+      this.root.querySelector('[data-act="step-out"]').disabled = !this._debugMode;
+      this.root.querySelector('[data-act="pause"]').disabled = !this._debugMode;
+      this.root.querySelector('[data-act="resume"]').disabled = !this._debugMode;
+      this.elDebug.classList.toggle('open', this._debugMode);
+      this.toast(this._debugMode ? '🐞 Modo depuración activado' : '🐞 Modo depuración desactivado', this._debugMode ? 'success' : 'info');
+      this._updateDebugPanels();
+    }
+
+    /** Toggle breakpoint on selected block */
+    toggleBreakpointOnSelected() {
+      if (!this.selected) return;
+      const blockId = this.selected._id;
+      if (!blockId) return;
+      if (this.runtime.setBreakpoint) {
+        this.runtime.setBreakpoint(blockId, !this.runtime._hasBreakpoint(blockId));
+      }
+      this._updateBreakpointList();
+      this.renderCanvas();
+    }
+
+    /** Debug step into */
+    debugStepInto() {
+      if (!this._debugMode) return;
+      this.runtime._stepMode = 'into';
+      this.runtime._paused = false;
+      if (this.runtime._resumeFromPause) this.runtime._resumeFromPause();
+    }
+
+    /** Debug step over */
+    debugStepOver() {
+      if (!this._debugMode) return;
+      this.runtime._stepMode = 'over';
+      this.runtime._stepOverDepth = this.runtime._callStack?.length || 0;
+      this.runtime._paused = false;
+      if (this.runtime._resumeFromPause) this.runtime._resumeFromPause();
+    }
+
+    /** Debug step out */
+    debugStepOut() {
+      if (!this._debugMode) return;
+      this.runtime._stepMode = 'out';
+      this.runtime._stepOutDepth = (this.runtime._callStack?.length || 1) - 1;
+      this.runtime._paused = false;
+      if (this.runtime._resumeFromPause) this.runtime._resumeFromPause();
+    }
+
+    /** Debug pause */
+    debugPause() {
+      if (!this._debugMode) return;
+      this.runtime._paused = true;
+      this.runtime._stepMode = null;
+    }
+
+    /** Debug resume */
+    debugResume() {
+      if (!this._debugMode) return;
+      this.runtime._paused = false;
+      this.runtime._stepMode = null;
+      if (this.runtime._resumeFromPause) this.runtime._resumeFromPause();
+    }
+
+    /** Actualiza los paneles de depuración */
+    _updateDebugPanels() {
+      this._updateWatchList();
+      this._updateCallStack();
+      this._updateBreakpointList();
+    }
+
+    _updateWatchList() {
+      if (!this.elDebugWatch) return;
+      const watches = this.runtime._watchExpressions || [];
+      this.elDebugWatch.innerHTML = watches.map((expr, i) => `
+        <li class="debug-watch-item" data-index="${i}">
+          <input type="text" class="debug-watch-expr" value="${this._esc(expr)}" placeholder="expresión (ej: state.var_score)">
+          <span class="debug-watch-value" id="watchVal${i}">–</span>
+          <button class="btn-xs" data-act="remove-watch" data-index="${i}">✕</button>
+        </li>
+      `).join('');
+      // Add event listeners
+      this.elDebugWatch.querySelectorAll('[data-act="remove-watch"]').forEach(btn => {
+        btn.addEventListener('click', (e) => this.removeWatchExpression(e.target.dataset.index));
+      });
+      this.elDebugWatch.querySelectorAll('.debug-watch-expr').forEach(input => {
+        input.addEventListener('change', (e) => this.updateWatchExpression(e.target.dataset.index, e.target.value));
+      });
+      // Update values
+      if (this.runtime._evalWatchExpressions) {
+        const values = this.runtime._evalWatchExpressions(this.runtime._lastCtx || { state: this.runtime.state || {} });
+        Object.entries(values).forEach(([expr, val]) => {
+          const idx = watches.indexOf(expr);
+          const el = this.elDebugWatch.querySelector(`#watchVal${idx}`);
+          if (el) el.textContent = typeof val === 'object' ? JSON.stringify(val) : String(val);
+        });
+      }
+    }
+
+    addWatchExpression() {
+      if (!this.runtime) return;
+      const expr = prompt('Expresión watch (ej: state.var_score, state.list_players.length):');
+      if (!expr) return;
+      if (!this.runtime._watchExpressions) this.runtime._watchExpressions = [];
+      this.runtime._watchExpressions.push(expr);
+      this._updateWatchList();
+    }
+
+    updateWatchExpression(index, expr) {
+      if (!this.runtime || !this.runtime._watchExpressions) return;
+      this.runtime._watchExpressions[index] = expr;
+      this._updateWatchList();
+    }
+
+    removeWatchExpression(index) {
+      if (!this.runtime || !this.runtime._watchExpressions) return;
+      this.runtime._watchExpressions.splice(index, 1);
+      this._updateWatchList();
+    }
+
+    _updateCallStack() {
+      if (!this.elDebugStack) return;
+      const stack = this.runtime._callStack || [];
+      this.elDebugStack.innerHTML = stack.slice().reverse().map((frame, i) => `
+        <li class="debug-stack-frame" data-depth="${stack.length - 1 - i}">
+          <span class="stack-depth">#${stack.length - 1 - i}</span>
+          <span class="stack-opcode">${this.humanize(frame.opcode)}</span>
+          <span class="stack-id">${frame.id}</span>
+        </li>
+      `).join('');
+    }
+
+    _updateBreakpointList() {
+      if (!this.elDebugBreakpoints) return;
+      const breakpoints = this.runtime._breakpoints ? [...this.runtime._breakpoints] : [];
+      this.elDebugBreakpoints.innerHTML = breakpoints.map(id => `
+        <li class="debug-breakpoint-item" data-id="${id}">
+          <span class="bp-id">${id}</span>
+          <button class="btn-xs" data-act="remove-breakpoint" data-id="${id}">✕</button>
+        </li>
+      `).join('');
+      this.elDebugBreakpoints.querySelectorAll('[data-act="remove-breakpoint"]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          this.runtime.clearBreakpoint(e.target.dataset.id);
+          this._updateBreakpointList();
+          this.renderCanvas();
+        });
+      });
     }
 
     /* ---- Transformación del lienzo (pan + zoom infinito) ---- */
@@ -1023,16 +1520,177 @@
       });
     }
 
+    _childBlocks(container) {
+      return Array.from(container.children).filter(c => c.classList && c.classList.contains('scratch-block'));
+    }
+
+    _blockById(id) {
+      let found = null;
+      const walk = (inst) => {
+        let c = inst;
+        while (c) {
+          if (c._id === id) { found = c; return; }
+          const def = ScratchBlocks.get(c.opcode);
+          if (def && def.bodies) {
+            for (let bi = 0; bi < def.bodies.length; bi++) {
+              const arr = c[def.bodies[bi]];
+              if (Array.isArray(arr)) arr.forEach(walk);
+              else if (arr && arr.opcode) walk(arr);
+            }
+          }
+          c = c.next;
+        }
+      };
+      (this.heads[this.activeEvent] || []).forEach(walk);
+      return found;
+    }
+
     _markDropTarget(e) {
       this._clearDropMarkers();
-      const block = e.target.closest('.scratch-block');
-      if (block) {
-        const r = block.getBoundingClientRect();
-        const after = (e.clientY - r.top) > r.height / 2;
-        block.classList.add(after ? 'drop-after' : 'drop-before');
-      } else {
-        this.elCanvas.classList.add('drop-new');
+      this._clearArgDropStates();
+      const inner = this.elCanvas.querySelector('.scratch-canvas-inner');
+      const stacks = inner ? Array.from(inner.querySelectorAll(':scope > .scratch-stack')) : [];
+
+      // 1) Anidación: soltar dentro del cuerpo de un C-block.
+      const body = e.target.closest('.scratch-block-body-content');
+      if (body) {
+        const parentEl = body.closest('.scratch-block');
+        const pId = parentEl ? Number(parentEl.dataset.bid) : null;
+        const kids = this._childBlocks(body);
+        let idx = kids.length;
+        for (let i = 0; i < kids.length; i++) {
+          const r = kids[i].getBoundingClientRect();
+          if (e.clientY < r.top + r.height / 2) { idx = i; break; }
+        }
+        const refBid = idx < kids.length ? Number(kids[idx].dataset.bid) : null;
+        this._dropTarget = { bodyParentId: pId, body: body.dataset.body, id: refBid, after: refBid == null };
+        this._showInsertLine(this._slotY(body, idx, kids), body);
+        return;
       }
+
+      // 1b) ¿Estamos sobre un arg-wrapper (input de reporter/boolean)?
+      const argWrapper = e.target.closest('.arg-wrapper');
+      if (argWrapper && this._drag && (this._drag.type === 'new' || this._drag.type === 'move')) {
+        const draggedOpcode = this._drag.type === 'new' ? this._drag.opcode : this._getDraggedBlockOpcode();
+        if (draggedOpcode) {
+          const draggedDef = ScratchBlocks.get(draggedOpcode);
+          if (draggedDef && (draggedDef.type === 'reporter' || draggedDef.type === 'boolean')) {
+            // Obtener el puerto esperado del arg
+            const token = argWrapper.querySelector('[data-arg]')?.dataset.arg;
+            if (token) {
+              const parentBlock = argWrapper.closest('.scratch-block');
+              if (parentBlock) {
+                const parentId = Number(parentBlock.dataset.bid);
+                const parentInst = this._blockById(parentId);
+                if (parentInst) {
+                  const parentDef = ScratchBlocks.get(parentInst.opcode);
+                  const spec = parentDef?.args?.[token];
+                  if (spec) {
+                    const srcPort = draggedDef.returns === 'boolean' ? ScratchBlocks.PORT.boolean
+                                    : draggedDef.returns === 'number' ? ScratchBlocks.PORT.number
+                                    : draggedDef.returns === 'string' ? ScratchBlocks.PORT.string
+                                    : ScratchBlocks.PORT.any;
+                    const dstPort = spec.port || ScratchBlocks.PORT.any;
+                    const compatible = ScratchBlocks.portsCompatible(srcPort, dstPort);
+                    
+                    argWrapper.classList.toggle('drop-compatible', compatible);
+                    argWrapper.classList.toggle('drop-incompatible', !compatible);
+                    
+                    if (compatible) {
+                      this._dropTarget = { argParentId: parentId, argToken: token, opcode: draggedOpcode };
+                      this._showArgInsertLine(argWrapper);
+                      return;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (!stacks.length) {
+        this._dropTarget = { newIndex: 0 };
+        const topY = inner ? inner.getBoundingClientRect().top : this.elCanvas.getBoundingClientRect().top;
+        this._showInsertLine(topY + 12, inner || this.elCanvas);
+        return;
+      }
+
+      // 2) Calcular la ranura más cercana por distancia (Y) entre todas las opciones.
+      let best = null;
+      const consider = (yAbs, target) => {
+        const d = Math.abs(e.clientY - yAbs);
+        if (!best || d < best.d) best = { d, y: yAbs, target };
+      };
+      for (let i = 0; i <= stacks.length; i++) {
+        const topY = i === 0 ? stacks[0].getBoundingClientRect().top : stacks[i - 1].getBoundingClientRect().bottom;
+        const botY = i === stacks.length ? stacks[stacks.length - 1].getBoundingClientRect().bottom : stacks[i].getBoundingClientRect().top;
+        consider((topY + botY) / 2, { newIndex: i });
+      }
+      stacks.forEach(st => {
+        const kids = this._childBlocks(st);
+        for (let i = 0; i < kids.length; i++) {
+          const r = kids[i].getBoundingClientRect();
+          const slotY = i === 0 ? r.top - 8 : (kids[i - 1].getBoundingClientRect().bottom + r.top) / 2;
+          consider(slotY, { id: Number(kids[i].dataset.bid), after: false });
+        }
+        if (kids.length) {
+          const last = kids[kids.length - 1].getBoundingClientRect();
+          consider(last.bottom + 8, { id: Number(kids[kids.length - 1].dataset.bid), after: true });
+        }
+      });
+
+      // No insertar nunca antes de un bloque Hat (debe ser la cima del stack).
+      if (best.target.id != null) {
+        const tb = this._blockById(best.target.id);
+        if (tb && ScratchBlocks.get(tb.opcode) && ScratchBlocks.get(tb.opcode).type === 'hat' && !best.target.after) {
+          best.target.after = true;
+        }
+      }
+      this._dropTarget = best.target;
+      const refEl = (best.target.id != null)
+        ? (this.domMap[best.target.id] || stacks[0])
+        : (best.target.newIndex < stacks.length ? stacks[best.target.newIndex] : stacks[stacks.length - 1]);
+      this._showInsertLine(best.y, refEl);
+    }
+
+    _getDraggedBlockOpcode() {
+      if (!this._drag || this._drag.type !== 'move') return null;
+      const inst = this._blockById(this._drag.id);
+      return inst?.opcode;
+    }
+
+    _clearArgDropStates() {
+      this.elCanvas.querySelectorAll('.arg-wrapper').forEach(w => {
+        w.classList.remove('drop-compatible', 'drop-incompatible');
+      });
+    }
+
+    _showArgInsertLine(argWrapper) {
+      if (!this._argDropIndicator) {
+        this._argDropIndicator = document.createElement('div');
+        this._argDropIndicator.className = 'scratch-arg-drop-indicator';
+        this._argDropIndicator.style.cssText = 'position:absolute;top:0;left:0;right:0;height:2px;background:var(--cat-control,#FF5E3A);pointer-events:none;z-index:100;';
+      }
+      argWrapper.style.position = 'relative';
+      argWrapper.appendChild(this._argDropIndicator);
+    }
+
+    _slotY(container, idx, kids) {
+      const cr = container.getBoundingClientRect();
+      if (!kids || kids.length === 0) return cr.top + 10;
+      if (idx >= kids.length) return kids[kids.length - 1].getBoundingClientRect().bottom - 8;
+      return kids[idx].getBoundingClientRect().top - 4;
+    }
+
+    _showInsertLine(yAbs, refEl) {
+      if (!this._dropIndicator) {
+        this._dropIndicator = document.createElement('div');
+        this._dropIndicator.className = 'scratch-drop-indicator';
+      }
+      const rr = refEl.getBoundingClientRect();
+      this._dropIndicator.style.top = (yAbs - rr.top) + 'px';
+      refEl.appendChild(this._dropIndicator);
     }
 
     _clearDropMarkers() {
@@ -1041,16 +1699,32 @@
         markers[i].classList.remove('drop-before', 'drop-after');
       }
       this.elCanvas.classList.remove('drop-new');
+      if (this._dropIndicator && this._dropIndicator.parentNode) {
+        this._dropIndicator.parentNode.removeChild(this._dropIndicator);
+      }
+      this._clearArgDropStates();
+      if (this._argDropIndicator && this._argDropIndicator.parentNode) {
+        this._argDropIndicator.parentNode.removeChild(this._argDropIndicator);
+      }
     }
 
     _dropBlock(e) {
       try {
-        const target = e.target.closest('.scratch-block');
+        const dt = this._dropTarget;
         const inst = this._makeDragInst();
         if (!inst) return;
         const stacks = this.heads[this.activeEvent] || (this.heads[this.activeEvent] = []);
-        if (!target) {
-          // Nuevo stack libre, salvo que sea un bloque sin Hat: se engancha al stack principal.
+        
+        // Handle arg drop (reporter/boolean into input)
+        if (dt && dt.argParentId != null && dt.argToken) {
+          this._insertIntoArg(dt.argParentId, dt.argToken, inst);
+        } else if (dt && dt.bodyParentId != null) {
+          this._insertIntoBody(dt.bodyParentId, dt.body, dt.id, inst, dt.after);
+        } else if (dt && dt.newIndex != null) {
+          this._insertStackAt(dt.newIndex, inst);
+        } else if (dt && dt.id != null) {
+          this._insertRelative(dt.id, inst, dt.after);
+        } else {
           const isHat = inst.opcode && ScratchBlocks.get(inst.opcode) && ScratchBlocks.get(inst.opcode).type === 'hat';
           if (this._drag.type === 'new' && !isHat) {
             const main = this._mainStack(this.activeEvent);
@@ -1059,10 +1733,6 @@
           } else {
             stacks.push(inst);
           }
-        } else {
-          const targetId = Number(target.dataset.bid);
-          const after = target.classList.contains('drop-after');
-          this._insertRelative(targetId, inst, after);
         }
         this.renderCanvas();
         this.pushSnapshot();
@@ -1070,6 +1740,13 @@
       } catch (err) {
         this.log('error', 'No se pudo soltar: ' + err.message);
       }
+    }
+
+    _insertIntoArg(parentId, token, inst) {
+      const parent = this._blockById(parentId);
+      if (!parent) return;
+      parent.args[token] = inst;
+      this._drag = null;
     }
 
     _makeDragInst() {
@@ -1099,6 +1776,26 @@
         }
       }
       return null;
+    }
+
+    _insertStackAt(index, inst) {
+      const stacks = this.heads[this.activeEvent] || (this.heads[this.activeEvent] = []);
+      index = Math.max(0, Math.min(index, stacks.length));
+      stacks.splice(index, 0, inst);
+    }
+
+    _insertIntoBody(parentId, bodyName, refId, inst, after) {
+      const parent = this._blockById(parentId);
+      if (!parent) return;
+      let arr = parent[bodyName];
+      if (Array.isArray(arr)) { /* ok */ }
+      else if (arr && arr.opcode) { arr = [arr]; parent[bodyName] = arr; }
+      else { arr = []; parent[bodyName] = arr; }
+      if (refId == null) { arr.push(inst); return; }
+      const i = arr.findIndex(b => b._id === refId);
+      if (i < 0) arr.push(inst);
+      else if (after) arr.splice(i + 1, 0, inst);
+      else arr.splice(i, 0, inst);
     }
 
     _insertRelative(targetId, inst, after) {
@@ -1147,6 +1844,7 @@
       if (this._isRunning) return;
       this._isRunning = true;
       this.clearHighlights();
+      this.clearConsole();
       this.trace = [];
       const machine = this.buildMachine();
       const v = ScratchAOT.validate(machine, { production: true });
@@ -1156,16 +1854,19 @@
         this._isRunning = false;
         return;
       }
+      const providers = this._wrapProvidersForStage(this.providers || ScratchRuntime.defaultProviders());
       this.runtime = new ScratchRuntime({
         state: {},
-        providers: this.providers || ScratchRuntime.defaultProviders(),
+        providers: providers,
         hooks: {
-          onBlockStart: (n) => this.trace.push({ id: n._id, phase: 'start' }),
+          onBlockStart: (n) => { this.trace.push({ id: n._id, phase: 'start' }); this.log('step', '▸ ' + this.opOf(n._id)); },
           onBlockEnd: (n) => this.trace.push({ id: n._id, phase: 'end' }),
-          onError: (n, p, msg) => this.trace.push({ id: n._id, phase: 'error', msg }),
+          onError: (n, p, msg) => { this.trace.push({ id: n._id, phase: 'error', msg }); this.log('error', '✖ ' + this.opOf(n._id) + (msg ? (': ' + msg) : '')); },
           onPanic: () => this.log('panic', 'PANIC — todos los hilos detenidos')
         }
       });
+      if (global.ScratchStage) global.ScratchStage.open();
+      if (global.ScratchStage) { global.ScratchStage.reset(); global.ScratchStage.open(); }
       this.runtime.setEngineScripts(machine.events);
       this._attachEngineEventSource();
       this.log('step', '▶ Ejecutando evento: ' + this.humanize(this.activeEvent));
@@ -1199,6 +1900,11 @@
 
     _attachEngineEventSource() {
       if (this._engineWS) return;
+      // Modo simulación (abierto como archivo local): sin servidor de sincronización.
+      if (!location.hostname) {
+        this.log('info', 'Modo simulación: sin servidor de sincronización (file://).');
+        return;
+      }
       const wsUrl = (window.__SB_WS_URL || 'ws://' + location.hostname + ':8081');
       // Token de autenticación (se puede inyectar desde el backend o localStorage)
       const authToken = localStorage.getItem('sillyquiz-engine-token') || window.__SB_AUTH_TOKEN || '';
@@ -1308,6 +2014,26 @@
       return found ? this.humanize(found) : '(nodo)';
     }
 
+    clearConsole() {
+      if (this.elConsole) this.elConsole.innerHTML = '';
+    }
+
+    log(level, msg) {
+      if (!this.elConsole) return;
+      const t = new Date();
+      const hh = String(t.getHours()).padStart(2, '0');
+      const mm = String(t.getMinutes()).padStart(2, '0');
+      const ss = String(t.getSeconds()).padStart(2, '0');
+      const line = document.createElement('div');
+      line.className = 'log-line lvl-' + (level || 'info');
+      line.innerHTML = '<span class="log-time">' + hh + ':' + mm + ':' + ss + '</span>' +
+        '<span class="log-badge">' + (level || 'info') + '</span>' +
+        '<span class="log-msg">' + this._esc(msg) + '</span>';
+      this.elConsole.appendChild(line);
+      while (this.elConsole.childElementCount > 300) this.elConsole.removeChild(this.elConsole.firstChild);
+      this.elConsole.scrollTop = this.elConsole.scrollHeight;
+    }
+
     panic() {
       if (this.runtime) this.runtime.panic();
       this._isRunning = false;
@@ -1325,6 +2051,25 @@
       const open = this.elPreview.dataset.open === '1' ? '0' : '1';
       this.elPreview.dataset.open = open;
       if (open === '1') this.schedulePreview();
+    }
+
+    /* ---- Stage de previsualización en vivo ---- */
+    toggleStage() {
+      if (global.ScratchStage) global.ScratchStage.toggle();
+    }
+
+    _wrapProvidersForStage(base) {
+      const stage = global.ScratchStage;
+      if (!stage || !stage.handle) return base;
+      if (typeof base.sideEffect !== 'function') return base;
+      const orig = base.sideEffect.bind(base);
+      return Object.assign({}, base, {
+        sideEffect: (opcode, args, ctx) => {
+          const res = orig(opcode, args, ctx);
+          try { stage.handle(opcode, args, ctx, res); } catch (e) { /* never break run */ }
+          return res;
+        }
+      });
     }
 
     schedulePreview() {
@@ -1456,11 +2201,7 @@
           body += '</div>';
         }
 
-        /* Indicador de theme */
-        const themeBadge = state.currentTheme ? '<span style="position:absolute;top:12px;left:12px;background:rgba(255,255,255,0.15);padding:4px 10px;font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;border-radius:4px;z-index:2;">🎨 ' + this._esc(state.currentTheme) + '</span>' : '';
-
         const screen = '<div class="lp-screen" style="' + bgStyle + ';position:relative;overflow:hidden;">' +
-          themeBadge +
           '<div class="lp-screen-body" style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%;">' + body + '</div></div>';
 
         const list = '<div class="lp-steps">' +
@@ -1511,13 +2252,13 @@
           }
           break;
         case 'set_background_image':
-          if (a.SRC) state.bgImage = a.SRC;
+          if (a.SRC) state.bgImage = this._safeMediaUrl(this.resolveAsset(a.SRC));
           break;
         case 'show_image':
-          if (a.SRC) state.media.push({ type: 'image', src: a.SRC });
+          if (a.SRC) { const _s = this._safeMediaUrl(this.resolveAsset(a.SRC)); if (_s) state.media.push({ type: 'image', src: _s }); }
           break;
         case 'show_video':
-          if (a.SRC) state.media.push({ type: 'video', src: a.SRC, loop: !!a.LOOP });
+          if (a.SRC) { const _s = this._safeMediaUrl(this.resolveAsset(a.SRC)); if (_s) state.media.push({ type: 'video', src: _s, loop: !!a.LOOP }); }
           break;
         case 'set_text_shadow':
           state.effects.push('Sombra ' + (a.X || 2) + 'px/' + (a.Y || 2) + 'px ' + (a.CLR || '#000'));
@@ -1681,6 +2422,38 @@
           state.effects.push('🔄 Hot reload');
           break;
 
+        /* ---- New Blocks (Phase 3) ---- */
+        case 'while_loop':
+          state.effects.push('🔁 Mientras...');
+          break;
+        case 'for_each_with_index':
+          state.effects.push('🔁 Para cada ' + (a.VAR || 'item') + ' con índice...');
+          break;
+        case 'math_clamp':
+          state.effects.push('📐 Clamp: ' + (a.MIN || 0) + '..' + (a.MAX || 100));
+          break;
+        case 'type_of':
+          state.effects.push('🔍 Tipo de valor');
+          break;
+        case 'math_lerp':
+          state.effects.push('📐 Lerp ' + (a.A || '?') + ' → ' + (a.B || '?'));
+          break;
+        case 'quiz_is_paused':
+          state.effects.push('⏸ Quiz pausado');
+          break;
+        case 'quiz_get_round':
+          state.effects.push('📊 Ronda actual');
+          break;
+        case 'players_get_score_of':
+          state.effects.push('🏆 Puntos de ' + (a.PLAYER || '?'));
+          break;
+        case 'timer_is_paused':
+          state.effects.push('⏸ Timer pausado');
+          break;
+        case 'create_tween':
+          state.effects.push('✨ Tween ' + (a.PROP || 'prop') + ' → ' + (a.TO || '?'));
+          break;
+
         default:
           break;
       }
@@ -1689,13 +2462,14 @@
     /* ---- Historial (snapshot local de borrador) ---- */
     pushSnapshot() {
       try {
-        const snap = JSON.stringify(this.heads);
+        const snap = JSON.stringify(this._serializeHeads());
         const last = this.snapshots[this.snapshots.length - 1];
         if (last !== snap) {
           this.snapshots.push(snap);
           if (this.snapshots.length > 30) this.snapshots.shift();
           this._redoStack = [];
           this.autoSave();
+          this.publishLiveState();
         }
       } catch (e) { /* ignore */ }
     }
@@ -1708,10 +2482,11 @@
       const snap = this.snapshots[this.snapshots.length - 1];
       try {
         const restored = JSON.parse(snap);
+        this._restoreAssets(restored.assets || {});
         this.heads = {};
         this._idCounter = 0;
-        Object.keys(restored).forEach(ev => {
-          const v = restored[ev];
+        Object.keys(restored.heads).forEach(ev => {
+          const v = restored.heads[ev];
           this.heads[ev] = Array.isArray(v) ? v.map(s => this.rehydrate(s)) : this.rehydrate(v);
         });
         this.renderCanvas();
@@ -1725,10 +2500,11 @@
       this.snapshots.push(snap);
       try {
         const restored = JSON.parse(snap);
+        this._restoreAssets(restored.assets || {});
         this.heads = {};
         this._idCounter = 0;
-        Object.keys(restored).forEach(ev => {
-          const v = restored[ev];
+        Object.keys(restored.heads).forEach(ev => {
+          const v = restored.heads[ev];
           this.heads[ev] = Array.isArray(v) ? v.map(s => this.rehydrate(s)) : this.rehydrate(v);
         });
         this.renderCanvas();
@@ -1741,11 +2517,11 @@
       // Migrar plantilla a versión actual
       let tpl = data;
       if (global.TemplateMigration) {
-        const migrated = global.TemplateMigration.migrateTemplate(tpl);
+        const migrated = global.TemplateMigration.migrateToCurrent(tpl);
         if (migrated) {
-          const validation = global.TemplateMigration.validateTemplate(migrated);
-          if (!validation.valid) {
-            this.log('warn', 'Plantilla con advertencias: ' + validation.errors.join(', '));
+          const validation = global.TemplateMigration.validate(migrated);
+          if (validation && !validation.valid) {
+            this.log('warn', 'Plantilla con advertencias: ' + (validation.errors || []).join(', '));
           }
           tpl = migrated;
         }
@@ -1753,6 +2529,7 @@
       
       const heads = (tpl && tpl.heads) ? tpl.heads : tpl;
       if (!heads || typeof heads !== 'object') { this.log('error', 'plantilla inválida'); return; }
+      if (tpl && tpl.assets) this._restoreAssets(tpl.assets);
       this.heads = {};
       this._idCounter = 0;
       Object.keys(heads).forEach(ev => {
@@ -1773,20 +2550,85 @@
 
     /* Exporta el borrador actual como plantilla JSON (formato heads). */
     exportTemplate() {
-      return { version: TemplateMigration.CURRENT_VERSION, type: 'scratch-mode', heads: this.heads };
+      const version = (global.TemplateMigration && global.TemplateMigration.CURRENT_SCHEMA_VERSION) || 3;
+      const proj = this._serializeHeads();
+      return { version: version, type: 'scratch-mode', heads: proj.heads, assets: proj.assets };
     }
 
     rehydrate(node) {
       if (!node) return null;
-      const inst = { opcode: node.opcode, args: node.args || {}, next: this.rehydrate(node.next), _id: ++this._idCounter };
+      const def = ScratchBlocks.get(node.opcode);
+      const inst = {
+        opcode: node.opcode,
+        args: node.args ? JSON.parse(JSON.stringify(node.args)) : {},
+        next: null,
+        _id: ++this._idCounter
+      };
+      if (def && def.bodies) {
+        def.bodies.forEach(b => {
+          const body = node[b];
+          if (Array.isArray(body)) inst[b] = body.map(c => this.rehydrate(c));
+          else if (body && body.opcode) inst[b] = [this.rehydrate(body)];
+          else inst[b] = [];
+        });
+      }
+      inst.next = this.rehydrate(node.next);
       return inst;
     }
 
-    clearCanvas() {
-      const head = this._mainStack(this.activeEvent);
-      if (head) head.next = null;
+    /* Serializa los heads eliminando referencias no serializables (_uiControl,
+       funciones, DOM) para snapshots, autosave y exportación.
+       Incluye el mapa de assets (dataUrl) para que el estado sea autocontenido. */
+    _serializeHeads() {
+      const out = {};
+      Object.keys(this.heads).forEach(ev => {
+        const v = this.heads[ev];
+        out[ev] = Array.isArray(v) ? v.map(s => this._cleanNode(s)) : this._cleanNode(v);
+      });
+      return { heads: out, assets: this._serializeAssets() };
+    }
+
+    _cleanNode(node) {
+      if (!node) return null;
+      const def = ScratchBlocks.get(node.opcode);
+      const out = {
+        opcode: node.opcode,
+        args: node.args ? JSON.parse(JSON.stringify(node.args)) : {},
+        _id: node._id
+      };
+      if (def && def.bodies) {
+        def.bodies.forEach(b => {
+          const body = node[b];
+          if (Array.isArray(body)) out[b] = body.map(c => this._cleanNode(c));
+          else if (body && body.opcode) out[b] = [this._cleanNode(body)];
+          else out[b] = [];
+        });
+      }
+      out.next = this._cleanNode(node.next);
+      return out;
+    }
+
+    clearCanvas(full) {
+      if (full) {
+        // Reiniciar todos los eventos manteniendo sus Hats iniciales
+        const eventKeys = Object.keys(this.heads);
+        const newHeads = {};
+        eventKeys.forEach(ev => {
+          newHeads[ev] = [this.makeInst(ev)];
+        });
+        // Si no hay eventos, crear uno por defecto
+        if (Object.keys(newHeads).length === 0) {
+          const firstHat = this._firstHatOpcode();
+          if (firstHat) newHeads[firstHat] = [this.makeInst(firstHat)];
+        }
+        this.heads = newHeads;
+        this.activeEvent = Object.keys(this.heads)[0] || null;
+      } else if (this.activeEvent) {
+        this.heads[this.activeEvent] = [this.makeInst(this.activeEvent)];
+      }
       this.selected = null;
       this.renderCanvas();
+      this.renderTabs();
       this.pushSnapshot();
       this.log('info', 'Lienzo limpiado');
     }
@@ -1794,17 +2636,34 @@
     /* ---- Export / Import JSON ---- */
     exportToFile() {
       const data = this.exportTemplate();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'sillyquiz-modo-' + Date.now() + '.json';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      this.toast('Plantilla exportada', 'success');
-      this.log('info', '💾 Plantilla exportada a JSON');
+      if (global.SillyPackage && global.SillyPackage.exportSilly) {
+        this.toast('📦 Empaquetando .silly…', 'info');
+        global.SillyPackage.exportSilly({ name: 'SillyProject', heads: data.heads, assets: data.assets, version: data.version })
+          .then(blob => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sillyquiz-modo-' + Date.now() + '.silly';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+            this.toast('Proyecto exportado como .silly', 'success');
+            this.log('info', '📦 Proyecto exportado a .silly');
+          })
+          .catch(err => {
+            this.toast('Error exportando .silly: ' + err.message, 'error');
+            this.log('error', 'Export .silly falló: ' + err.message);
+          });
+      } else {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'sillyquiz-modo-' + Date.now() + '.json';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        this.toast('Plantilla exportada (JSON)', 'success');
+      }
     }
 
     importFromFile() {
@@ -1812,25 +2671,39 @@
       if (!input) {
         input = document.createElement('input');
         input.type = 'file';
-        input.accept = '.json,application/json';
+        input.accept = '.silly,application/zip,.json,application/json';
         input.style.display = 'none';
         document.body.appendChild(input);
         input.addEventListener('change', () => {
           const file = input.files && input.files[0];
           if (!file) return;
-          const reader = new FileReader();
-          reader.onload = () => {
-            try {
-              const data = JSON.parse(reader.result);
-              this.loadTemplate(data);
-              this.toast('Plantilla importada: ' + (data.title || data.id || file.name), 'success');
-              this.log('info', '📂 Plantilla importada desde archivo');
-            } catch (err) {
-              this.toast('Error al importar: ' + err.message, 'error');
-              this.log('error', 'Import falló: ' + err.message);
-            }
-          };
-          reader.readAsText(file);
+          if (global.SillyPackage && global.SillyPackage.importSilly && /\.silly$/i.test(file.name)) {
+            global.SillyPackage.importSilly(file)
+              .then(result => {
+                this.loadTemplate({ heads: result.heads, assets: result.assets, version: result.version });
+                const assetNote = (result.meta && result.meta.assetCount) ? (' (' + result.meta.assetCount + ' assets)') : '';
+                this.toast('Proyecto .silly importado' + assetNote, 'success');
+                this.log('info', '📂 Proyecto .silly importado' + assetNote);
+              })
+              .catch(err => {
+                this.toast('Error al importar .silly: ' + err.message, 'error');
+                this.log('error', 'Import .silly falló: ' + err.message);
+              });
+          } else {
+            const reader = new FileReader();
+            reader.onload = () => {
+              try {
+                const data = JSON.parse(reader.result);
+                this.loadTemplate(data);
+                this.toast('Plantilla importada: ' + (data.title || data.id || file.name), 'success');
+                this.log('info', '📂 Plantilla importada desde archivo');
+              } catch (err) {
+                this.toast('Error al importar: ' + err.message, 'error');
+                this.log('error', 'Import falló: ' + err.message);
+              }
+            };
+            reader.readAsText(file);
+          }
           input.value = '';
         });
         this._importInput = input;
@@ -1924,6 +2797,40 @@
         const app = this.root.querySelector('.scratch-app');
         if (app) app.classList.add('dark-mode');
       }
+    }
+
+    /* ---- Live Sync (SillyVisualizer) ---- */
+    _initLiveSync() {
+      if (this._liveWS) return;
+      const url = (window.__SB_WS_URL || ('ws://' + location.hostname + ':8081'));
+      try {
+        const ws = new WebSocket(url);
+        this._liveWS = ws;
+        ws.onopen = () => {
+          this._liveReady = true;
+          if (this._liveBuffer) { try { ws.send(this._liveBuffer); } catch (_) {} this._liveBuffer = null; }
+          else this.publishLiveState();
+        };
+        ws.onclose = () => { this._liveReady = false; this._liveWS = null; setTimeout(() => this._initLiveSync(), 2000); };
+        ws.onerror = () => { this._liveReady = false; };
+      } catch (e) { this._liveWS = null; }
+    }
+
+    publishLiveState() {
+      let payload;
+      try {
+        payload = JSON.stringify({ type: 'builder_state', state: this._serializeHeads() });
+      } catch (e) { return; }
+      if (!this._liveWS || this._liveWS.readyState !== 1) { this._liveBuffer = payload; return; }
+      if (this._liveThrottle) { this._liveBuffer = payload; return; }
+      this._liveThrottle = true;
+      setTimeout(() => {
+        this._liveThrottle = false;
+        if (this._liveBuffer) {
+          const p = this._liveBuffer; this._liveBuffer = null;
+          if (this._liveWS && this._liveWS.readyState === 1) { try { this._liveWS.send(p); } catch (_) {} }
+        }
+      }, 250);
     }
 
     /* ---- Definición de control UI (scratch-ui-control-definition) ---- */
@@ -2490,7 +3397,7 @@
         if (!main) continue;
         let current = main;
         while (current) {
-          const def = ScratchBlocks.get(current.op);
+          const def = ScratchBlocks.get(current.opcode);
           const cat = def ? def.category : 'other';
           cats[cat] = (cats[cat] || 0) + 1;
           current = current.next;
@@ -2552,7 +3459,72 @@
       this._shortcutsOpen = false;
     }
 
-    /* ---- Limpieza completa al cerrar/descartar ---- */
+    /* ---- Cargar receta starter (3-clic boot) ---- */
+    loadStarterRecipe() {
+      this._loadPresetTemplate('quiz-basic');
+    }
+
+    /* ---- Preset templates para el empty state ---- */
+    _loadPresetTemplate(name) {
+      const presets = {
+        'quiz-basic': {
+          "on_mode_init": [
+            { "opcode": "set_custom_theme", "args": { "BG": "#0B0B0B", "TXT": "#F2EBDD", "ACC": "#FF5E3A", "FNT": "Space Grotesk" }, "next":
+              { "opcode": "announce", "args": { "TXT": "¡Bienvenidos al Quiz!", "DUR": 3000 }, "next":
+                { "opcode": "set_timer", "args": { "SEC": 30 }, "next": null }
+              }
+            }
+          ],
+          "on_question_start": [
+            { "opcode": "screen_flash", "args": { "COLOR": "#FF5E3A", "DUR": 200 }, "next":
+              { "opcode": "announce", "args": { "TXT": "¡Nueva pregunta!", "DUR": 2000 }, "next": null }
+            }
+          ],
+          "on_question_end": [
+            { "opcode": "reveal_answer", "args": { "TXT": "¡Respuesta correcta!" }, "next":
+              { "opcode": "set_score", "args": { "SCORE": 10 }, "next": null }
+            }
+          ]
+        },
+        'show-lights': {
+          "on_mode_init": [
+            { "opcode": "set_custom_theme", "args": { "BG": "#000000", "TXT": "#FFFFFF", "ACC": "#FF00FF", "FNT": "Space Grotesk" }, "next":
+              { "opcode": "screen_flash", "args": { "COLOR": "#FF00FF", "DUR": 500 }, "next":
+                { "opcode": "announce", "args": { "TXT": "¡SHOW TIME!", "DUR": 3000 }, "next": null }
+              }
+            }
+          ],
+          "on_question_start": [
+            { "opcode": "screen_flash", "args": { "COLOR": "#00FFFF", "DUR": 300 }, "next":
+              { "opcode": "set_stage_bg", "args": { "CLR": "#1A0033" }, "next": null }
+            }
+          ]
+        },
+        'trivia-mp': {
+          "on_mode_init": [
+            { "opcode": "set_custom_theme", "args": { "BG": "#1A1A2E", "TXT": "#ECEAE3", "ACC": "#00D4AA", "FNT": "Space Grotesk" }, "next":
+              { "opcode": "announce", "args": { "TXT": "¡Trivia Multijugador!", "DUR": 3000 }, "next":
+                { "opcode": "player_set_score", "args": { "SCORE": 0 }, "next": null }
+              }
+            }
+          ],
+          "on_question_start": [
+            { "opcode": "set_timer", "args": { "SEC": 15 }, "next":
+              { "opcode": "announce", "args": { "TXT": "¡Piensa rápido!", "DUR": 2000 }, "next": null }
+            }
+          ],
+          "on_question_end": [
+            { "opcode": "player_next", "args": {}, "next":
+              { "opcode": "set_score", "args": { "SCORE": 10 }, "next": null }
+            }
+          ]
+        }
+      };
+      const tpl = presets[name];
+      if (!tpl) return;
+      this.loadTemplate(tpl);
+      this.toast('Plantilla cargada ⚡', 'success');
+    }
     destroy() {
       // Cerrar WebSocket del engine
       if (this._engineWS) {
