@@ -430,9 +430,11 @@
     /* Resuelve argumentos: evalúa reporters/booleans anidados a valores concretos. */
     resolveArgs(node, ctx) {
       const def = ScratchBlocks.get(node.opcode);
+      if (!def) return node.args || {};
       const out = {};
+      const defArgs = def.args || {};
       Object.keys(node.args || {}).forEach(tok => {
-        const spec = def.args[tok];
+        const spec = defArgs[tok];
         const raw = node.args[tok];
         if (spec && (spec.type === 'reporter' || spec.type === 'boolean') && raw && raw.opcode) {
           out[tok] = this.evalNode(raw, ctx);
@@ -441,6 +443,40 @@
         }
       });
       return out;
+    }
+
+    /* Evalúa un nodo anidado (reporter/boolean) y devuelve su valor.
+       Usa providers.reporter / providers.boolean según el tipo de bloque. */
+    evalNode(node, ctx) {
+      if (!node || !node.opcode) return null;
+      const def = ScratchBlocks.get(node.opcode);
+      if (!def && DynamicBlocks) {
+        const dynDef = DynamicBlocks.get(node.opcode);
+        if (dynDef) return this._evalNodeWithDef(node, dynDef, ctx);
+      }
+      if (!def) return null;
+      return this._evalNodeWithDef(node, def, ctx);
+    }
+
+    _evalNodeWithDef(node, def, ctx) {
+      const resolved = this.resolveArgs(node, ctx);
+      node._resolved = resolved;
+      if (def.type === 'reporter') {
+        return this.providers.reporter(node.opcode, resolved, ctx);
+      }
+      if (def.type === 'boolean') {
+        return this.providers.boolean(node.opcode, resolved, ctx);
+      }
+      if (def.hasBody) {
+        this._pushScope(ctx);
+        try {
+          this.executeChain(node.body, ctx);
+        } finally {
+          this._popScope(ctx);
+        }
+        return null;
+      }
+      return null;
     }
 
     runBlock(node, ctx) {
@@ -920,6 +956,88 @@
             if (!b) return { vx: 0, vy: 0 };
             return { vx: b.vx, vy: b.vy };
           }
+          case 'math_clamp': {
+            const v = num(args.VAL), lo = num(args.MIN), hi = num(args.MAX);
+            return Math.max(lo, Math.min(hi, v));
+          }
+          case 'type_of': {
+            const v = args.VAL;
+            if (v === null || v === undefined) return 'null';
+            if (typeof v === 'number') return 'number';
+            if (typeof v === 'string') return 'string';
+            if (typeof v === 'boolean') return 'boolean';
+            if (Array.isArray(v)) return 'list';
+            if (typeof v === 'object') return 'json';
+            return 'string';
+          }
+          case 'math_lerp': {
+            const a = num(args.A), b = num(args.B), t = num(args.T);
+            return a + (b - a) * Math.max(0, Math.min(1, t));
+          }
+          case 'quiz_get_round': return num(ctx.state['quiz_round'], 1);
+          case 'players_get_score_of': return num(ctx.state['score_' + args.PLAYER]);
+          case 'event_data': return ctx.eventCtx || null;
+          case 'physics_raycast': {
+            const physics = ctx.state.__physics;
+            if (!physics || !physics.bodies) return { hit: false };
+            const rx = num(args.X), ry = num(args.Y);
+            const rdx = num(args.DX), rdy = num(args.DY);
+            const maxDist = num(args.MAXDIST, 1000);
+            const filter = args.FILTER || null;
+            const rdist = Math.hypot(rdx, rdy);
+            if (rdist === 0) return { hit: false };
+            const rux = rdx / rdist, ruy = rdy / rdist;
+            let closestHit = null, closestDist = maxDist;
+            for (const [bid, body] of Object.entries(physics.bodies)) {
+              if (filter && body.collisionFilter !== filter) continue;
+              const radius = body.radius || 0.5;
+              const fx = body.x - rx, fy = body.y - ry;
+              const proj = fx * rux + fy * ruy;
+              if (proj < 0 || proj > closestDist) continue;
+              const ppx = fx - proj * rux, ppy = fy - proj * ruy;
+              const perpDist = Math.hypot(ppx, ppy);
+              if (perpDist <= radius) {
+                const offset = Math.sqrt(Math.max(0, radius * radius - perpDist * perpDist));
+                const hitDist = proj - offset;
+                if (hitDist >= 0 && hitDist < closestDist) {
+                  closestDist = hitDist;
+                  closestHit = { bodyId: bid, point: { x: rx + rux * hitDist, y: ry + ruy * hitDist }, normal: { x: perpDist > 0 ? -ppx / perpDist : 0, y: perpDist > 0 ? -ppy / perpDist : 0 }, distance: hitDist };
+                }
+              }
+            }
+            return { hit: !!closestHit, bodyId: closestHit?.bodyId || null, point: closestHit?.point || { x: 0, y: 0 }, normal: closestHit?.normal || { x: 0, y: 0 }, distance: closestHit?.distance || 0 };
+          }
+          case 'physics_query_aabb': {
+            const physics = ctx.state.__physics;
+            if (!physics || !physics.bodies) return [];
+            const filter = args.FILTER || null;
+            const results = [];
+            for (const [bid, body] of Object.entries(physics.bodies)) {
+              if (filter && body.collisionFilter !== filter) continue;
+              const radius = body.radius || 0.5;
+              if (body.x + radius >= num(args.MINX) && body.x - radius <= num(args.MAXX) &&
+                  body.y + radius >= num(args.MINY) && body.y - radius <= num(args.MAXY)) {
+                results.push({ bodyId: bid, x: body.x, y: body.y, vx: body.vx || 0, vy: body.vy || 0, type: body.type });
+              }
+            }
+            return results;
+          }
+          case 'physics_query_point': {
+            const physics = ctx.state.__physics;
+            if (!physics || !physics.bodies) return [];
+            const px = num(args.X), py = num(args.Y);
+            const filter = args.FILTER || null;
+            const results = [];
+            for (const [bid, body] of Object.entries(physics.bodies)) {
+              if (filter && body.collisionFilter !== filter) continue;
+              const radius = body.radius || 0.5;
+              const d = Math.hypot(body.x - px, body.y - py);
+              if (d <= radius) {
+                results.push({ bodyId: bid, x: body.x, y: body.y, distance: d });
+              }
+            }
+            return results;
+          }
           default: return null;
         }
       },
@@ -955,6 +1073,8 @@
           case 'players_is_alive': return true;
           case 'key_pressed': return false;
           case 'list_contains': { const l = ctx.state['list_' + args.NAME]; return Array.isArray(l) && l.indexOf(args.VAL) >= 0; }
+          case 'quiz_is_paused': return truthy(ctx.state['quiz_paused']);
+          case 'timer_is_paused': return truthy(ctx.state['timer_paused']);
           default: return false;
         }
       },
@@ -1210,13 +1330,11 @@
         if (opcode === 'physics_raycast') {
           const physics = ctx.state.__physics;
           if (!physics || !physics.bodies) return { ok: false, error: 'Física no activada' };
-          const x1 = num(args.X1), y1 = num(args.Y1);
-          const x2 = num(args.X2), y2 = num(args.Y2);
+          const x1 = num(args.X), y1 = num(args.Y);
           const maxDist = num(args.MAXDIST, 1000);
           const filter = args.FILTER || null;
+          const dx = num(args.DX), dy = num(args.DY);
           
-          const dx = x2 - x1;
-          const dy = y2 - y1;
           const dist = Math.hypot(dx, dy);
           if (dist === 0) return { ok: true, hit: false };
           
@@ -1313,15 +1431,15 @@
           body.fixtures = body.fixtures || [];
           const fixture = {
             shape: args.SHAPE || 'circle',
-            radius: num(args.RADIUS, 0.5),
-            width: num(args.WIDTH, 1),
-            height: num(args.HEIGHT, 1),
-            density: num(args.DENSITY, 1),
-            friction: num(args.FRICTION, 0.3),
-            restitution: num(args.RESTITUTION, 0.5),
-            isSensor: !!args.IS_SENSOR,
-            offsetX: num(args.OFFSETX, 0),
-            offsetY: num(args.OFFSETY, 0)
+            radius: num(args.RAD, 0.5),
+            width: num(args.W, 1),
+            height: num(args.H, 1),
+            density: num(args.DEN, 1),
+            friction: num(args.FRIC, 0.3),
+            restitution: num(args.REST, 0.5),
+            isSensor: !!args.ISENSOR,
+            offsetX: num(args.OX, 0),
+            offsetY: num(args.OY, 0)
           };
           body.fixtures.push(fixture);
           return { ok: true };
@@ -1334,14 +1452,14 @@
             type: 'revolute',
             bodyA: args.A,
             bodyB: args.B,
-            anchorX: num(args.ANCHORX, 0),
-            anchorY: num(args.ANCHORY, 0),
-            enableMotor: !!args.ENABLEMOTOR,
-            motorSpeed: num(args.MOTORSPEED, 0),
-            maxMotorTorque: num(args.MAXMOTORTOQUE, 1000),
-            enableLimit: !!args.ENABLELIMIT,
-            lowerAngle: num(args.LOWERANGLE, -Math.PI),
-            upperAngle: num(args.UPPERANGLE, Math.PI)
+            anchorX: num(args.AX, 0),
+            anchorY: num(args.AY, 0),
+            enableMotor: !!args.MOTOR,
+            motorSpeed: num(args.MSPEED, 0),
+            maxMotorTorque: num(args.MTORQUE, 1000),
+            enableLimit: !!args.LIMITS,
+            lowerAngle: num(args.MINA, -Math.PI),
+            upperAngle: num(args.MAXA, Math.PI)
           };
           return { ok: true };
         }
@@ -1353,16 +1471,16 @@
             type: 'prismatic',
             bodyA: args.A,
             bodyB: args.B,
-            anchorX: num(args.ANCHORX, 0),
-            anchorY: num(args.ANCHORY, 0),
+            anchorX: num(args.AX, 0),
+            anchorY: num(args.AY, 0),
             axisX: num(args.AXISX, 1),
             axisY: num(args.AXISY, 0),
-            enableMotor: !!args.ENABLEMOTOR,
-            motorSpeed: num(args.MOTORSPEED, 0),
-            maxMotorForce: num(args.MAXMOTORFORCE, 1000),
-            enableLimit: !!args.ENABLELIMIT,
-            lowerTranslation: num(args.LOWERTRANS, 0),
-            upperTranslation: num(args.UPPERTRANS, 10)
+            enableMotor: !!args.MOTOR,
+            motorSpeed: num(args.MSPEED, 0),
+            maxMotorForce: num(args.MFUERZA, 1000),
+            enableLimit: !!args.LIMITS,
+            lowerTranslation: num(args.MIN, 0),
+            upperTranslation: num(args.MAX, 10)
           };
           return { ok: true };
         }
@@ -1386,6 +1504,29 @@
           const b = physics && physics.bodies && physics.bodies[args.BID];
           if (!b) return { vx: 0, vy: 0 };
           return { ok: true, vx: b.vx, vy: b.vy };
+        }
+        // ===== CUSTOM EVENTS =====
+        if (opcode === 'emit_event') {
+          const scripts = ctx.runtime._engineScripts || {};
+          const chain = scripts['on_custom_event'];
+          if (Array.isArray(chain) && chain.length) {
+            ctx.runtime.start('on_custom_event', scripts, { eventName: args.NAME, eventData: args.DATA });
+          }
+          return { ok: true };
+        }
+        // ===== ANIMATION / ENGINE FX =====
+        if (opcode === 'anim_mode' || opcode === 'anim_burst' || opcode === 'anim_flash' ||
+            opcode === 'anim_confetti' || opcode === 'anim_clear_fx') {
+          return { ok: true };
+        }
+        // ===== PROCEDURES =====
+        if (opcode === 'proc_call') {
+          const scripts = ctx.runtime._engineScripts || {};
+          const chain = scripts['proc_def_' + args.NAME];
+          if (Array.isArray(chain) && chain.length) {
+            ctx.runtime.start('proc_def_' + args.NAME, scripts, {});
+          }
+          return { ok: true };
         }
         return { ok: true };
       }

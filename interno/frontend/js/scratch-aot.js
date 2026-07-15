@@ -5,6 +5,8 @@
  * JSON pura y validada. Sin dependencias externas.
  *
  * Dependencias: scratch-blocks.js (para REGISTRY, CATEGORIES, PORT)
+ *
+ * INYECTE dynamic-blocks.js para soporte de bloques dinámicos en tiempo de ejecución.
  */
 
 (function (global) {
@@ -12,6 +14,7 @@
 
   const ScratchBlocks = global.ScratchBlocks
     || (typeof require !== 'undefined' ? require('./scratch-blocks.js').ScratchBlocks : null);
+  const DynamicBlocks = global.DynamicBlocks || (typeof require !== 'undefined' ? require('./dynamic-blocks.js').DynamicBlocks : null);
 
   const REGISTRY = ScratchBlocks ? ScratchBlocks.registry : null;
 
@@ -101,9 +104,8 @@
         });
       }
       if (block.next) {
-        node.next = Array.isArray(block.next)
-          ? this._serializeChain(block.next, depth + 1)
-          : [this._serialize(block.next, depth + 1)];
+        const nextBlock = Array.isArray(block.next) ? block.next[0] : block.next;
+        node.next = this._serialize(nextBlock, depth + 1);
       }
       if (block._id != null) node._id = block._id;
       return node;
@@ -173,31 +175,43 @@
     validate(machine, opts) {
       opts = opts || {};
       const errors = [];
-      const walk = (chain, inProd) => {
-        (chain || []).forEach(node => {
-          const d = REGISTRY[node.opcode];
-          if (!d) { errors.push('opcode desconocido: ' + node.opcode); return; }
-          if (inProd && d.disabledInProd) {
-            errors.push('bloque inseguro en producción: ' + node.opcode);
-          }
-          Object.keys(d.args).forEach(tok => {
-            const spec = d.args[tok];
-            if ((spec.type === 'reporter' || spec.type === 'boolean') && node.args[tok] != null) {
-              const child = node.args[tok];
-              if (child && child.opcode) {
-                const cd = REGISTRY[child.opcode];
-                if (cd && cd.returns && spec.returns && spec.returns !== 'any' && cd.returns !== 'any') {
-                  if (spec.returns !== cd.returns) {
-                    errors.push(node.opcode + '.' + tok + ': tipo ' + cd.returns + ' no compatible con ' + spec.returns);
-                  }
+      const walkNode = (node, inProd) => {
+        if (!node) return;
+        // Permitir bloques dinámicos (si existe DynamicBlocks)
+        let d = REGISTRY[node.opcode];
+        if (DynamicBlocks && !d) {
+          d = DynamicBlocks.get(node.opcode);
+        }
+        if (!d) { errors.push('opcode desconocido: ' + node.opcode); return; }
+        if (inProd && d.disabledInProd) {
+          errors.push('bloque inseguro en producción: ' + node.opcode);
+        }
+        Object.keys(d.args).forEach(tok => {
+          const spec = d.args[tok];
+          if ((spec.type === 'reporter' || spec.type === 'boolean') && node.args && node.args[tok] != null) {
+            const child = node.args[tok];
+            if (child && child.opcode) {
+              let cd = REGISTRY[child.opcode];
+              if (!cd && DynamicBlocks) {
+                cd = DynamicBlocks.get(child.opcode);
+              }
+              if (cd && cd.returns && spec.returns && spec.returns !== 'any' && cd.returns !== 'any') {
+                if (spec.returns !== cd.returns) {
+                  errors.push(node.opcode + '.' + tok + ': tipo ' + cd.returns + ' no compatible con ' + spec.returns);
                 }
               }
             }
-          });
-          if (d.hasBody && d.bodies) d.bodies.forEach(b => walk(node[b], inProd));
+          }
         });
+        if (d.hasBody && d.bodies) d.bodies.forEach(b => {
+          if (Array.isArray(node[b])) node[b].forEach(n => walkNode(n, inProd));
+        });
+        if (node.next) walkNode(node.next, inProd);
       };
-      Object.keys(machine.events).forEach(ev => walk(machine.events[ev], opts.production));
+      const walkChain = (chain, inProd) => {
+        (chain || []).forEach(node => walkNode(node, inProd));
+      };
+      Object.keys(machine.events).forEach(ev => walkChain(machine.events[ev], opts.production));
       return { valid: errors.length === 0, errors };
     }
   };
