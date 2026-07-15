@@ -69,7 +69,7 @@ class TimeoutSignal extends Error { constructor(ms) { super('timeout:' + ms); th
 function buildProviders() {
   const reporter = function (opcode, args, ctx) {
     switch (opcode) {
-      case 'math_calc': {
+      case 'math': {
         const A = num(args.A), B = num(args.B);
         if (args.OP === '+') return A + B;
         if (args.OP === '-') return A - B;
@@ -138,22 +138,22 @@ function buildProviders() {
         if (!Array.isArray(l)) return 0;
         return l.filter(x => x === args.VAL).length;
       }
-      case 'quiz_get_score': return num(ctx.state['score_' + args.PLAYER]);
-      case 'quiz_get_player_rank': return _rankOf(ctx, ctx.state['score_' + args.PLAYER]);
-      case 'quiz_get_question_category': return 'mixed';
-      case 'quiz_get_option_count': return 4;
-      case 'players_get_points': return num(ctx.state['score_' + args.PLAYER]);
-      case 'players_get_count': return num(ctx.state['player_count'], 0);
-      case 'players_get_all_names': return JSON.stringify(['Jugador 1', 'Jugador 2']);
-      case 'players_get_rank': return _rankOf(ctx, ctx.state['score_' + args.PLAYER]);
-      case 'players_get_var': return ctx.state['player_' + args.PLAYER + '_' + args.VAR];
+      case 'score': return num(ctx.state['score_' + args.PLAYER]);
+      case 'player_rank': return _rankOf(ctx, ctx.state['score_' + args.PLAYER]);
+      case 'question_category': return 'mixed';
+      case 'option_count': return 4;
+      case 'points': return num(ctx.state['score_' + args.PLAYER]);
+      case 'count': return num(ctx.state['player_count'], 0);
+      case 'all_names': return JSON.stringify(['Jugador 1', 'Jugador 2']);
+      case 'rank': return _rankOf(ctx, ctx.state['score_' + args.PLAYER]);
+      case 'get_var': return ctx.state['player_' + args.PLAYER + '_' + args.VAR];
       case 'state_get_persistent': return ctx.state['persist_' + args.KEY];
-      case 'get_timer_remaining': return num(ctx.state['timer_remaining'], 0);
-      case 'quiz_get_correct_option': return 1;
-      case 'quiz_get_question_image': return '(img)';
-      case 'quiz_get_difficulty': return 'media';
-      case 'quiz_get_total_questions': return num(ctx.state['total_questions'], 0);
-      case 'players_get_top_n': return JSON.stringify(['Jugador 1', 'Jugador 2', 'Jugador 3'].slice(0, Math.max(1, num(args.N, 3))));
+      case 'timer_remaining': return num(ctx.state['timer_remaining'], 0);
+      case 'correct_option': return 1;
+      case 'question_image': return '(img)';
+      case 'difficulty': return 'media';
+      case 'total_questions': return num(ctx.state['total_questions'], 0);
+      case 'top_n': return JSON.stringify(['Jugador 1', 'Jugador 2', 'Jugador 3'].slice(0, Math.max(1, num(args.N, 3))));
       case 'list_pop': { const l = ctx.state['list_' + args.NAME]; return Array.isArray(l) && l.length ? l.pop() : ''; }
       case 'list_to_json': { const l = ctx.state['list_' + args.NAME]; return JSON.stringify(Array.isArray(l) ? l : []); }
       case 'string_trim': return String(args.TXT || '').trim();
@@ -183,8 +183,8 @@ function buildProviders() {
       case 'quiz_get_answer_text': return ctx.state['answer_' + args.OPT] || '(respuesta ' + args.OPT + ')';
       case 'quiz_get_leaderboard_json': return JSON.stringify(ctx.state['leaderboard'] || []);
       case 'get_ndi_latency': return num(ctx.state['ndi_latency_' + args.SRC], 12);
-      case 'players_get_name': return ctx.state['player_name_' + args.PLAYER] || args.PLAYER || 'Jugador';
-      case 'players_get_fastest_buzzer': return ctx.state['fastest_buzzer'] || '';
+      case 'name': return ctx.state['player_name_' + args.PLAYER] || args.PLAYER || 'Jugador';
+      case 'fastest_buzzer': return ctx.state['fastest_buzzer'] || '';
       case 'db_query_get_unanswered_count': return num(ctx.state['db_unanswered_count'], 10);
       case 'db_query_search_by_keyword': return num(ctx.state['db_search_' + args.KW], 0);
       case 'db_query_get_hint_text': return ctx.state['db_hint_' + args.QID] || '(pista)';
@@ -223,7 +223,7 @@ function buildProviders() {
         return a + (b - a) * Math.max(0, Math.min(1, t));
       }
       case 'quiz_get_round': return num(ctx.state['quiz_round'], 1);
-      case 'players_get_score_of': return num(ctx.state['score_' + args.PLAYER]);
+      case 'score': return num(ctx.state['score_' + args.PLAYER]);
       case 'event_data': return ctx.eventCtx || null;
       case 'quiz_get_leaderboard_data': {
         const sid = ctx.state['__active_session'];
@@ -244,7 +244,7 @@ function buildProviders() {
 
   const boolean = function (opcode, args, ctx) {
     switch (opcode) {
-      case 'logic_compare': {
+      case 'compare': {
         const A = num(args.A), B = num(args.B);
         if (args.OP === '==') return A === B;
         if (args.OP === '!=') return A !== B;
@@ -254,24 +254,26 @@ function buildProviders() {
         if (args.OP === '<=') return A <= B;
         return false;
       }
-      case 'logic_and_or':
-        return args.OP === 'AND' ? (truthy(args.A) && truthy(args.B)) : (truthy(args.A) || truthy(args.B));
-      case 'logic_not': return !truthy(args.A);
-      case 'logic_xor': return truthy(args.A) !== truthy(args.B);
-      case 'logic_between': {
+      case 'and':
+        return truthy(args.A) && truthy(args.B);
+      case 'or':
+        return truthy(args.A) || truthy(args.B);
+      case 'not': return !truthy(args.A);
+      case 'xor': return truthy(args.A) !== truthy(args.B);
+      case 'between': {
         const v = num(args.VAL), lo = num(args.MIN), hi = num(args.MAX);
         return v >= lo && v <= hi;
       }
-      case 'string_contains':
+      case 'contains':
         return String(args.TXT || '').indexOf(String(args.SUB || '')) >= 0;
-      case 'string_starts_with':
+      case 'starts_with':
         return String(args.TXT || '').indexOf(String(args.SUB || '')) === 0;
-      case 'string_ends_with':
+      case 'ends_with':
         return String(args.TXT || '').lastIndexOf(String(args.SUB || '')) === (String(args.TXT || '').length - String(args.SUB || '').length);
-      case 'string_matches':
+      case 'matches':
         try { return new RegExp(String(args.PAT || '')).test(String(args.TXT || '')); } catch (e) { return false; }
       case 'is_ndi_source_online': return false;
-      case 'players_is_alive': return ctx.state['alive_' + args.PLAYER] !== false;
+      case 'alive': return ctx.state['alive_' + args.PLAYER] !== false;
       case 'key_pressed': return false;
       case 'list_contains': { const l = ctx.state['list_' + args.NAME]; return Array.isArray(l) && l.indexOf(args.VAL) >= 0; }
       case 'quiz_is_paused': return truthy(ctx.state['quiz_paused']);
@@ -333,21 +335,21 @@ function buildProviders() {
     if (opcode === 'list_reverse') { const l = ctx.state['list_' + args.NAME]; if (Array.isArray(l)) l.reverse(); return { ok: true }; }
     if (opcode === 'list_unique') { const l = ctx.state['list_' + args.NAME]; if (Array.isArray(l)) { const seen = {}; ctx.state['list_' + args.NAME] = l.filter(x => { const k = JSON.stringify(x); if (seen[k]) return false; seen[k] = 1; return true; }); } return { ok: true }; }
     // ---- Quiz ----
-    if (opcode === 'quiz_add_score_to_player') { ctx.state['score_' + args.PLAYER] = num(ctx.state['score_' + args.PLAYER]) + num(args.PTS); return { ok: true }; }
-    if (opcode === 'quiz_verify_player_answer') { return { ok: true }; }
-    if (opcode === 'quiz_lock_answers') { return { ok: true }; }
-    if (opcode === 'quiz_fetch_next_question') { return { ok: true }; }
-    if (opcode === 'quiz_init_engine') { return { ok: true }; }
-    if (opcode === 'quiz_set_question') { ctx.state['current_question'] = args.TXT; return { ok: true }; }
-    if (opcode === 'quiz_reveal_answer') { ctx.state['answer_revealed'] = true; return { ok: true }; }
-    if (opcode === 'quiz_reset_scores') { Object.keys(ctx.state).forEach(k => { if (k.indexOf('score_') === 0) delete ctx.state[k]; }); return { ok: true }; }
-    if (opcode === 'quiz_shuffle_options') { return { ok: true }; }
+    if (opcode === 'add_score') { ctx.state['score_' + args.PLAYER] = num(ctx.state['score_' + args.PLAYER]) + num(args.PTS); return { ok: true }; }
+    if (opcode === 'verify_answer') { return { ok: true }; }
+    if (opcode === 'lock_answers') { return { ok: true }; }
+    if (opcode === 'next_question') { return { ok: true }; }
+    if (opcode === 'init') { return { ok: true }; }
+    if (opcode === 'set_question') { ctx.state['current_question'] = args.TXT; return { ok: true }; }
+    if (opcode === 'reveal_answer') { ctx.state['answer_revealed'] = true; return { ok: true }; }
+    if (opcode === 'reset_scores') { Object.keys(ctx.state).forEach(k => { if (k.indexOf('score_') === 0) delete ctx.state[k]; }); return { ok: true }; }
+    if (opcode === 'shuffle_options') { return { ok: true }; }
     // ---- Players (RAM) ----
-    if (opcode === 'players_set_var') { ctx.state['player_' + args.PLAYER + '_' + args.VAR] = args.VAL; return { ok: true }; }
-    if (opcode === 'players_eliminate') { ctx.state['alive_' + args.PLAYER] = false; return { ok: true }; }
-    if (opcode === 'players_revive') { ctx.state['alive_' + args.PLAYER] = true; return { ok: true }; }
-    if (opcode === 'players_award_bonus') { ctx.state['score_' + args.PLAYER] = num(ctx.state['score_' + args.PLAYER]) + num(args.PTS); return { ok: true }; }
-    if (opcode === 'players_sort_by_score') { return { ok: true }; }
+    if (opcode === 'set_var') { ctx.state['player_' + args.PLAYER + '_' + args.VAR] = args.VAL; return { ok: true }; }
+    if (opcode === 'eliminate') { ctx.state['alive_' + args.PLAYER] = false; return { ok: true }; }
+    if (opcode === 'revive') { ctx.state['alive_' + args.PLAYER] = true; return { ok: true }; }
+    if (opcode === 'award_bonus') { ctx.state['score_' + args.PLAYER] = num(ctx.state['score_' + args.PLAYER]) + num(args.PTS); return { ok: true }; }
+    if (opcode === 'sort_scores') { return { ok: true }; }
     if (opcode === 'engine_create_player_client') {
       const base = args.BASE || 'persona';
       const n = num(args.SLOTS, 4);
@@ -381,7 +383,7 @@ function buildProviders() {
     if (opcode === 'system_replicate_state_to_node') { return { ok: true }; }
     if (opcode === 'runtime_debug_log') { return { ok: true }; }
     if (opcode === 'runtime_export_json') { return { ok: true }; }
-    if (opcode === 'global_panic_reset') { ctx.runtime.killed = true; return { ok: true }; }
+    if (opcode === 'panic_reset') { ctx.runtime.killed = true; return { ok: true }; }
     // ---- Sprites (viven en ctx.state.__sprites, serializable) ----
     if (opcode === 'sprite_spawn') {
       ctx.state.__sprites = ctx.state.__sprites || {};

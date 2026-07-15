@@ -2145,57 +2145,66 @@
           break;
 
         /* ---- Quiz ---- */
-        case 'quiz_init_engine':
+        case 'init':
           state.footer = 'Quiz: ' + (a.N || '?') + ' preguntas · ' + (a.CAT || 'mix');
           break;
-        case 'quiz_fetch_next_question':
+        case 'next_question':
           state.effects.push('📝 Siguiente pregunta');
           break;
-        case 'quiz_lock_answers':
+        case 'lock_answers':
           state.effects.push('🔒 Respuestas bloqueadas');
           break;
-        case 'quiz_verify_player_answer':
+        case 'verify_answer':
           state.effects.push('✓ Verificando ' + (a.PLAYER || 'jugador'));
           break;
-        case 'quiz_add_score_to_player':
+        case 'add_score':
           state.effects.push('+' + (a.PTS || 10) + ' pts → ' + (a.PLAYER || ''));
           break;
-        case 'quiz_get_current_question_text':
+        case 'question_text':
           if (!state.body) state.body = '(pregunta actual)';
           break;
-        case 'quiz_get_answer_text':
+        case 'answer_text':
           if (a.OPT) state.options.push(a.OPT);
           break;
 
-        /* ---- Estado ---- */
-        case 'state_init_memory_key':
-          state.effects.push('Var: ' + (a.KEY || '') + ' = ' + (a.DEF || 0));
-          break;
-        case 'state_set_memory':
-          state.effects.push((a.KEY || '') + ' = ' + (a.VAL || ''));
-          break;
-        case 'state_increment_memory':
-          state.effects.push((a.KEY || '') + ' += ' + (a.BY || 1));
-          break;
-        case 'state_get_memory_value':
-          state.effects.push('Leer: ' + (a.KEY || ''));
-          break;
-
         /* ---- Players ---- */
-        case 'players_set_active_slots':
+        case 'max_players':
           state.footer = (a.N || '?') + ' jugadores activos';
           break;
-        case 'players_strike_penalize':
+        case 'strike':
           state.effects.push('⚡ Strike → ' + (a.PLAYER || ''));
           break;
-        case 'players_toggle_lockout':
+        case 'lockout':
           state.effects.push((a.ON ? '🔒 Lockout ' : '🔓 Unlock ') + (a.PLAYER || ''));
           break;
-        case 'players_set_avatar':
+        case 'avatar':
           state.effects.push('Avatar → ' + (a.PLAYER || ''));
           break;
-        case 'players_get_name':
+        case 'name':
           state.effects.push('Nombre: ' + (a.PLAYER || ''));
+          break;
+
+        /* ---- Control ---- */
+        case 'wait_seconds':
+          state.effects.push('⏱ Esperar ' + (a.SEC || 1) + 's');
+          break;
+        case 'if_then':
+          state.effects.push('🔀 Si... entonces');
+          break;
+        case 'if_then_else':
+          state.effects.push('🔀 Si... sino...');
+          break;
+        case 'repeat_times':
+          state.effects.push('🔁 Repetir ' + (a.N || '?') + 'x');
+          break;
+        case 'repeat_until':
+          state.effects.push('🔁 Repetir hasta que...');
+          break;
+        case 'break_stack':
+          state.effects.push('⏹ Interrumpir');
+          break;
+        case 'panic_reset':
+          state.effects.push('🚨 PANIC RESET');
           break;
 
         /* ---- Control ---- */
@@ -2259,7 +2268,7 @@
         case 'quiz_get_round':
           state.effects.push('📊 Ronda actual');
           break;
-        case 'players_get_score_of':
+        case 'score':
           state.effects.push('🏆 Puntos de ' + (a.PLAYER || '?'));
           break;
         case 'timer_is_paused':

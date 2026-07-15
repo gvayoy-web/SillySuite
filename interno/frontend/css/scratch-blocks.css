@@ -1,34 +1,47 @@
 /* ==========================================================================
-   SCRATCH BLOCKS — SillyBuilder "Personalidad Brutalista" (Anti-Scratch)
+   SCRATCH BLOCKS — SillyBuilder "Neo-Brutalist" (Anti-Scratch)
    Bloques rectangulares, sombras duras, siluetas distintas por tipo
+   Tema oscuro alto contraste: fondo negro, elementos brillantes
    Cada tipo tiene su propia "alma" visual: forma, animación, feedback
    ========================================================================== */
 
 :root {
-  /* Paleta brutalista (papel / tinta) */
-  --paper:        #ECEAE3;
-  --paper-2:      #E2DFD6;
-  --surface:      #F4F2EC;
-  --ink:          #0a0a0a;
-  --line:         #0a0a0a;
-  --muted:        #6b6b6b;
+  /* Neo-Brutalist Dark Theme Tokens */
+  --bg-primary:   #0D1117;        /* GitHub dark background */
+  --bg-secondary: #161B22;        /* Slightly lighter dark */
+  --bg-tertiary:  #21262D;        /* Card backgrounds */
+  --bg-hover:     #2D333B;
+  --bg-card:      #161B22;
+  
+  --fg-primary:   #E6EDF3;        /* Primary text */
+  --fg-secondary: #8B949E;        /* Muted text */
+  --fg-muted:     #6E7681;
+  
+  --ink:          #0D1117;        /* Border/shadow color (dark) */
+  --line:         #30363D;        /* Border color */
+  --border:       #30363D;
+  
   --hard:         4px 4px 0 var(--ink);
   --hard-lg:      6px 6px 0 var(--ink);
   --hard-xl:      8px 8px 0 var(--ink);
   --hard-xxl:     12px 12px 0 var(--ink);
 
-  /* Reasignación de tokens heredados -> brutalista claro */
-  --bg-primary:   #ECEAE3;
-  --bg-secondary: #F4F2EC;
-  --bg-tertiary:  #E2DFD6;
-  --bg-hover:     #d6d3ca;
-  --text-primary: #0a0a0a;
-  --text-muted:   #6b6b6b;
-  --border-primary: #0a0a0a;
-  --border-secondary: #0a0a0a;
+  /* Legacy token mapping */
+  --paper:        var(--bg-tertiary);
+  --paper-2:      var(--bg-secondary);
+  --surface:      var(--bg-card);
+  --muted:        var(--fg-muted);
+  --bg-primary:   var(--bg-primary);
+  --bg-secondary: var(--bg-secondary);
+  --bg-tertiary:  var(--bg-tertiary);
+  --bg-hover:     var(--bg-hover);
+  --text-primary: var(--fg-primary);
+  --text-muted:   var(--fg-muted);
+  --border-primary: var(--border);
+  --border-secondary: var(--line);
 
   /* Tipografía estructural brutalista */
-  --font-mono:    'Space Mono', 'SF Mono', 'Consolas', monospace;
+  --font-mono:    'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', monospace;
   --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --font-body:    'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --fw-black:     900;
@@ -42,51 +55,51 @@
   --space-lg:     24px;
   --space-xl:     32px;
 
-  /* Colores de categoría (planos, tipo Scratch pero SIN muesca) */
-  --cat-events: #FFB000;
-  --cat-control: #FF5E3A;
-  --cat-looks: #9B6BFF;
-  --cat-sound: #D24BD2;
-  --cat-ndi: #00B894;
-  --cat-displays: #FF8C1A;
-  --cat-motion: #3C8DFF;
-  --cat-variables: #FF9E3D;
-  --cat-operators: #36B6E0;
-  --cat-custom: #FF6B9D;
-  --cat-players: #3C8DFF;
-  --cat-db: #B5793A;
-  --cat-runtime: #FF6B9D;
-  --cat-engine: #00B894;
-  --cat-sprites: #FF6B00;
-  --cat-physics: #2E7D32;
-  --cat-procedures: #8B5CF6;
+  /* Colores de categoría - Alto contraste para tema oscuro */
+  --cat-events:    #FFD700;  /* Gold */
+  --cat-control:   #00D9FF;  /* Cyan */
+  --cat-looks:     #FF6B6B;  /* Red */
+  --cat-audio:     #4CAF50;  /* Green */
+  --cat-ndi:       #9C27B0;  /* Purple */
+  --cat-displays:  #2196F3;  /* Blue */
+  --cat-quiz:      #FF9800;  /* Orange */
+  --cat-state:     #795548;  /* Brown */
+  --cat-operators: #607D8B;  /* Blue Grey */
+  --cat-custom:    #E91E63;  /* Pink */
+  --cat-players:   #FF5722;  /* Deep Orange */
+  --cat-db:        #3F51B5;  /* Indigo */
+  --cat-runtime:   #757575;  /* Grey */
+  --cat-engine:    #FFEB3B;  /* Yellow */
+  --cat-sprites:   #FF9800;  /* Orange */
+  --cat-physics:   #2196F3;  /* Blue */
+  --cat-procedures: #9C27B0; /* Purple */
 
-  /* Iconos de categoría (para glifos en bloques y paleta) */
-  --icon-events: '⚡';
-  --icon-control: '⚙️';
-  --icon-looks: '🎨';
-  --icon-sound: '🔊';
-  --icon-ndi: '📡';
-  --icon-displays: '🖥️';
-  --icon-motion: '🚀';
-  --icon-variables: '📦';
-  --icon-operators: '🔢';
-  --icon-custom: '📋';
-  --icon-players: '👥';
-  --icon-db: '🗃️';
-  --icon-runtime: '⚡';
-  --icon-engine: '🎮';
-  --icon-sprites: '🎭';
-  --icon-physics: '⚗️';
-  --icon-procedures: '📖';
+  /* Iconos de categoría */
+  --icon-events:    '⚡';
+  --icon-control:   '⚙️';
+  --icon-looks:     '🎨';
+  --icon-audio:     '🔊';
+  --icon-ndi:       '📡';
+  --icon-displays:  '🖥️';
+  --icon-quiz:      '🧠';
+  --icon-state:     '📦';
+  --icon-operators: '⚙️';
+  --icon-custom:    '📋';
+  --icon-players:   '👥';
+  --icon-db:        '🗄️';
+  --icon-runtime:   '🔄';
+  --icon-engine:    '🎮';
+  --icon-sprites:   '🎭';
+  --icon-physics:   '⚖️';
+  --icon-procedures:'📖';
 
-  --port-number: #36B6E0;
-  --port-string: #9B6BFF;
-  --port-boolean: #00B894;
-  --port-color: #D24BD2;
-  --port-ndi: #00B894;
-  --port-display: #FF8C1A;
-  --port-any: #6b6b6b;
+  --port-number:   #00D9FF;
+  --port-string:   #FF6B6B;
+  --port-boolean:  #4CAF50;
+  --port-color:    #E91E63;
+  --port-ndi:      #9C27B0;
+  --port-display:  #2196F3;
+  --port-any:      #6E7681;
 }
 
 /* ---- Contenedor de pila: apila verticalmente y marca si está conectado ---- */
@@ -98,6 +111,9 @@
   margin-bottom: 24px;
   padding: 22px 10px 10px 16px;
   position: relative;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border);
+  border-radius: 8px;
 }
 
 /* Etiqueta de estado de la pila: conectado / suelto */
@@ -109,31 +125,31 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 3px 8px;
-  border: 2px solid var(--ink, #0a0a0a);
+  border: 2px solid var(--ink);
   z-index: 4;
   pointer-events: none;
   white-space: nowrap;
 }
 .stack-connected > .stack-status {
-  background: var(--cat-ndi, #00B894);
-  color: #04201a;
-  box-shadow: 2px 2px 0 var(--ink, #0a0a0a);
+  background: var(--cat-audio);
+  color: var(--bg-primary);
+  box-shadow: 2px 2px 0 var(--ink);
 }
 .stack-orphan > .stack-status {
   background: #ef4444;
   color: #fff;
-  box-shadow: 2px 2px 0 var(--ink, #0a0a0a);
+  box-shadow: 2px 2px 0 var(--ink);
 }
 .scratch-stack.stack-connected {
-  border-left: 5px solid var(--cat-ndi, #00B894);
-  background: linear-gradient(90deg, rgba(0,184,148,0.10), transparent 16px);
+  border-left: 5px solid var(--cat-audio);
+  background: linear-gradient(90deg, rgba(76,175,80,0.10), transparent 16px);
 }
 .scratch-stack.stack-orphan {
   border-left: 5px dashed #ef4444;
   background: linear-gradient(90deg, rgba(239,68,68,0.08), transparent 16px);
 }
 .scratch-block.block-connected {
-  box-shadow: inset 4px 0 0 var(--block-color, var(--cat-control, #FF5E3A));
+  box-shadow: inset 4px 0 0 var(--block-color, var(--cat-control));
 }
 .scratch-block.block-orphan {
   outline: 2px dashed #ef4444;
@@ -148,10 +164,10 @@
   letter-spacing: 0.04em;
   background: #ef4444;
   color: #fff;
-  border: 2px solid var(--ink, #0a0a0a);
+  border: 2px solid var(--ink);
   padding: 3px 7px;
   text-transform: uppercase;
-  box-shadow: 2px 2px 0 var(--ink, #0a0a0a);
+  box-shadow: 2px 2px 0 var(--ink);
   pointer-events: none;
 }
 /* Cuerpos anidados también apilan verticalmente */
@@ -171,8 +187,8 @@
   min-height: 34px;
   padding: 10px 14px 14px 20px; /* padding-left mayor para el diente */
   margin: 0;
-  background: var(--ink); /* color de borde */
-  color: var(--block-text, var(--ink));
+  background: var(--ink); /* color de borde - dark */
+  color: var(--block-text, var(--fg-primary));
   font-family: var(--font-display);
   font-size: 0.85rem;
   font-weight: 700;
@@ -227,7 +243,7 @@
   margin-right: 4px;
   font-size: 0.75rem;
   font-weight: 900;
-  color: var(--ink);
+  color: var(--bg-primary);
   background: var(--block-fill);
   border: 2px solid var(--ink);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
@@ -240,42 +256,42 @@
 .block-physics .block-cat-glyph { content: var(--icon-physics); }
 
 /* Bloques por categoría: relleno con gradiente sutil + texto de contraste */
-.block-events    { --block-fill: var(--cat-events);   --block-text: #0a0a0a; background: linear-gradient(135deg, var(--cat-events), color-mix(in srgb, var(--cat-events) 85%, #000)); }
-.block-control   { --block-fill: var(--cat-control);  --block-text: #0a0a0a; background: linear-gradient(135deg, var(--cat-control), color-mix(in srgb, var(--cat-control) 85%, #000)); }
-.block-looks     { --block-fill: var(--cat-looks);    --block-text: #fff; background: linear-gradient(135deg, var(--cat-looks), color-mix(in srgb, var(--cat-looks) 85%, #000)); }
-.block-audio     { --block-fill: var(--cat-sound);    --block-text: #fff; background: linear-gradient(135deg, var(--cat-sound), color-mix(in srgb, var(--cat-sound) 85%, #000)); }
-.block-ndi       { --block-fill: var(--cat-ndi);      --block-text: #0a0a0a; background: linear-gradient(135deg, var(--cat-ndi), color-mix(in srgb, var(--cat-ndi) 85%, #000)); }
-.block-displays  { --block-fill: var(--cat-displays); --block-text: #0a0a0a; background: linear-gradient(135deg, var(--cat-displays), color-mix(in srgb, var(--cat-displays) 85%, #000)); }
-.block-quiz      { --block-fill: var(--cat-motion);   --block-text: #fff; background: linear-gradient(135deg, var(--cat-motion), color-mix(in srgb, var(--cat-motion) 85%, #000)); }
-.block-state     { --block-fill: var(--cat-variables);--block-text: #0a0a0a; background: linear-gradient(135deg, var(--cat-variables), color-mix(in srgb, var(--cat-variables) 85%, #000)); }
-.block-operators { --block-fill: var(--cat-operators);--block-text: #0a0a0a; background: linear-gradient(135deg, var(--cat-operators), color-mix(in srgb, var(--cat-operators) 85%, #000)); }
-.block-custom    { --block-fill: var(--cat-custom);   --block-text: #fff; background: linear-gradient(135deg, var(--cat-custom), color-mix(in srgb, var(--cat-custom) 85%, #000)); }
-.block-players   { --block-fill: var(--cat-players);  --block-text: #fff; background: linear-gradient(135deg, var(--cat-players), color-mix(in srgb, var(--cat-players) 85%, #000)); }
-.block-db        { --block-fill: var(--cat-db);       --block-text: #fff; background: linear-gradient(135deg, var(--cat-db), color-mix(in srgb, var(--cat-db) 85%, #000)); }
-.block-runtime   { --block-fill: var(--cat-runtime);  --block-text: #fff; background: linear-gradient(135deg, var(--cat-runtime), color-mix(in srgb, var(--cat-runtime) 85%, #000)); }
-.block-engine    { --block-fill: var(--cat-engine);   --block-text: #0a0a0a; background: linear-gradient(135deg, var(--cat-engine), color-mix(in srgb, var(--cat-engine) 85%, #000)); }
-.block-sprites   { --block-fill: var(--cat-sprites);  --block-text: #0a0a0a; background: linear-gradient(135deg, var(--cat-sprites), color-mix(in srgb, var(--cat-sprites) 85%, #000)); }
-.block-physics   { --block-fill: var(--cat-physics);  --block-text: #fff; background: linear-gradient(135deg, var(--cat-physics), color-mix(in srgb, var(--cat-physics) 85%, #000)); }
-  .block-procedures { --block-fill: var(--cat-procedures); --block-text: #fff; background: linear-gradient(135deg, var(--cat-procedures), color-mix(in srgb, var(--cat-procedures) 85%, #000)); }
+.block-events    { --block-fill: var(--cat-events);   --block-text: var(--bg-primary); background: linear-gradient(135deg, var(--cat-events), color-mix(in srgb, var(--cat-events) 85%, var(--bg-primary))); }
+.block-control   { --block-fill: var(--cat-control);  --block-text: var(--bg-primary); background: linear-gradient(135deg, var(--cat-control), color-mix(in srgb, var(--cat-control) 85%, var(--bg-primary))); }
+.block-looks     { --block-fill: var(--cat-looks);    --block-text: var(--bg-primary); background: linear-gradient(135deg, var(--cat-looks), color-mix(in srgb, var(--cat-looks) 85%, var(--bg-primary))); }
+.block-audio     { --block-fill: var(--cat-audio);    --block-text: var(--bg-primary); background: linear-gradient(135deg, var(--cat-audio), color-mix(in srgb, var(--cat-audio) 85%, var(--bg-primary))); }
+.block-ndi       { --block-fill: var(--cat-ndi);      --block-text: var(--fg-primary); background: linear-gradient(135deg, var(--cat-ndi), color-mix(in srgb, var(--cat-ndi) 85%, var(--bg-primary))); }
+.block-displays  { --block-fill: var(--cat-displays); --block-text: var(--bg-primary); background: linear-gradient(135deg, var(--cat-displays), color-mix(in srgb, var(--cat-displays) 85%, var(--bg-primary))); }
+.block-quiz      { --block-fill: var(--cat-quiz);     --block-text: var(--bg-primary); background: linear-gradient(135deg, var(--cat-quiz), color-mix(in srgb, var(--cat-quiz) 85%, var(--bg-primary))); }
+.block-state     { --block-fill: var(--cat-state);    --block-text: var(--fg-primary); background: linear-gradient(135deg, var(--cat-state), color-mix(in srgb, var(--cat-state) 85%, var(--bg-primary))); }
+.block-operators { --block-fill: var(--cat-operators);--block-text: var(--bg-primary); background: linear-gradient(135deg, var(--cat-operators), color-mix(in srgb, var(--cat-operators) 85%, var(--bg-primary))); }
+.block-custom    { --block-fill: var(--cat-custom);   --block-text: var(--fg-primary); background: linear-gradient(135deg, var(--cat-custom), color-mix(in srgb, var(--cat-custom) 85%, var(--bg-primary))); }
+.block-players   { --block-fill: var(--cat-players);  --block-text: var(--bg-primary); background: linear-gradient(135deg, var(--cat-players), color-mix(in srgb, var(--cat-players) 85%, var(--bg-primary))); }
+.block-db        { --block-fill: var(--cat-db);       --block-text: var(--fg-primary); background: linear-gradient(135deg, var(--cat-db), color-mix(in srgb, var(--cat-db) 85%, var(--bg-primary))); }
+.block-runtime   { --block-fill: var(--cat-runtime);  --block-text: var(--fg-primary); background: linear-gradient(135deg, var(--cat-runtime), color-mix(in srgb, var(--cat-runtime) 85%, var(--bg-primary))); }
+.block-engine    { --block-fill: var(--cat-engine);   --block-text: var(--bg-primary); background: linear-gradient(135deg, var(--cat-engine), color-mix(in srgb, var(--cat-engine) 85%, var(--bg-primary))); }
+.block-sprites   { --block-fill: var(--cat-sprites);  --block-text: var(--bg-primary); background: linear-gradient(135deg, var(--cat-sprites), color-mix(in srgb, var(--cat-sprites) 85%, var(--bg-primary))); }
+.block-physics   { --block-fill: var(--cat-physics);  --block-text: var(--fg-primary); background: linear-gradient(135deg, var(--cat-physics), color-mix(in srgb, var(--cat-physics) 85%, var(--bg-primary))); }
+.block-procedures { --block-fill: var(--cat-procedures); --block-text: var(--fg-primary); background: linear-gradient(135deg, var(--cat-procedures), color-mix(in srgb, var(--cat-procedures) 85%, var(--bg-primary))); }
 
 /* Glow sutil por categoría al hover */
-.block-events:hover    { filter: drop-shadow(0 0 8px var(--cat-events)); }
-.block-control:hover   { filter: drop-shadow(0 0 8px var(--cat-control)); }
-.block-looks:hover     { filter: drop-shadow(0 0 8px var(--cat-looks)); }
-.block-audio:hover     { filter: drop-shadow(0 0 8px var(--cat-sound)); }
-.block-ndi:hover       { filter: drop-shadow(0 0 8px var(--cat-ndi)); }
-.block-displays:hover  { filter: drop-shadow(0 0 8px var(--cat-displays)); }
-.block-quiz:hover      { filter: drop-shadow(0 0 8px var(--cat-motion)); }
-.block-state:hover     { filter: drop-shadow(0 0 8px var(--cat-variables)); }
-.block-operators:hover { filter: drop-shadow(0 0 8px var(--cat-operators)); }
-.block-custom:hover    { filter: drop-shadow(0 0 8px var(--cat-custom)); }
-.block-players:hover   { filter: drop-shadow(0 0 8px var(--cat-players)); }
-.block-db:hover        { filter: drop-shadow(0 0 8px var(--cat-db)); }
-.block-runtime:hover   { filter: drop-shadow(0 0 8px var(--cat-runtime)); }
-.block-engine:hover    { filter: drop-shadow(0 0 8px var(--cat-engine)); }
-.block-sprites:hover   { filter: drop-shadow(0 0 8px var(--cat-sprites)); }
-.block-physics:hover   { filter: drop-shadow(0 0 8px var(--cat-physics)); }
-.block-procedures:hover { filter: drop-shadow(0 0 8px var(--cat-procedures)); }
+.block-events:hover    { filter: drop-shadow(var(--hard-lg)) drop-shadow(0 0 8px var(--cat-events)); }
+.block-control:hover   { filter: drop-shadow(var(--hard-lg)) drop-shadow(0 0 8px var(--cat-control)); }
+.block-looks:hover     { filter: drop-shadow(var(--hard-lg)) drop-shadow(0 0 8px var(--cat-looks)); }
+.block-audio:hover     { filter: drop-shadow(var(--hard-lg)) drop-shadow(0 0 8px var(--cat-audio)); }
+.block-ndi:hover       { filter: drop-shadow(var(--hard-lg)) drop-shadow(0 0 8px var(--cat-ndi)); }
+.block-displays:hover  { filter: drop-shadow(var(--hard-lg)) drop-shadow(0 0 8px var(--cat-displays)); }
+.block-quiz:hover      { filter: drop-shadow(var(--hard-lg)) drop-shadow(0 0 8px var(--cat-quiz)); }
+.block-state:hover     { filter: drop-shadow(var(--hard-lg)) drop-shadow(0 0 8px var(--cat-state)); }
+.block-operators:hover { filter: drop-shadow(var(--hard-lg)) drop-shadow(0 0 8px var(--cat-operators)); }
+.block-custom:hover    { filter: drop-shadow(var(--hard-lg)) drop-shadow(0 0 8px var(--cat-custom)); }
+.block-players:hover   { filter: drop-shadow(var(--hard-lg)) drop-shadow(0 0 8px var(--cat-players)); }
+.block-db:hover        { filter: drop-shadow(var(--hard-lg)) drop-shadow(0 0 8px var(--cat-db)); }
+.block-runtime:hover   { filter: drop-shadow(var(--hard-lg)) drop-shadow(0 0 8px var(--cat-runtime)); }
+.block-engine:hover    { filter: drop-shadow(var(--hard-lg)) drop-shadow(0 0 8px var(--cat-engine)); }
+.block-sprites:hover   { filter: drop-shadow(var(--hard-lg)) drop-shadow(0 0 8px var(--cat-sprites)); }
+.block-physics:hover   { filter: drop-shadow(var(--hard-lg)) drop-shadow(0 0 8px var(--cat-physics)); }
+.block-procedures:hover { filter: drop-shadow(var(--hard-lg)) drop-shadow(0 0 8px var(--cat-procedures)); }
 
 /* ==========================================================================
    SILUETAS DISTINTAS POR TIPO — CADA UNA TIENE SU "ALMA" VISUAL
@@ -421,10 +437,10 @@
 .scratch-block input,
 .scratch-block select,
 .scratch-block textarea {
-  background: rgba(255,255,255,0.85);
-  border: 2px solid var(--ink);
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border);
   border-radius: 0;
-  color: var(--ink);
+  color: var(--fg-primary);
   font: inherit;
   font-weight: 700;
   padding: 2px 6px;
@@ -433,7 +449,7 @@
 .scratch-block input:focus,
 .scratch-block select:focus,
 .scratch-block textarea:focus {
-  background: #fff;
+  background: var(--bg-hover);
   box-shadow: 2px 2px 0 var(--ink);
 }
 .scratch-block input[type="range"] {
@@ -461,10 +477,10 @@
   font-family: var(--font-mono);
   font-size: 0.6rem;
   font-weight: 700;
-  color: var(--cat-operators, #36B6E0);
-  background: rgba(54,182,224,0.15);
+  color: var(--port-number);
+  background: rgba(0,217,255,0.15);
   padding: 1px 4px;
-  border: 1px solid var(--cat-operators, #36B6E0);
+  border: 1px solid var(--port-number);
   margin-left: 4px;
 }
 
@@ -472,7 +488,7 @@
 .arg-wrapper.boolean-input .arg[type="checkbox"] {
   width: 18px;
   height: 18px;
-  accent-color: var(--port-boolean, #00B894);
+  accent-color: var(--port-boolean);
   cursor: pointer;
 }
 
@@ -480,16 +496,16 @@
 .palette-block.dragging .pb-type::after {
   content: ' ← suelta en puerto compatible';
   font-size: 0.6rem;
-  color: var(--text-muted);
+  color: var(--fg-muted);
   margin-left: 8px;
   white-space: nowrap;
 }
 
 /* Feedback visual al arrastrar sobre input compatible/incompatible */
 .arg-wrapper.drop-compatible {
-  outline: 2px solid var(--port-boolean, #00B894);
+  outline: 2px solid var(--port-boolean);
   outline-offset: 2px;
-  background: rgba(0,184,148,0.1);
+  background: rgba(76,175,80,0.1);
 }
 .arg-wrapper.drop-incompatible {
   outline: 2px solid #ef4444;
@@ -509,7 +525,7 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: var(--surface, #F4F2EC);
+  background: var(--bg-secondary);
   border: 2px solid var(--ink);
   box-shadow: var(--hard);
   z-index: 100;
@@ -522,11 +538,12 @@
   padding: 6px 10px;
   cursor: pointer;
   transition: background 50ms;
+  color: var(--fg-primary);
 }
 .autocomplete-item:hover,
 .autocomplete-item.selected {
-  background: var(--cat-control, #FF5E3A);
-  color: #fff;
+  background: var(--cat-control);
+  color: var(--bg-primary);
 }
 .autocomplete-item .type-badge {
   font-size: 0.6rem;
@@ -551,28 +568,28 @@
 .port-ndi { --port-color: var(--port-ndi); }
 .port-display { --port-color: var(--port-display); }
 .port-any { --port-color: var(--port-any); }
-}
 
 .arg-wrapper.arg-drop-target {
-  outline: 2px solid var(--cat-control, #FF5E3A);
+  outline: 2px solid var(--cat-control);
   outline-offset: 2px;
-  background: rgba(255,94,58,0.15);
+  background: rgba(0,217,255,0.15);
   animation: arg-drop-pulse 0.8s ease-in-out infinite;
 }
 @keyframes arg-drop-pulse {
-  0%, 100% { outline-color: var(--cat-control, #FF5E3A); box-shadow: 0 0 0 0 rgba(255,94,58,0.4); }
-  50% { outline-color: rgba(255,94,58,0.6); box-shadow: 0 0 0 6px rgba(255,94,58,0.1); }
+  0%, 100% { outline-color: var(--cat-control); box-shadow: 0 0 0 0 rgba(0,217,255,0.4); }
+  50% { outline-color: rgba(0,217,255,0.6); box-shadow: 0 0 0 6px rgba(0,217,255,0.1); }
 }
 
 /* ---- Stepper en vivo: animaciones y feedback visual ---- */
 .scratch-block.block-active {
   filter: drop-shadow(var(--hard-lg));
-  background: #fff;
+  background: var(--cat-control);
+  color: var(--bg-primary);
   animation: block-pulse 0.8s ease-in-out infinite;
 }
 @keyframes block-pulse {
   0%, 100% { filter: drop-shadow(var(--hard-lg)); }
-  50% { filter: drop-shadow(0 0 8px rgba(255,94,58,0.6)); }
+  50% { filter: drop-shadow(0 0 8px var(--cat-control)); }
 }
 .scratch-block.block-error {
   filter: drop-shadow(4px 4px 0 #b00020);
@@ -590,16 +607,16 @@
 .scratch-block-body-zone {
   margin: 4px 0;
   padding: 6px 8px;
-  background: rgba(0,0,0,0.03);
-  border: 2px dashed var(--border-secondary, #484f58);
+  background: var(--bg-secondary);
+  border: 2px dashed var(--border);
   border-left: 4px solid var(--block-fill, var(--cat-control));
   min-height: 32px;
   transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   position: relative;
 }
 .scratch-block-body-zone:hover {
-  background: rgba(0,0,0,0.06);
-  box-shadow: inset 0 0 0 1px rgba(10,10,10,0.1);
+  background: var(--bg-hover);
+  box-shadow: inset 0 0 0 1px var(--ink);
 }
 .scratch-block-body-label {
   font-size: 0.6rem;
@@ -685,7 +702,7 @@
   gap: 10px;
   padding: 10px 14px;
   margin: 6px 8px;
-  background: var(--surface, #F4F2EC);
+  background: var(--bg-secondary);
   border: 2px solid var(--ink);
   box-shadow: var(--hard);
   border-radius: 0;
@@ -696,6 +713,7 @@
 .palette-block:hover {
   transform: translate(-2px, -2px);
   box-shadow: var(--hard-lg);
+  background: var(--bg-hover);
 }
 .palette-block:active {
   transform: translate(1px, 1px);
@@ -718,7 +736,7 @@
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.85rem;
-  color: var(--ink);
+  color: var(--fg-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -730,19 +748,19 @@
   padding: 2px 8px;
   border: 2px solid var(--ink);
   background: var(--ink);
-  color: var(--surface);
+  color: var(--bg-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   white-space: nowrap;
   flex-shrink: 0;
 }
 /* Colores por tipo de bloque en la paleta */
-.palette-block.block-hat .pb-type       { background: var(--cat-events);   border-color: var(--cat-events);   color: #0a0a0a; }
-.palette-block.block-stack .pb-type    { background: var(--cat-control);  border-color: var(--cat-control);  color: #0a0a0a; }
-.palette-block.block-reporter .pb-type { background: var(--cat-operators);border-color: var(--cat-operators);color: #0a0a0a; }
-.palette-block.block-boolean .pb-type  { background: var(--cat-variables);border-color: var(--cat-variables);color: #0a0a0a; }
-.palette-block.block-c .pb-type        { background: var(--cat-control);  border-color: var(--cat-control);  color: #0a0a0a; }
-.palette-block.block-cap .pb-type      { background: var(--cat-runtime);  border-color: var(--cat-runtime);  color: #fff; }
+.palette-block.block-hat .pb-type       { background: var(--cat-events);   border-color: var(--cat-events);   color: var(--bg-primary); }
+.palette-block.block-stack .pb-type    { background: var(--cat-control);  border-color: var(--cat-control);  color: var(--bg-primary); }
+.palette-block.block-reporter .pb-type { background: var(--cat-operators);border-color: var(--cat-operators);color: var(--bg-primary); }
+.palette-block.block-boolean .pb-type  { background: var(--cat-state);    border-color: var(--cat-state);    color: var(--fg-primary); }
+.palette-block.block-c .pb-type        { background: var(--cat-control);  border-color: var(--cat-control);  color: var(--bg-primary); }
+.palette-block.block-cap .pb-type      { background: var(--cat-runtime);  border-color: var(--cat-runtime);  color: var(--fg-primary); }
 
 /* Hidden state for search filter */
 .palette-block.hidden {
@@ -761,22 +779,22 @@
   border: 2px solid var(--ink);
   margin: 2px 0;
 }
-.hat-indicator        { background: var(--cat-events);   color: #0a0a0a; }
-.reporter-indicator   { background: var(--cat-operators);color: #0a0a0a; }
-.boolean-indicator    { background: var(--cat-variables);color: #0a0a0a; }
-.command-indicator    { background: var(--cat-control);  color: #0a0a0a; }
-.c-indicator          { background: var(--cat-control);  color: #0a0a0a; }
-.stack-indicator      { background: var(--cat-control);  color: #0a0a0a; }
-.control-indicator    { background: var(--cat-control);  color: #0a0a0a; }
-.operator-indicator   { background: var(--cat-operators);color: #0a0a0a; }
-.event-indicator      { background: var(--cat-events);   color: #0a0a0a; }
-.variable-indicator   { background: var(--cat-variables);color: #0a0a0a; }
-.list-indicator       { background: var(--cat-custom);   color: #fff; }
+.hat-indicator        { background: var(--cat-events);   color: var(--bg-primary); }
+.reporter-indicator   { background: var(--cat-operators);color: var(--bg-primary); }
+.boolean-indicator    { background: var(--cat-state);    color: var(--fg-primary); }
+.command-indicator    { background: var(--cat-control);  color: var(--bg-primary); }
+.c-indicator          { background: var(--cat-control);  color: var(--bg-primary); }
+.stack-indicator      { background: var(--cat-control);  color: var(--bg-primary); }
+.control-indicator    { background: var(--cat-control);  color: var(--bg-primary); }
+.operator-indicator   { background: var(--cat-operators);color: var(--bg-primary); }
+.event-indicator      { background: var(--cat-events);   color: var(--bg-primary); }
+.variable-indicator   { background: var(--cat-state);    color: var(--bg-primary); }
+.list-indicator       { background: var(--cat-custom);   color: var(--fg-primary); }
 
 /* Connection feedback animation */
 @keyframes connect-snap {
   0% { transform: scale(1); }
-  50% { transform: scale(1.05); box-shadow: 0 0 0 4px var(--cat-ndi, #00B894); }
+  50% { transform: scale(1.05); box-shadow: 0 0 0 4px var(--cat-audio); }
   100% { transform: scale(1); }
 }
 .scratch-block.block-snap {
@@ -785,14 +803,14 @@
 
 /* Drop zone active state */
 .scratch-block-body-content.drop-target-active {
-  background: rgba(255,94,58,0.2);
-  outline: 3px dashed var(--cat-control, #FF5E3A);
+  background: rgba(76,175,80,0.2);
+  outline: 3px dashed var(--cat-audio);
   outline-offset: 3px;
   animation: drop-pulse 0.8s ease-in-out infinite;
 }
 @keyframes drop-pulse {
-  0%, 100% { outline-color: var(--cat-control, #FF5E3A); box-shadow: 0 0 0 0 rgba(255,94,58,0.4); }
-  50% { outline-color: rgba(255,94,58,0.6); box-shadow: 0 0 0 8px rgba(255,94,58,0.1); }
+  0%, 100% { outline-color: var(--cat-audio); box-shadow: 0 0 0 0 rgba(76,175,80,0.4); }
+  50% { outline-color: rgba(76,175,80,0.6); box-shadow: 0 0 0 8px rgba(76,175,80,0.1); }
 }
 
 /* ==========================================================================
@@ -802,7 +820,7 @@
   width: 280px;
   min-width: 240px;
   max-width: 400px;
-  background: var(--bg-secondary, #F4F2EC);
+  background: var(--bg-secondary);
   border-left: 3px solid var(--ink);
   display: flex;
   flex-direction: column;
@@ -814,7 +832,7 @@
 .debug-tabs {
   display: flex;
   border-bottom: 2px solid var(--ink);
-  background: var(--bg-tertiary, #E2DFD6);
+  background: var(--bg-tertiary);
 }
 .debug-tab {
   flex: 1;
@@ -824,7 +842,7 @@
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--text-muted, #6b6b6b);
+  color: var(--fg-muted);
   background: transparent;
   border: none;
   border-bottom: 3px solid transparent;
@@ -832,11 +850,11 @@
   transition: color 100ms, border-color 100ms;
 }
 .debug-tab:hover {
-  color: var(--ink);
+  color: var(--fg-primary);
 }
 .debug-tab.active {
-  color: var(--cat-control, #FF5E3A);
-  border-bottom-color: var(--cat-control, #FF5E3A);
+  color: var(--cat-control);
+  border-bottom-color: var(--cat-control);
 }
 
 .debug-panels {

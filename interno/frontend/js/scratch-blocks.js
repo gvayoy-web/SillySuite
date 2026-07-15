@@ -122,7 +122,7 @@ const CATEGORIES = {
   def('try_catch_fallback', 'control', 'c', 'intentar ... si falla ...',
       {}, { bodies: ['body', 'fallback'], sideEffects: ['all'] });
   def('break_stack', 'control', 'stack', 'interrumpir pila actual', {}, {});
-  def('global_panic_reset', 'control', 'stack', 'RESET GLOBAL (pánico)', {}, { sideEffects: ['all'] });
+  def('panic_reset', 'control', 'stack', 'RESET GLOBAL (pánico)', {}, { sideEffects: ['all'] });
 
   /* ===================================================================
    * 3. LOOKS / VISUAL (Púrpura) — 26
@@ -202,7 +202,7 @@ const CATEGORIES = {
    * 5. NDI / BROADCAST (Teal) — 8
    * =================================================================== */
   def('ndi_start_discovery_worker', 'ndi', 'stack', 'iniciar discovery NDI (worker)', {}, { exec: 'async', sideEffects: ['ndi'] });
-  def('ndi_connect_source', 'ndi', 'stack', 'conectar [SRC] → output [OUT]',
+  def('connect_source', 'ndi', 'stack', 'conectar [SRC] → output [OUT]',
       { SRC: { type: 'dropdown', port: PORT.ndi, options: '@ndi_sources' }, OUT: { type: 'output_id', port: PORT.ndi } }, { exec: 'async', sideEffects: ['ndi'] });
   def('ndi_disconnect_source', 'ndi', 'stack', 'desconectar output [OUT]',
       { OUT: { type: 'output_id', port: PORT.ndi } }, { sideEffects: ['ndi'] });
@@ -235,18 +235,18 @@ const CATEGORIES = {
   /* ===================================================================
    * 7. QUIZ / NÚCLEO (Azul) — 8
    * =================================================================== */
-  def('quiz_init_engine', 'quiz', 'stack', 'init quiz [N] preg [CAT]',
+  def('init', 'quiz', 'stack', 'iniciar quiz [N] preg [CAT]',
       { N: { type: 'number', port: PORT.number, default: 20 }, CAT: { type: 'dropdown', port: PORT.any, options: ['mixed', 'custom'] } }, { sideEffects: ['db', 'state'] });
-  def('quiz_fetch_next_question', 'quiz', 'stack', 'siguiente pregunta', {}, { sideEffects: ['db', 'state'] });
-  def('quiz_lock_answers', 'quiz', 'stack', 'bloquear respuestas', {}, { sideEffects: ['quiz'] });
-  def('quiz_verify_player_answer', 'quiz', 'stack', 'verificar [PLAYER]',
+  def('next_question', 'quiz', 'stack', 'siguiente pregunta', {}, { sideEffects: ['db', 'state'] });
+  def('lock_answers', 'quiz', 'stack', 'bloquear respuestas', {}, { sideEffects: ['quiz'] });
+  def('verify_answer', 'quiz', 'stack', 'verificar [PLAYER]',
       { PLAYER: { type: 'player_id', port: PORT.any } }, { sideEffects: ['state'] });
-  def('quiz_add_score_to_player', 'quiz', 'stack', 'sumar [PLAYER] [PTS] pts',
+  def('add_score', 'quiz', 'stack', 'sumar [PLAYER] [PTS] pts',
       { PLAYER: { type: 'player_id', port: PORT.any }, PTS: { type: 'number', port: PORT.number, default: 10 } }, { sideEffects: ['state'] });
-  def('quiz_get_current_question_text', 'quiz', 'reporter', 'texto pregunta', {}, { returns: 'string' });
-  def('quiz_get_answer_text', 'quiz', 'reporter', 'respuesta [OPT]',
+  def('question_text', 'quiz', 'reporter', 'texto pregunta', {}, { returns: 'string' });
+  def('answer_text', 'quiz', 'reporter', 'respuesta [OPT]',
       { OPT: { type: 'dropdown', port: PORT.any, options: ['A', 'B', 'C', 'D'] } }, { returns: 'string' });
-  def('quiz_get_leaderboard_json', 'quiz', 'reporter', 'leaderboard JSON', {}, { returns: 'json' });
+  def('leaderboard', 'quiz', 'reporter', 'leaderboard JSON', {}, { returns: 'json' });
 
   /* ===================================================================
    * 8. ESTADO / RAM (Rojo/Verde) — 6
@@ -262,24 +262,26 @@ const CATEGORIES = {
   def('state_get_memory_value', 'state', 'reporter', 'valor de [KEY]',
       { KEY: { type: 'string', port: PORT.string } }, { returns: 'any' });
 
-  /* ===================================================================
+/* ===================================================================
    * 9. OPERADORES (Verde Claro) — 8
    * =================================================================== */
-  def('math_calc', 'operators', 'reporter', '[A] [OP] [B]',
+  def('math', 'operators', 'reporter', '[A] [OP] [B]',
       { A: { type: 'reporter', port: PORT.number, returns: 'number' }, OP: { type: 'dropdown', port: PORT.any, options: ['+', '-', '*', '÷'] }, B: { type: 'reporter', port: PORT.number, returns: 'number' } }, { returns: 'number' });
-  def('logic_compare', 'operators', 'boolean', '[A] [OP] [B]',
+  def('compare', 'operators', 'boolean', '[A] [OP] [B]',
       { A: { type: 'reporter', port: PORT.number, returns: 'number' }, OP: { type: 'dropdown', port: PORT.any, options: ['==', '>', '<', '>=', '<=', '!='] }, B: { type: 'reporter', port: PORT.number, returns: 'number' } }, {});
-  def('logic_and_or', 'operators', 'boolean', '[A] [OP] [B]',
-      { A: { type: 'boolean', port: PORT.boolean }, OP: { type: 'dropdown', port: PORT.any, options: ['AND', 'OR'] }, B: { type: 'boolean', port: PORT.boolean } }, {});
-  def('logic_not', 'operators', 'boolean', 'no [A]',
+  def('and', 'operators', 'boolean', '[A] y [B]',
+      { A: { type: 'boolean', port: PORT.boolean }, B: { type: 'boolean', port: PORT.boolean } }, {});
+  def('or', 'operators', 'boolean', '[A] o [B]',
+      { A: { type: 'boolean', port: PORT.boolean }, B: { type: 'boolean', port: PORT.boolean } }, {});
+  def('not', 'operators', 'boolean', 'no [A]',
       { A: { type: 'boolean', port: PORT.boolean } }, {});
-  def('get_random_number', 'operators', 'reporter', 'random [MIN]..[MAX]',
+  def('random', 'operators', 'reporter', 'aleatorio [MIN]..[MAX]',
       { MIN: { type: 'number', port: PORT.number, default: 0 }, MAX: { type: 'number', port: PORT.number, default: 100 } }, { returns: 'number' });
-  def('string_join', 'operators', 'reporter', '[A] + [B]',
+  def('join', 'operators', 'reporter', '[A] + [B]',
       { A: { type: 'reporter', port: PORT.string, returns: 'string' }, B: { type: 'reporter', port: PORT.string, returns: 'string' } }, { returns: 'string' });
-  def('string_contains', 'operators', 'boolean', '[TXT] contiene [SUB]',
+  def('contains', 'operators', 'boolean', '[TXT] contiene [SUB]',
       { TXT: { type: 'reporter', port: PORT.string, returns: 'string' }, SUB: { type: 'reporter', port: PORT.string, returns: 'string' } }, {});
-  def('parse_json_key', 'operators', 'reporter', 'json [J] clave [K]',
+  def('json_key', 'operators', 'reporter', 'json [J] clave [K]',
       { J: { type: 'reporter', port: PORT.any, returns: 'json' }, K: { type: 'string', port: PORT.string } }, { returns: 'any' });
 
   /* ===================================================================
@@ -295,27 +297,24 @@ const CATEGORIES = {
       { NAME: { type: 'string', port: PORT.string }, IDX: { type: 'number', port: PORT.number, default: 0 } }, { returns: 'any' });
   def('list_get_length', 'custom', 'reporter', 'largo [NAME]',
       { NAME: { type: 'string', port: PORT.string } }, { returns: 'number' });
-  // SECURITY: execute_raw_javascript BLOCKED — allows arbitrary JS execution
-  def('execute_raw_javascript', 'runtime', 'stack', 'JS: [CODE]',
-      { CODE: { type: 'textarea', port: PORT.any } }, { sideEffects: ['runtime'], exec: 'async', timeout: 300000, disabledInProd: true });
 
   /* ===================================================================
    * 11. CONCURSANTES (Azul Eléctrico) — 8
    * =================================================================== */
-  def('players_set_active_slots', 'players', 'stack', 'slots activos = [N]',
+  def('max_players', 'players', 'stack', 'máximo de jugadores = [N]',
       { N: { type: 'number', port: PORT.number, default: 4 } }, { sideEffects: ['players'] });
-  def('players_strike_penalize', 'players', 'stack', 'strike a [PLAYER]',
+  def('strike', 'players', 'stack', 'strike a [PLAYER]',
       { PLAYER: { type: 'player_id', port: PORT.any } }, { sideEffects: ['players'] });
-  def('players_swap_positions', 'players', 'stack', 'intercambiar [A] ↔ [B]',
+  def('swap', 'players', 'stack', 'intercambiar [A] ↔ [B]',
       { A: { type: 'player_id', port: PORT.any }, B: { type: 'player_id', port: PORT.any } }, { sideEffects: ['players'] });
-  def('players_get_fastest_buzzer', 'players', 'reporter', 'jugador más rápido', {}, { returns: 'string' });
-  def('players_toggle_lockout', 'players', 'stack', 'lockout [PLAYER] = [ON]',
+  def('fastest_buzzer', 'players', 'reporter', 'jugador más rápido', {}, { returns: 'string' });
+  def('lockout', 'players', 'stack', 'lockout [PLAYER] = [ON]',
       { PLAYER: { type: 'player_id', port: PORT.any }, ON: { type: 'boolean', port: PORT.boolean } }, { sideEffects: ['players'] });
-  def('players_get_name', 'players', 'reporter', 'nombre de [PLAYER]',
+  def('name', 'players', 'reporter', 'nombre de [PLAYER]',
       { PLAYER: { type: 'player_id', port: PORT.any } }, { returns: 'string' });
-  def('players_set_avatar', 'players', 'stack', 'avatar [PLAYER] = [IMG]',
+  def('avatar', 'players', 'stack', 'avatar [PLAYER] = [IMG]',
       { PLAYER: { type: 'player_id', port: PORT.any }, IMG: { type: 'image_file', port: PORT.any, accepts: 'image/*' } }, { sideEffects: ['players'] });
-  def('players_is_alive', 'players', 'boolean', '¿[PLAYER] vivo?',
+  def('alive', 'players', 'boolean', '¿[PLAYER] vivo?',
       { PLAYER: { type: 'player_id', port: PORT.any } }, {});
 
   /* ===================================================================
@@ -443,25 +442,25 @@ const CATEGORIES = {
    * 20. POWER PACK — OPERADORES AVANZADOS (Verde Claro) — 10
    * Matemáticas avanzadas, manipulación potente de strings y lógica extra.
    * =================================================================== */
-  def('math_unary', 'operators', 'reporter', '[OP] de [A]',
+  def('unary', 'operators', 'reporter', '[OP] de [A]',
       { OP: { type: 'dropdown', port: PORT.any, options: ['sqrt', 'abs', 'round', 'floor', 'ceil', 'sin', 'cos', 'tan', 'ln', 'log10'] }, A: { type: 'reporter', port: PORT.number, returns: 'number' } }, { returns: 'number' });
-  def('math_binary', 'operators', 'reporter', '[A] [OP] [B]',
+  def('binary', 'operators', 'reporter', '[A] [OP] [B]',
       { A: { type: 'reporter', port: PORT.number, returns: 'number' }, OP: { type: 'dropdown', port: PORT.any, options: ['pow', 'mod', 'min', 'max'] }, B: { type: 'reporter', port: PORT.number, returns: 'number' } }, { returns: 'number' });
-  def('string_length', 'operators', 'reporter', 'longitud de [TXT]',
+  def('length', 'operators', 'reporter', 'longitud de [TXT]',
       { TXT: { type: 'reporter', port: PORT.string, returns: 'string' } }, { returns: 'number' });
-  def('string_case', 'operators', 'reporter', '[TXT] a [OP]',
+  def('case', 'operators', 'reporter', '[TXT] a [OP]',
       { TXT: { type: 'reporter', port: PORT.string, returns: 'string' }, OP: { type: 'dropdown', port: PORT.any, options: ['upper', 'lower', 'title'] } }, { returns: 'string' });
-  def('string_replace', 'operators', 'reporter', '[TXT] cambiar [OLD] por [NEW]',
+  def('replace', 'operators', 'reporter', '[TXT] cambiar [OLD] por [NEW]',
       { TXT: { type: 'reporter', port: PORT.string, returns: 'string' }, OLD: { type: 'reporter', port: PORT.string, returns: 'string' }, NEW: { type: 'reporter', port: PORT.string, returns: 'string' } }, { returns: 'string' });
-  def('string_slice', 'operators', 'reporter', '[TXT] desde [START] hasta [END]',
+  def('slice', 'operators', 'reporter', '[TXT] desde [START] hasta [END]',
       { TXT: { type: 'reporter', port: PORT.string, returns: 'string' }, START: { type: 'number', port: PORT.number, default: 0 }, END: { type: 'number', port: PORT.number, default: -1 } }, { returns: 'string' });
-  def('string_starts_with', 'operators', 'boolean', '[TXT] empieza con [SUB]',
+  def('starts_with', 'operators', 'boolean', '[TXT] empieza con [SUB]',
       { TXT: { type: 'reporter', port: PORT.string, returns: 'string' }, SUB: { type: 'reporter', port: PORT.string, returns: 'string' } }, {});
-  def('string_ends_with', 'operators', 'boolean', '[TXT] termina con [SUB]',
+  def('ends_with', 'operators', 'boolean', '[TXT] termina con [SUB]',
       { TXT: { type: 'reporter', port: PORT.string, returns: 'string' }, SUB: { type: 'reporter', port: PORT.string, returns: 'string' } }, {});
-  def('logic_xor', 'operators', 'boolean', '[A] O-exclusiva [B]',
+  def('xor', 'operators', 'boolean', '[A] xor [B]',
       { A: { type: 'boolean', port: PORT.boolean }, B: { type: 'boolean', port: PORT.boolean } }, {});
-  def('logic_between', 'operators', 'boolean', '[VAL] entre [MIN] y [MAX]',
+  def('between', 'operators', 'boolean', '[VAL] entre [MIN] y [MAX]',
       { VAL: { type: 'reporter', port: PORT.number, returns: 'number' }, MIN: { type: 'reporter', port: PORT.number, returns: 'number' }, MAX: { type: 'reporter', port: PORT.number, returns: 'number' } }, {});
 
   /* ===================================================================
@@ -498,31 +497,31 @@ const CATEGORIES = {
    * 23. POWER PACK — QUIZ PRO (Azul) — 8
    * Control fino del quiz: revelado, ranking, reset y metadata.
    * =================================================================== */
-  def('quiz_set_question', 'quiz', 'stack', 'pregunta actual = [TXT]',
+  def('set_question', 'quiz', 'stack', 'pregunta actual = [TXT]',
       { TXT: { type: 'reporter', port: PORT.string, returns: 'string' } }, { sideEffects: ['state'] });
-  def('quiz_reveal_answer', 'quiz', 'stack', 'revelar respuesta correcta', {}, { sideEffects: ['quiz'] });
-  def('quiz_get_score', 'quiz', 'reporter', 'puntos de [PLAYER]',
+  def('reveal_answer', 'quiz', 'stack', 'revelar respuesta correcta', {}, { sideEffects: ['quiz'] });
+  def('score', 'quiz', 'reporter', 'puntos de [PLAYER]',
       { PLAYER: { type: 'player_id', port: PORT.any } }, { returns: 'number' });
-  def('quiz_get_player_rank', 'quiz', 'reporter', 'puesto de [PLAYER]',
+  def('player_rank', 'quiz', 'reporter', 'puesto de [PLAYER]',
       { PLAYER: { type: 'player_id', port: PORT.any } }, { returns: 'number' });
-  def('quiz_reset_scores', 'quiz', 'stack', 'reiniciar puntuaciones', {}, { sideEffects: ['state'] });
-  def('quiz_get_question_category', 'quiz', 'reporter', 'categoría de pregunta', {}, { returns: 'string' });
-  def('quiz_get_option_count', 'quiz', 'reporter', 'nº de opciones', {}, { returns: 'number' });
-  def('quiz_shuffle_options', 'quiz', 'stack', 'barajar opciones A/B/C/D', {}, { sideEffects: ['state', 'db'] });
+  def('reset_scores', 'quiz', 'stack', 'reiniciar puntuaciones', {}, { sideEffects: ['state'] });
+  def('question_category', 'quiz', 'reporter', 'categoría de pregunta', {}, { returns: 'string' });
+  def('option_count', 'quiz', 'reporter', 'nº de opciones', {}, { returns: 'number' });
+  def('shuffle_options', 'quiz', 'stack', 'barajar opciones A/B/C/D', {}, { sideEffects: ['state', 'db'] });
 
   /* ===================================================================
    * 24. POWER PACK — CONCURSANTES PRO (Azul Eléctrico) — 6
    * Métricas, eliminación, revivir y ranking en vivo.
    * =================================================================== */
-  def('players_get_points', 'players', 'reporter', 'puntos de [PLAYER]',
+  def('points', 'players', 'reporter', 'puntos de [PLAYER]',
       { PLAYER: { type: 'player_id', port: PORT.any } }, { returns: 'number' });
-  def('players_get_count', 'players', 'reporter', 'nº de concursantes', {}, { returns: 'number' });
-  def('players_get_all_names', 'players', 'reporter', 'nombres de todos', {}, { returns: 'json' });
-  def('players_eliminate', 'players', 'stack', 'eliminar [PLAYER]',
+  def('count', 'players', 'reporter', 'nº de concursantes', {}, { returns: 'number' });
+  def('all_names', 'players', 'reporter', 'nombres de todos', {}, { returns: 'json' });
+  def('eliminate', 'players', 'stack', 'eliminar [PLAYER]',
       { PLAYER: { type: 'player_id', port: PORT.any } }, { sideEffects: ['players'] });
-  def('players_revive', 'players', 'stack', 'revivir [PLAYER]',
+  def('revive', 'players', 'stack', 'revivir [PLAYER]',
       { PLAYER: { type: 'player_id', port: PORT.any } }, { sideEffects: ['players'] });
-  def('players_get_rank', 'players', 'reporter', 'puesto de [PLAYER]',
+  def('rank', 'players', 'reporter', 'puesto de [PLAYER]',
       { PLAYER: { type: 'player_id', port: PORT.any } }, { returns: 'number' });
 
   /* ===================================================================
@@ -566,45 +565,45 @@ const CATEGORIES = {
    * Bloques avanzados adicionales: control fino del timer, metadata del quiz,
    * ranking de concursantes, manipulación de listas/strings y datos JSON.
    * =================================================================== */
-  def('get_timer_remaining', 'quiz', 'reporter', 'timer restante (s)', {}, { returns: 'number' });
-  def('set_timer_duration', 'quiz', 'stack', 'fijar timer = [SEC]s',
+  def('timer_remaining', 'quiz', 'reporter', 'timer restante (s)', {}, { returns: 'number' });
+  def('timer_set', 'quiz', 'stack', 'fijar timer = [SEC]s',
       { SEC: { type: 'number', port: PORT.number, default: 30 } }, { sideEffects: ['quiz'] });
   def('timer_pause', 'quiz', 'stack', 'pausar timer', {}, { sideEffects: ['quiz'] });
   def('timer_resume', 'quiz', 'stack', 'reanudar timer', {}, { sideEffects: ['quiz'] });
-  def('quiz_get_correct_option', 'quiz', 'reporter', 'nº opción correcta', {}, { returns: 'number' });
-  def('quiz_get_question_image', 'quiz', 'reporter', 'imagen de pregunta', {}, { returns: 'string' });
-  def('quiz_get_difficulty', 'quiz', 'reporter', 'dificultad pregunta', {}, { returns: 'string' });
-  def('quiz_get_total_questions', 'quiz', 'reporter', 'total de preguntas', {}, { returns: 'number' });
-  def('players_sort_by_score', 'players', 'stack', 'ordenar concursantes por puntos', {}, { sideEffects: ['players'] });
-  def('players_get_top_n', 'players', 'reporter', 'top [N] concursantes',
+  def('correct_option', 'quiz', 'reporter', 'nº opción correcta', {}, { returns: 'number' });
+  def('question_image', 'quiz', 'reporter', 'imagen de pregunta', {}, { returns: 'string' });
+  def('difficulty', 'quiz', 'reporter', 'dificultad pregunta', {}, { returns: 'string' });
+  def('total_questions', 'quiz', 'reporter', 'total de preguntas', {}, { returns: 'number' });
+  def('sort_scores', 'players', 'stack', 'ordenar concursantes por puntos', {}, { sideEffects: ['players'] });
+  def('top_n', 'players', 'reporter', 'top [N] concursantes',
       { N: { type: 'number', port: PORT.number, default: 3 } }, { returns: 'json' });
-  def('players_award_bonus', 'players', 'stack', 'bonus [PTS] a [PLAYER]',
+  def('award_bonus', 'players', 'stack', 'bonus [PTS] a [PLAYER]',
       { PTS: { type: 'number', port: PORT.number, default: 5 }, PLAYER: { type: 'player_id', port: PORT.any } }, { sideEffects: ['players'] });
-  def('players_set_var', 'players', 'stack', 'variable [VAR] de [PLAYER] = [VAL]',
+  def('set_var', 'players', 'stack', 'variable [VAR] de [PLAYER] = [VAL]',
       { VAR: { type: 'string', port: PORT.string }, PLAYER: { type: 'player_id', port: PORT.any }, VAL: { type: 'input', port: PORT.any } }, { sideEffects: ['players', 'state'] });
-  def('players_get_var', 'players', 'reporter', 'variable [VAR] de [PLAYER]',
+  def('get_var', 'players', 'reporter', 'variable [VAR] de [PLAYER]',
       { VAR: { type: 'string', port: PORT.string }, PLAYER: { type: 'player_id', port: PORT.any } }, { returns: 'any' });
-  def('players_send_message', 'players', 'stack', 'enviar [MSG] a [PLAYER]',
+  def('send_message', 'players', 'stack', 'enviar [MSG] a [PLAYER]',
       { MSG: { type: 'string', port: PORT.string }, PLAYER: { type: 'player_id', port: PORT.any } }, { sideEffects: ['players'] });
-  def('players_show_effect', 'players', 'stack', 'efecto [EFFECT] en [PLAYER]',
+  def('show_effect', 'players', 'stack', 'efecto [EFFECT] en [PLAYER]',
       { EFFECT: { type: 'dropdown', port: PORT.any, options: ['confetti', 'sparkle', 'fireworks', 'shake', 'flash'] }, PLAYER: { type: 'player_id', port: PORT.any } }, { sideEffects: ['players', 'ui'] });
-  def('list_pop', 'custom', 'reporter', 'sacar último de [NAME]',
+  def('pop', 'custom', 'reporter', 'sacar último de [NAME]',
       { NAME: { type: 'string', port: PORT.string } }, { returns: 'any' });
-  def('list_reverse', 'custom', 'stack', 'invertir lista [NAME]',
+  def('reverse', 'custom', 'stack', 'invertir lista [NAME]',
       { NAME: { type: 'string', port: PORT.string } }, { sideEffects: ['state'] });
-  def('list_unique', 'custom', 'stack', 'quitar duplicados de [NAME]',
+  def('unique', 'custom', 'stack', 'quitar duplicados de [NAME]',
       { NAME: { type: 'string', port: PORT.string } }, { sideEffects: ['state'] });
-  def('list_to_json', 'custom', 'reporter', 'JSON de lista [NAME]',
+  def('to_json', 'custom', 'reporter', 'JSON de lista [NAME]',
       { NAME: { type: 'string', port: PORT.string } }, { returns: 'json' });
-  def('string_trim', 'operators', 'reporter', 'recortar [TXT]',
+  def('trim', 'operators', 'reporter', 'recortar [TXT]',
       { TXT: { type: 'reporter', port: PORT.string, returns: 'string' } }, { returns: 'string' });
-  def('string_repeat', 'operators', 'reporter', '[TXT] repetir [N] veces',
+  def('repeat', 'operators', 'reporter', '[TXT] repetir [N] veces',
       { TXT: { type: 'reporter', port: PORT.string, returns: 'string' }, N: { type: 'number', port: PORT.number, default: 2 } }, { returns: 'string' });
-  def('string_split', 'operators', 'reporter', '[TXT] partir por [SEP]',
+  def('split', 'operators', 'reporter', '[TXT] partir por [SEP]',
       { TXT: { type: 'reporter', port: PORT.string, returns: 'string' }, SEP: { type: 'string', port: PORT.string, default: ',' } }, { returns: 'json' });
-  def('string_to_number', 'operators', 'reporter', 'número de [TXT]',
+  def('to_number', 'operators', 'reporter', 'número de [TXT]',
       { TXT: { type: 'reporter', port: PORT.string, returns: 'string' } }, { returns: 'number' });
-  def('string_matches', 'operators', 'boolean', '[TXT] coincide con [PAT]',
+  def('matches', 'operators', 'boolean', '[TXT] coincide con [PAT]',
       { TXT: { type: 'reporter', port: PORT.string, returns: 'string' }, PAT: { type: 'string', port: PORT.string } }, {});
   def('math_const', 'operators', 'reporter', 'constante [C]',
       { C: { type: 'dropdown', port: PORT.any, options: ['PI', 'E', 'TAU', 'PHI'] } }, { returns: 'number' });

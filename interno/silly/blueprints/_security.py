@@ -287,21 +287,22 @@ _EXTRAS = {
     'render_update_proyector_leaderboard', 'engine_create_player_client',
     'engine_load_game_template', 'engine_on_client_event', 'engine_get_leaderboard_data',
     # Players extras
-    'players_get_score_of', 'players_set_var', 'players_get_var',
-    'players_send_message', 'players_show_effect',
+    'points', 'set_var', 'get_var',
+    'send_message', 'show_effect',
     # Timer extras
     'timer_is_paused',
     # Sprite extras
     'create_clone', 'delete_clone',
     # Physics extras
     'physics_create_distance_joint', 'physics_create_revolute_joint',
-    'physics_create_prismatic_joint', 'physics_raycast', 'physics_query_aabb', 'physics',
+    'physics_create_prismatic_joint', 'physics_raycast', 'physics_query_aabb', 'physics_query_point',
     # Power Pack safe opcodes (math, strings, etc.)
     'burst_particles', 'triqui_triqui', 'triqui_triqui_slot_machine', 'spawn_money_rain',
     'physics_enable', 'physics_disable', 'physics_create_body', 'physics_destroy_body',
     'physics_set_velocity', 'physics_apply_force', 'physics_apply_impulse',
     'physics_set_gravity_scale', 'physics_on_collision', 'physics_get_position',
-    'physics_get_velocity',
+    'physics_get_velocity', 'physics_set_collision_filter', 'physics_add_fixture',
+    'physics_destroy_joint',
     # Additional look/display opcodes
     'show_image', 'show_video', 'set_background_image',
     'load_font', 'create_overlay', 'move_component',
@@ -318,15 +319,15 @@ _EXTRAS = {
     # Display extras
     'get_display_connection_count',
     # Quiz full set
-    'quiz_init_engine', 'quiz_fetch_next_question', 'quiz_lock_answers',
-    'quiz_verify_player_answer', 'quiz_add_score_to_player',
-    'quiz_set_question', 'quiz_reveal_answer', 'quiz_get_score',
-    'quiz_get_player_rank', 'quiz_reset_scores', 'quiz_get_question_category',
-    'quiz_get_option_count', 'quiz_shuffle_options',
-    'get_timer_remaining', 'set_timer_duration', 'timer_pause', 'timer_resume',
-    'quiz_get_correct_option', 'quiz_get_question_image', 'quiz_get_difficulty',
-    'quiz_get_total_questions', 'quiz_get_round', 'quiz_is_paused',
-    'quiz_get_current_question_text', 'quiz_get_answer_text', 'quiz_get_leaderboard_json',
+    'init', 'next_question', 'lock_answers',
+    'verify_answer', 'add_score',
+    'set_question', 'reveal_answer', 'score',
+    'player_rank', 'reset_scores', 'question_category',
+    'option_count', 'shuffle_options',
+    'timer_remaining', 'timer_set', 'timer_pause', 'timer_resume',
+    'correct_option', 'question_image', 'difficulty',
+    'total_questions', 'quiz_get_round', 'quiz_is_paused',
+    'question_text', 'answer_text', 'leaderboard',
     # State extras
     'variable_set', 'variable_change', 'variable_get', 'variable_init',
     'show_variable', 'hide_variable',
@@ -338,9 +339,9 @@ _EXTRAS = {
     'list_get_item_at', 'list_get_length', 'list_contains',
     'list_get_random_item', 'list_index_of',
     # Player extras
-    'players_get_all_names', 'players_get_count', 'players_eliminate', 'players_revive',
-    'players_get_rank', 'players_sort_by_score', 'players_get_top_n',
-    'players_award_bonus',
+    'all_names', 'count', 'eliminate', 'revive',
+    'rank', 'sort_scores', 'top_n',
+    'award_bonus',
     # DB extras
     'db_query_get_hint_text', 'db_query_get_unanswered_count', 'db_query_search_by_keyword',
     # Runtime extras
@@ -353,19 +354,19 @@ _EXTRAS = {
     'sprite_move_to', 'sprite_set_velocity', 'sprite_on_collision',
     'sprite_is_touching',
     # Math extras (Power Pack)
-    'math_clamp', 'type_of', 'math_lerp',
-    'math_const', 'math_round_to', 'json_parse', 'json_stringify',
+    'clamp', 'type_of', 'lerp',
+    'const', 'round_to', 'json_parse', 'json_stringify',
     'random_choice',
-    'string_trim', 'string_repeat', 'string_split', 'string_to_number', 'string_matches',
+    'trim', 'repeat', 'split', 'to_number', 'matches',
     # State full set
     'state_init_memory_key', 'state_set_memory', 'state_increment_memory',
     'state_commit_to_sqlite', 'state_clear_volatile_cache',
     # Operators full set
-    'math_calc', 'logic_compare', 'logic_and_or', 'logic_not',
-    'math_unary', 'math_binary', 'logic_xor', 'logic_between',
-    'get_random_number', 'string_join', 'string_contains', 'parse_json_key',
-    'string_length', 'string_case', 'string_replace', 'string_slice',
-    'string_starts_with', 'string_ends_with',
+    'math', 'compare', 'and', 'or', 'not',
+    'unary', 'binary', 'xor', 'between',
+    'random', 'join', 'contains', 'json_key',
+    'length', 'case', 'replace', 'slice',
+    'starts_with', 'ends_with',
     # Broadcasts
     'broadcast', 'broadcast_and_wait',
     # Input

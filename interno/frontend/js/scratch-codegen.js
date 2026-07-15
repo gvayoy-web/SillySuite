@@ -193,7 +193,7 @@
             const cond = (resolved.COND && resolved.COND.__nested === 'boolean')
               ? `Providers.boolean('${resolved.COND.opcode}', ${JSON.stringify(resolved.COND.args)}, state)`
               : JSON.stringify(resolved.COND);
-            lines.push(indent(depth) + `if Providers.boolean('logic_compare', ${cond}, state):`);
+            lines.push(indent(depth) + `if Providers.boolean('compare', ${cond}, state):`);
             emitBody(node.body, depth + 1);
             break;
           }
@@ -202,7 +202,7 @@
             const cond = (resolved.COND && resolved.COND.__nested === 'boolean')
               ? `Providers.boolean('${resolved.COND.opcode}', ${JSON.stringify(resolved.COND.args)}, state)`
               : JSON.stringify(resolved.COND);
-            lines.push(indent(depth) + `if Providers.boolean('logic_compare', ${cond}, state):`);
+            lines.push(indent(depth) + `if Providers.boolean('compare', ${cond}, state):`);
             emitBody(node.body, depth + 1);
             lines.push(indent(depth) + 'else:');
             emitBody(node.elseBody, depth + 1);
@@ -214,7 +214,7 @@
               ? `Providers.boolean('${resolved.COND.opcode}', ${JSON.stringify(resolved.COND.args)}, state)`
               : JSON.stringify(resolved.COND);
             lines.push(indent(depth) + 'while True:');
-            lines.push(indent(depth + 1) + `if Providers.boolean('logic_compare', ${cond}, state): break`);
+            lines.push(indent(depth + 1) + `if Providers.boolean('compare', ${cond}, state): break`);
             emitBody(node.body, depth + 1);
             break;
           }
@@ -336,12 +336,12 @@
       if (def?.hasBody) {
         switch (node.opcode) {
           case 'if_then':
-            lines.push(`${ind}if (Providers.boolean('logic_compare', ${JSON.stringify(node.args)}, state)) {`);
+            lines.push(`${ind}if (Providers.boolean('compare', ${JSON.stringify(node.args)}, state)) {`);
             if (node.body) CodeGen._emitTSChain(node.body, depth + 1, lines);
             lines.push(`${ind}}`);
             break;
           case 'if_then_else':
-            lines.push(`${ind}if (Providers.boolean('logic_compare', ${JSON.stringify(node.args)}, state)) {`);
+            lines.push(`${ind}if (Providers.boolean('compare', ${JSON.stringify(node.args)}, state)) {`);
             if (node.body) CodeGen._emitTSChain(node.body, depth + 1, lines);
             lines.push(`${ind}} else {`);
             if (node.elseBody) CodeGen._emitTSChain(node.elseBody, depth + 1, lines);
@@ -460,12 +460,12 @@
       if (def?.hasBody) {
         switch (node.opcode) {
           case 'if_then':
-            lines.push(`${ind}if ((bool)Providers.Boolean("logic_compare", ${JSON.stringify(node.args).replace(/"/g, '\\"')}, state)) {`);
+            lines.push(`${ind}if ((bool)Providers.Boolean("compare", ${JSON.stringify(node.args).replace(/"/g, '\\"')}, state)) {`);
             if (node.body) CodeGen._emitCSChain(node.body, depth + 1, lines);
             lines.push(`${ind}}`);
             break;
           case 'if_then_else':
-            lines.push(`${ind}if ((bool)Providers.Boolean("logic_compare", ${JSON.stringify(node.args).replace(/"/g, '\\"')}, state)) {`);
+            lines.push(`${ind}if ((bool)Providers.Boolean("compare", ${JSON.stringify(node.args).replace(/"/g, '\\"')}, state)) {`);
             if (node.body) CodeGen._emitCSChain(node.body, depth + 1, lines);
             lines.push(`${ind}} else {`);
             if (node.elseBody) CodeGen._emitCSChain(node.elseBody, depth + 1, lines);
@@ -597,12 +597,12 @@
       if (def?.hasBody) {
         switch (node.opcode) {
           case 'if_then':
-            lines.push(`${ind}if Providers::boolean("logic_compare", &${JSON.stringify(node.args)}, state) {`);
+            lines.push(`${ind}if Providers::boolean("compare", &${JSON.stringify(node.args)}, state) {`);
             if (node.body) CodeGen._emitRustChain(node.body, depth + 1, lines);
             lines.push(`${ind}}`);
             break;
           case 'if_then_else':
-            lines.push(`${ind}if Providers::boolean("logic_compare", &${JSON.stringify(node.args)}, state) {`);
+            lines.push(`${ind}if Providers::boolean("compare", &${JSON.stringify(node.args)}, state) {`);
             if (node.body) CodeGen._emitRustChain(node.body, depth + 1, lines);
             lines.push(`${ind}} else {`);
             if (node.elseBody) CodeGen._emitRustChain(node.elseBody, depth + 1, lines);
@@ -726,12 +726,12 @@
       if (def?.hasBody) {
         switch (node.opcode) {
           case 'if_then':
-            lines.push(`${ind}if Providers{}.Boolean("logic_compare", ${JSON.stringify(node.args)}, ctx) {`);
+            lines.push(`${ind}if Providers{}.Boolean("compare", ${JSON.stringify(node.args)}, ctx) {`);
             if (node.body) CodeGen._emitGoChain(node.body, depth + 1, lines);
             lines.push(`${ind}}`);
             break;
           case 'if_then_else':
-            lines.push(`${ind}if Providers{}.Boolean("logic_compare", ${JSON.stringify(node.args)}, ctx) {`);
+            lines.push(`${ind}if Providers{}.Boolean("compare", ${JSON.stringify(node.args)}, ctx) {`);
             if (node.body) CodeGen._emitGoChain(node.body, depth + 1, lines);
             lines.push(`${ind}} else {`);
             if (node.elseBody) CodeGen._emitGoChain(node.elseBody, depth + 1, lines);
@@ -807,11 +807,11 @@
       if (def?.hasBody) {
         switch (node.opcode) {
           case 'if_then':
-            lines.push(ind + 'if Providers.boolean("logic_compare", ' + JSON.stringify(node.args) + ', state):');
+            lines.push(ind + 'if Providers.boolean("compare", ' + JSON.stringify(node.args) + ', state):');
             if (node.body) CodeGen._emitGDChain(node.body, depth + 1, lines);
             break;
           case 'if_then_else':
-            lines.push(ind + 'if Providers.boolean("logic_compare", ' + JSON.stringify(node.args) + ', state):');
+            lines.push(ind + 'if Providers.boolean("compare", ' + JSON.stringify(node.args) + ', state):');
             if (node.body) CodeGen._emitGDChain(node.body, depth + 1, lines);
             lines.push(ind + 'else:');
             if (node.elseBody) CodeGen._emitGDChain(node.elseBody, depth + 1, lines);

@@ -80,7 +80,7 @@
                           "opcode": "db_query_shuffle_answers",
                           "args": {},
                           "next": {
-                            "opcode": "players_set_active_slots",
+                            "opcode": "max_players",
                             "args": {
                               "N": 4
                             },

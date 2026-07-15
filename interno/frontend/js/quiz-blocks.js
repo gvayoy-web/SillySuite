@@ -27,11 +27,11 @@
         quiz_lock_answers: function () { return { ok: true }; },
         quiz_verify_player_answer: function () { return { ok: true }; },
         quiz_add_score_to_player: function (a, ctx) { ctx.state['score_' + a.PLAYER] = (Number(ctx.state['score_' + a.PLAYER]) || 0) + Number(a.PTS || 0); return { ok: true }; },
-        players_set_active_slots: function () { return { ok: true }; },
-        players_strike_penalize: function () { return { ok: true }; },
-        players_swap_positions: function () { return { ok: true }; },
-        players_toggle_lockout: function () { return { ok: true }; },
-        players_set_avatar: function () { return { ok: true }; },
+        max_players: function () { return { ok: true }; },
+        strike: function () { return { ok: true }; },
+        swap: function () { return { ok: true }; },
+        lockout: function () { return { ok: true }; },
+        avatar: function () { return { ok: true }; },
         db_query_filter_difficulty: function () { return { ok: true }; },
         db_query_exclude_last_questions: function () { return { ok: true }; },
         db_query_mark_as_burned: function () { return { ok: true }; },
@@ -46,8 +46,8 @@
         quiz_get_current_question_text: function () { return '(pregunta)'; },
         quiz_get_answer_text: function (a) { return '(respuesta ' + a.OPT + ')'; },
         quiz_get_leaderboard_json: function () { return '{}'; },
-        players_get_name: function () { return 'Jugador'; },
-        players_get_fastest_buzzer: function () { return 'p1'; },
+        name: function () { return 'Jugador'; },
+        fastest_buzzer: function () { return 'p1'; },
         db_query_get_unanswered_count: function () { return 10; },
         db_query_search_by_keyword: function () { return 1; },
         db_query_get_hint_text: function () { return '(pista)'; },
@@ -55,7 +55,7 @@
         list_get_length: function () { return 0; }
       },
       boolean: {
-        players_is_alive: function () { return true; }
+        alive: function () { return true; }
       }
     };
   };

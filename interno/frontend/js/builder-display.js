@@ -129,12 +129,12 @@
           break;
 
         /* ---------- Quiz / Estado ---------- */
-        case 'quiz_add_score_to_player':
+        case 'add_score':
           state.components.scores = true;
           addScore(state, a.PLAYER, a.PTS); break;
-        case 'quiz_reset_scores':
+        case 'reset_scores':
           state.scores = []; break;
-        case 'quiz_get_score':
+        case 'score':
           break;
 
         default:

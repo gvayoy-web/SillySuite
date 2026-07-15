@@ -20,13 +20,13 @@
               "QID": 0
             },
             "next": {
-              "opcode": "players_send_message",
+              "opcode": "send_message",
               "args": {
                 "MSG": "",
                 "PLAYER": ""
               },
               "next": {
-                "opcode": "players_eliminate",
+                "opcode": "eliminate",
                 "args": {
                   "PLAYER": ""
                 },

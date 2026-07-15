@@ -60,7 +60,7 @@
                     "R": 12
                   },
                   "next": {
-                    "opcode": "quiz_init_engine",
+                    "opcode": "init",
                     "args": {
                       "N": 15,
                       "CAT": "mix"
@@ -74,7 +74,7 @@
                         "opcode": "db_query_shuffle_answers",
                         "args": {},
                         "next": {
-                          "opcode": "players_set_active_slots",
+                          "opcode": "max_players",
                           "args": {
                             "N": 3
                           },
@@ -272,7 +272,7 @@
     ],
     "on_question_start": [
       {
-        "opcode": "quiz_fetch_next_question",
+        "opcode": "next_question",
         "args": {},
         "next": {
           "opcode": "set_text_smooth",
@@ -343,7 +343,7 @@
                                 "SEC": 15
                               },
                               "next": {
-                                "opcode": "quiz_lock_answers",
+                                "opcode": "lock_answers",
                                 "args": {},
                                 "next": {
                                   "opcode": "play_sfx",
@@ -391,12 +391,12 @@
     ],
     "on_player_answer": [
       {
-        "opcode": "quiz_verify_player_answer",
+        "opcode": "verify_answer",
         "args": {
           "PLAYER": "current"
         },
         "next": {
-          "opcode": "quiz_add_score_to_player",
+          "opcode": "add_score",
           "args": {
             "PLAYER": "current",
             "PTS": 15
