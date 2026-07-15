@@ -1,10 +1,42 @@
 export const API = window.location.origin + '/api';
 window.API = API;
 
+// CSRF token: extracted from X-CSRF-Token header on page load
+let _csrfToken = '';
+
+export function setCsrfToken(token) {
+  _csrfToken = token;
+  window.__csrfToken = token;
+}
+
+// Try to extract CSRF from meta tag or last response header
+(function initCsrf() {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  if (meta) _csrfToken = meta.content;
+})();
+
+function authHeaders(extra) {
+  const h = Object.assign({}, extra || {});
+  if (_csrfToken) h['X-CSRF-Token'] = _csrfToken;
+  return h;
+}
+
 export async function fetchRetry(url, opts = {}, retries = 2, delay = 500) {
   for (let i = 0; i <= retries; i++) {
     try {
       const r = await fetch(url, opts);
+      // Capture CSRF token from response headers
+      const token = r.headers.get('X-CSRF-Token');
+      if (token) setCsrfToken(token);
+
+      // If auth required, redirect to login
+      if (r.status === 401) {
+        const data = await r.clone().json().catch(() => ({}));
+        if (data.auth_required) {
+          window.location.href = '/login';
+          return;
+        }
+      }
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return await r.json();
     } catch (e) {
@@ -17,16 +49,26 @@ export async function fetchRetry(url, opts = {}, retries = 2, delay = 500) {
 export function apiPost(endpoint, body) {
   return fetchRetry(API + endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(body),
+    credentials: 'same-origin',
   });
 }
 
 export function apiPut(endpoint, body) {
   return fetchRetry(API + endpoint, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(body),
+    credentials: 'same-origin',
+  });
+}
+
+export function apiDelete(endpoint) {
+  return fetchRetry(API + endpoint, {
+    method: 'DELETE',
+    headers: authHeaders(),
+    credentials: 'same-origin',
   });
 }
 
@@ -46,15 +88,17 @@ function sseHandlePayload(payload, onMessage) {
   } catch (err) { /* ignore malformed frame */ }
 }
 
-// Fallback sobre fetch (streaming) cuando EventSource no logra abrir la conexión
-// (proxy/CORS/archivo local/offline). Reintenta con backoff.
 function startSseFetch({ onMessage, onStatusChange }) {
   if (_sseFetchCtrl) return;
   const ctrl = new AbortController();
   _sseFetchCtrl = ctrl;
   (async () => {
     try {
-      const res = await fetch(API + '/stream', { signal: ctrl.signal, cache: 'no-store' });
+      const res = await fetch(API + '/stream', {
+        signal: ctrl.signal,
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
       if (!res.ok || !res.body) throw new Error('status ' + res.status);
       if (onStatusChange) onStatusChange(true);
       const reader = res.body.getReader();
@@ -114,7 +158,6 @@ export function connectSSE({ onMessage, onStatusChange }) {
   });
   src.onerror = () => {
     if (_sseOpened) {
-      // Se abrió pero se cayó: reconectar vía EventSource.
       if (sseReconnecting) return;
       sseReconnecting = true;
       const delay = sseRetry;
@@ -128,13 +171,11 @@ export function connectSSE({ onMessage, onStatusChange }) {
       }, delay);
       return;
     }
-    // Nunca abrió (proxy/CORS/archivo local): caer a fetch stream.
     try { src.close(); } catch (e) {}
     sse = null;
     startSseFetch({ onMessage, onStatusChange });
   };
 
-  // Si EventSource no abre en 4s, usar fetch stream.
   setTimeout(() => {
     if (!_sseOpened && sse === src && !_sseStopped) {
       try { src.close(); } catch (e) {}

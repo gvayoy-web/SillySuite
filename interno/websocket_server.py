@@ -1,12 +1,18 @@
 """
-websocket_server.py — Servidor de sincronización multi-display (SillyQuiz)
+websocket_server.py — Servidor de sincronizacion multi-display (SillyQuiz)
 
-Proceso Python INDEPENDIENTE de Waitress (lib `websockets` + asyncio) en el
-puerto 8081. Deja los 4 hilos de Waitress libres para HTTP del panel.
+ARQUITECTURA (dual-process):
+  Flask (Waitress, port 8080) + WebSocket (asyncio+websockets, port 8081).
+  Ambos corren como hilos daemon en el mismo launcher (launcher.pyw).
+  El WS process se comunica con Flask via shared memory (game_state.db) y
+  broadcast de eventos. Un health-check mutuo garantiza reconexion automatica.
+
+  El WebSocket NO depende de Flask — puede correr independiente. Flask NO
+  depende del WS — funciona sin sync. El bridge es opcional pero recomendado.
 
 Responsabilidades:
   - Registrar pantallas esclavas (display_id) y llevar conteo de conexiones.
-  - Enrutar payloads JSON a displays específicos o a todos (display_broadcast_payload).
+  - Enrutar payloads JSON a displays especificos o a todos (display_broadcast_payload).
   - Sincronizar relojes (display_sync_clocks) con timestamp Unix del servidor.
   - Cola FIFO estricta para eventos de hardware (on_player_buzz / on_player_answer):
     los pulsadores se serializan por llegada antes de dispatch, evitando mezcla
@@ -19,6 +25,7 @@ Uso:  python websocket_server.py  [--host 0.0.0.0] [--port 8081]
 import asyncio
 import argparse
 import json
+import os
 import time
 import logging
 import hmac
@@ -41,7 +48,7 @@ LOG = logging.getLogger("ws-sync")
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 
 # Configuración de seguridad
-JWT_SECRET = b"sillyquiz-secret-change-in-production"  # En prod: variable de entorno
+JWT_SECRET = os.environ.get("JWT_SECRET", "sillyquiz-change-in-production").encode()
 TOKEN_TTL = 8 * 3600  # 8 horas
 RATE_LIMIT_WINDOW = 1.0  # 1 segundo
 MAX_EVENTS_PER_WINDOW = 10  # máx 10 eventos/seg por socket
@@ -182,6 +189,15 @@ class SyncServer:
                     await ws.send(json.dumps({"type": "clock", "server_unix": time.time()}))
                 elif mtype == "hardware_event":
                     await self.enqueue_hardware(msg.get("event", msg))
+                # --- SillyVisualizer: reflejo en vivo del editor ---
+                elif mtype == "builder_state":
+                    # Reenvía el estado del editor (heads serializados) a todas
+                    # las pantallas conectadas, incl. SillyVisualizer.
+                    await self.broadcast({
+                        "type": "builder_state",
+                        "state": msg.get("state"),
+                        "ts": time.time(),
+                    })
                 # --- Local Game Engine ---
                 elif mtype == "play_register":
                     session_id = msg.get("session_id") or ("game_" + _rand_token()[:8])
@@ -211,6 +227,13 @@ class SyncServer:
                     token = msg.get("token")
                     if token:
                         await self.handle_pong(token)
+                elif mtype == "health_check":
+                    await ws.send(json.dumps({
+                        "type": "health_ok",
+                        "uptime": time.time(),
+                        "displays": len(self.displays),
+                        "sessions": len(self.play_sessions),
+                    }))
                 else:
                     await ws.send(json.dumps({"type": "error", "msg": "tipo desconocido: " + str(mtype)}))
         except websockets.exceptions.ConnectionClosed:

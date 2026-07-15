@@ -6,8 +6,9 @@ SillyQuiz: Tu Constructor de Juegos - Crea, Juega, Comparte
 import atexit
 import logging
 import os
+import secrets
 import time
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, session
 from flask_cors import CORS
 
 from silly.config_loader import load_config, load_questions
@@ -22,7 +23,7 @@ from silly.services.stats_service import StatsService
 from silly.services.theme_service import CompleteThemeEngine
 from silly.services.sound_service import SoundService
 
-# Nuevos módulos del BuildSilly
+# Nuevos modulos del BuildSilly
 from silly.game_state_manager import game_state_manager
 from silly.template_registry import template_registry
 from silly.template_engine import template_engine
@@ -87,9 +88,9 @@ try:
     rotation_cfg = config.get("theme_rotation", {})
     if rotation_cfg:
         theme_engine.set_rotation_state(rotation_cfg)
-        log.info("Rotación de temas cargada: %s", rotation_cfg)
+        log.info("Rotacion de temas cargada: %s", rotation_cfg)
 except Exception as exc:
-    log.warning("No se pudo cargar rotación: %s", exc)
+    log.warning("No se pudo cargar rotacion: %s", exc)
 
 
 def _on_timer_timeout():
@@ -136,13 +137,29 @@ atexit.register(_shutdown)
 
 def create_app():
     app = Flask(__name__, static_folder=None)
-    CORS(app)
+    app.secret_key = os.environ.get("FLASK_SECRET_KEY") or secrets.token_hex(32)
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    app.config["SESSION_COOKIE_NAME"] = "silly_session"
+
+    # CORS: only allow same origin (localhost dev or self-hosted)
+    _allowed_origins = [
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "http://localhost:5000",
+        "http://127.0.0.1:5000",
+    ]
+    CORS(app, origins=_allowed_origins, supports_credentials=True)
 
     from silly.services.theme_service import ThemeService
     THEMES_DIR = os.path.join(container.BASE_DIR, "themes")
     container.theme_service = ThemeService(THEMES_DIR)
 
-    from silly.blueprints._security import add_security_headers, rate_limiter, csrf_proteccion
+    from silly.blueprints._security import (
+        add_security_headers, rate_limiter, csrf_proteccion,
+        require_auth, require_auth_html, is_auth_enabled,
+        verify_credentials, generar_token_csrf, validar_token_csrf,
+    )
     from silly.services.audit import audit_logger
     app.after_request(add_security_headers)
 
@@ -166,9 +183,6 @@ def create_app():
     from silly.blueprints.templates import templates_bp
     from silly.blueprints.communication import comm_bp
     from silly.blueprints.docs import docs_bp
-    from silly.blueprints.play_routes import play_bp
-    from silly.blueprints.engine import engine_bp
-    from silly.blueprints.mode_packages import mode_packages_bp
     from silly.blueprints.control import control_bp
 
     app.register_blueprint(static_bp)
@@ -176,7 +190,7 @@ def create_app():
     app.register_blueprint(quiz_bp)
     app.register_blueprint(display_bp, url_prefix="/display")
     # Alias bajo /api para que el panel de control (que usa API='/api')
-    # pueda controlar el display vía /api/display/* sin romper la ruta /display.
+    # pueda controlar el display via /api/display/* sin romper la ruta /display.
     app.register_blueprint(display_bp, name="display_api", url_prefix="/api/display")
     app.register_blueprint(timer_bp)
     app.register_blueprint(modes_bp)
@@ -196,13 +210,86 @@ def create_app():
     app.register_blueprint(qr_bp)
     app.register_blueprint(control_bp)
 
+    # =========================================================================
+    # AUTH ROUTES — login/logout endpoints
+    # =========================================================================
+    @app.route("/login", methods=["GET", "POST"])
+    def login():
+        if not is_auth_enabled():
+            from flask import redirect
+            return redirect("/sillycontrol/", code=302)
+        if request.method == "GET":
+            from flask import make_response
+            html = """<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SillyQuiz - Acceso</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0B0B0B;color:#F2EBDD;font-family:'Space Grotesk','Segoe UI',system-ui,sans-serif;
+display:flex;align-items:center;justify-content:center;min-height:100vh}
+.card{background:#161616;border:2px solid #2A2A2A;padding:40px;max-width:400px;width:90%;text-align:center}
+h1{font-size:1.8rem;margin-bottom:8px;color:#FF5E3A}
+.sub{color:#A8A090;margin-bottom:30px;font-size:0.9rem}
+label{display:block;text-align:left;color:#A8A090;font-size:0.85rem;margin-bottom:6px;font-weight:600}
+input{width:100%;padding:12px 16px;background:#0B0B0B;border:2px solid #2A2A2A;color:#F2EBDD;
+font-size:1rem;font-family:'Space Mono',monospace;letter-spacing:4px;text-align:center;margin-bottom:20px;outline:none}
+input:focus{border-color:#FF5E3A}
+button{width:100%;padding:14px;background:#FF5E3A;border:none;color:#0B0B0B;font-weight:700;
+font-size:1rem;cursor:pointer;font-family:'Space Grotesk',sans-serif}
+button:hover{background:#FF7A5C}
+.err{color:#FF3B30;margin-top:12px;font-size:0.85rem;min-height:20px}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>SillyQuiz</h1>
+<p class="sub">Panel de Control — Acceso</p>
+<form method="POST" action="/login">
+<label for="pin">PIN de acceso</label>
+<input type="password" id="pin" name="pin" maxlength="32" autocomplete="current-password" autofocus required>
+<button type="submit">Entrar</button>
+<div class="err" id="err"></div>
+</form>
+</div>
+</body>
+</html>"""
+            resp = make_response(html)
+            resp.headers["Cache-Control"] = "no-cache"
+            return resp
+
+        # POST: validate PIN
+        pin = request.form.get("pin", "")
+        if verify_credentials(pin):
+            session["authenticated"] = True
+            session.permanent = True
+            audit_logger.log_security_event("login_success", {}, request.remote_addr)
+            from flask import redirect
+            return redirect("/sillycontrol/", code=302)
+        else:
+            audit_logger.log_security_event("login_failure", {}, request.remote_addr)
+            from flask import make_response
+            resp = make_response("<script>document.getElementById('err').textContent='PIN incorrecto';</script>", 401)
+            return resp
+
+    @app.route("/logout", methods=["POST", "GET"])
+    def logout():
+        session.clear()
+        from flask import redirect
+        return redirect("/login", code=302)
+
+    # =========================================================================
+    # RATE LIMITING & REQUEST MIDDLEWARE
+    # =========================================================================
+    _SENSITIVE_ROUTES = {
+        "login", "logout",
+    }
+
     @app.before_request
     def _before_request():
         request._start_time = time.time()
-        # No aplicar rate-limiting a recursos estáticos, al stream SSE ni a
-        # las páginas HTML: de lo contrario el límite global (por IP) se
-        # agota al instante al abrir Control + Display + el preview embebido,
-        # bloqueando /js y /css con 429 y rompiendo la app.
         p = request.path
         _STATIC_PREFIXES = (
             "/js/", "/css/", "/media/", "/vendor/", "/html/",
@@ -211,10 +298,20 @@ def create_app():
         _PAGE_ROOTS = (
             "/sillycontrol", "/sillycontrol/", "/control",
             "/display", "/displaysilly", "/canva", "/play", "/",
+            "/login", "/logout",
         )
         if p.startswith(_STATIC_PREFIXES) or p in _PAGE_ROOTS:
             return
-        # Rate limiting solo para la API (estado, acciones): 300 req/min por IP
+
+        # Stricter rate limit for sensitive routes (login, import)
+        if any(s in p for s in ("/preguntas/importar", "/login", "/shutdown")):
+            ip = request.remote_addr or "unknown"
+            if not rate_limiter.is_allowed(f"sensitive:{ip}", limit=10, window=60):
+                from flask import jsonify as _jsonify
+                audit_logger.log_security_event("rate_limit_sensitive", {"path": p}, ip)
+                return _jsonify({"error": "Rate limit excedido para ruta sensible"}), 429
+
+        # Global rate limit for API: 300 req/min per IP
         ip = request.remote_addr or "unknown"
         if not rate_limiter.is_allowed(f"global:{ip}", limit=300, window=60):
             from flask import jsonify as _jsonify

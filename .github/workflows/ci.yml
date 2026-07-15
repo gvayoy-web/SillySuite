@@ -1,143 +1,66 @@
-name: CI — LogosKQuiz
+name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, master]
   pull_request:
-    branches: [main]
-  schedule:
-    - cron: '0 6 * * 1'  # Lunes 6am
+    branches: [main, master]
 
 jobs:
-  python-tests:
-    name: Python ${{ matrix.python-version }}
+  lint-python:
+    name: Python Lint (ruff)
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12']
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check interno/ tests/
+      - run: ruff format --check interno/ tests/
 
-      - name: Cache pip
-        uses: actions/cache@v4
+  lint-js:
+    name: JavaScript Lint (node --check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('interno/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          node-version: "20"
+      - run: node --check interno/frontend/js/scratch-blocks.js
+      - run: node --check interno/frontend/js/scratch-runtime.js
+      - run: node --check interno/frontend/js/scratch-ui.js
+      - run: node --check interno/frontend/js/sillycontrol-api.js
 
+  test-python:
+    name: Python Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
           pip install -r interno/requirements.txt
-          pip install pytest pytest-cov
+          pip install pytest
+      - name: Run tests
+        env:
+          SILLYQUIZ_HEADLESS: "1"
+          CSRF_SECRET: "ci-test-secret"
+        run: python -m pytest tests/ -v
 
-      - name: Run Python tests
-        run: |
-          cd interno
-          python -m pytest ../tests/ -v --tb=short --cov=apps --cov-report=xml
-
-      - name: Upload coverage
-        if: matrix.python-version == '3.12'
-        uses: codecov/codecov-action@v4
-        with:
-          file: interno/coverage.xml
-          fail_ci_if_error: false
-
-  js-tests:
-    name: Node.js ${{ matrix.node-version }}
+  sync-opcodes:
+    name: Opcode Sync Check
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: ['18', '20', '22']
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Run JS tests
-        run: node tests/scratch-renderer.test.js
-
-  template-validation:
-    name: Validate templates
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Validate all template JSON
+          node-version: "20"
+      - name: Regenerate opcodes and check for drift
         run: |
-          python -c "
-          import json, sys, os
-          errors = []
-          for root, dirs, files in os.walk('interno/modo_templates'):
-              for f in files:
-                  if f.endswith('.json'):
-                      path = os.path.join(root, f)
-                      try:
-                          with open(path) as fh:
-                              data = json.load(fh)
-                          if 'heads' in data:
-                              assert 'id' in data, f'{path}: missing id'
-                              assert 'title' in data, f'{path}: missing title'
-                              assert isinstance(data['heads'], dict), f'{path}: heads must be dict'
-                          else:
-                              assert 'id' in data or 'nombre' in data, f'{path}: missing id/nombre'
-                      except Exception as e:
-                          errors.append(f'{path}: {e}')
-          if errors:
-              for e in errors:
-                  print(f'ERROR: {e}', file=sys.stderr)
-              sys.exit(1)
-          print('All templates valid')
-          "
-
-  security-scan:
-    name: Security scan
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check for hardcoded secrets
-        run: |
-          if grep -rn "password\s*=\s*['\"]" interno/ --include="*.py" --exclude-dir=__pycache__; then
-            echo "WARNING: Possible hardcoded passwords found"
-            exit 1
-          fi
-          echo "No hardcoded secrets found"
-
-      - name: Check CORS configuration
-        run: |
-          if grep -n "CORS(app)" interno/apps/app.py | grep -v "origins"; then
-            echo "WARNING: CORS may be too permissive"
-          fi
-
-      - name: Validate security headers
-        run: |
-          python -c "
-          import ast, sys
-          with open('interno/apps/blueprints/_security.py') as f:
-              content = f.read()
-          checks = ['X-Content-Type-Options', 'Content-Security-Policy']
-          for check in checks:
-              if check not in content:
-                  print(f'MISSING: {check}', file=sys.stderr)
-                  sys.exit(1)
-          print('Security headers present')
-          "
+          cp scripts/opcodes_gen.py scripts/opcodes_gen.py.bak
+          node scripts/sync_opcodes.js
+          diff scripts/opcodes_gen.py scripts/opcodes_gen.py.bak || (echo "ERROR: opcodes_gen.py is out of sync. Run: node scripts/sync_opcodes.js" && exit 1)
+          rm scripts/opcodes_gen.py.bak

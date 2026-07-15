@@ -1,0 +1,4 @@
+-r interno/requirements.txt
+pytest>=7.0
+ruff>=0.4
+argon2-cffi>=23.1

@@ -1,45 +1,147 @@
 """
-_security.py — Security middleware: headers, CSRF, rate limiting.
+_security.py — Security middleware: auth (PIN + session), CSRF, rate limiting,
+opcode whitelist, input sanitization, and security headers.
 """
 import hashlib
 import hmac
 import os
+import re
+import secrets
+import sys
 import time
 import threading
 from collections import defaultdict
 from functools import wraps
 
-from flask import Response, request, g, jsonify
+from flask import Response, request, g, jsonify, session
 
 
 # =============================================================================
-# CSRF Protection
+# Authentication — PIN-based local auth with session cookies
 # =============================================================================
-_CSRF_SECRET = os.environ.get("CSRF_SECRET", "sillyquiz-change-in-production-" + hashlib.sha256(b"defaultsalt").hexdigest()[:16])
+_PASSWORD_HASH_FILE = os.environ.get("SILLY_PASSWORD_HASH", "")
+_PASSWORD_SALT = os.environ.get("SILLY_PASSWORD_SALT", "")
+
+
+def _hash_pin(pin: str, salt: str) -> str:
+    """SHA-256 hash of PIN+salt (used for storage). Argon2 preferred when
+    argon2-cffi is available, fallback to SHA-256 for zero-dep environments."""
+    try:
+        import argon2
+        h = argon2.PasswordHasher(time_cost=3, memory_cost=65536, parallelism=2)
+        return h.hash(pin + salt)
+    except ImportError:
+        return hashlib.sha256((pin + salt).encode()).hexdigest()
+
+
+def _verify_pin(pin: str, stored_hash: str, salt: str) -> bool:
+    """Verify a PIN against the stored hash."""
+    try:
+        import argon2
+        h = argon2.PasswordHasher(time_cost=3, memory_cost=65536, parallelism=2)
+        h.verify(stored_hash, pin + salt)
+        return True
+    except ImportError:
+        return hmac.compare_digest(
+            hashlib.sha256((pin + salt).encode()).hexdigest(),
+            stored_hash,
+        )
+    except Exception:
+        return False
+
+
+def is_auth_enabled() -> bool:
+    """Check if authentication is configured (password hash file exists and is non-empty)."""
+    return bool(_PASSWORD_HASH_FILE and os.path.isfile(_PASSWORD_HASH_FILE))
+
+
+def verify_credentials(pin: str) -> bool:
+    """Verify PIN against stored credentials. Returns True if valid."""
+    if not is_auth_enabled():
+        return True
+    try:
+        with open(_PASSWORD_HASH_FILE, "r", encoding="utf-8") as f:
+            stored = f.read().strip()
+        return _verify_pin(pin, stored, _PASSWORD_SALT)
+    except Exception:
+        return False
+
+
+def require_auth(f):
+    """Decorator: require valid session for protected routes."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not is_auth_enabled():
+            return f(*args, **kwargs)
+        if session.get("authenticated"):
+            return f(*args, **kwargs)
+        return jsonify({"error": "Autenticación requerida", "auth_required": True}), 401
+    return decorated
+
+
+def require_auth_html(f):
+    """Decorator: require valid session for HTML page routes. Redirects to login."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not is_auth_enabled():
+            return f(*args, **kwargs)
+        if session.get("authenticated"):
+            return f(*args, **kwargs)
+        from flask import redirect
+        return redirect("/login", code=302)
+    return decorated
+
+
+# =============================================================================
+# CSRF Protection — mandatory in production
+# =============================================================================
+_CSRF_SECRET = os.environ.get("CSRF_SECRET", "")
+
+
+def _ensure_csrf_secret():
+    """Abort if CSRF_SECRET is not set in production-like environments."""
+    if not _CSRF_SECRET:
+        is_prod = os.environ.get("SILLYQUIZ_HEADLESS") or os.environ.get("SILLY_PROD")
+        if is_prod:
+            print("FATAL: CSRF_SECRET environment variable is required in production.", file=sys.stderr)
+            print("Set it in config.json or as an env var before starting.", file=sys.stderr)
+            sys.exit(1)
+        # Dev fallback: generate a random ephemeral secret (not shared across restarts)
+        import warnings
+        warnings.warn(
+            "CSRF_SECRET not set — using ephemeral dev secret. "
+            "Set CSRF_SECRET env var for production.",
+            RuntimeWarning,
+        )
+        return secrets.token_hex(32)
+    return _CSRF_SECRET
+
+
+_EFFECTIVE_CSRF_SECRET = _ensure_csrf_secret()
 
 
 def generar_token_csrf():
-    """Genera un token CSRF baseado en la sesión y timestamp."""
+    """Generate a time-based CSRF token bound to the client IP."""
     ts = str(int(time.time() // 3600))
     raw = f"{ts}:{request.remote_addr}"
-    return hmac.new(_CSRF_SECRET.encode(), raw.encode(), hashlib.sha256).hexdigest()[:32]
+    return hmac.new(_EFFECTIVE_CSRF_SECRET.encode(), raw.encode(), hashlib.sha256).hexdigest()[:32]
 
 
 def validar_token_csrf(token):
-    """Valida un token CSRF (ventana de 2 horas)."""
+    """Validate a CSRF token (2-hour window)."""
     if not token:
         return False
     for offset in (-1, 0, 1):
         ts = str(int(time.time() // 3600) + offset)
         raw = f"{ts}:{request.remote_addr}"
-        expected = hmac.new(_CSRF_SECRET.encode(), raw.encode(), hashlib.sha256).hexdigest()[:32]
+        expected = hmac.new(_EFFECTIVE_CSRF_SECRET.encode(), raw.encode(), hashlib.sha256).hexdigest()[:32]
         if hmac.compare_digest(token, expected):
             return True
     return False
 
 
 def csrf_proteccion(f):
-    """Decorator que valida CSRF en métodos mutantes."""
+    """Decorator: validates CSRF on mutating methods."""
     @wraps(f)
     def decorated(*args, **kwargs):
         if request.method in ('POST', 'PUT', 'DELETE', 'PATCH'):
@@ -54,21 +156,17 @@ def csrf_proteccion(f):
 # Rate Limiting (in-memory, per-IP)
 # =============================================================================
 class RateLimiter:
-    """Rate limiter simple en memoria por IP y ventana de tiempo."""
+    """Simple sliding-window rate limiter per key, thread-safe."""
 
     def __init__(self):
         self._requests = defaultdict(list)
         self._lock = threading.Lock()
 
     def is_allowed(self, key, limit=60, window=60):
-        """
-        Verifica si una key (normalmente IP) excede el límite.
-        limit: máximo de requests por window (en segundos).
-        """
+        """Check if key exceeds the limit within the window (seconds)."""
         now = time.time()
         with self._lock:
             reqs = self._requests[key]
-            # Limpiar requests fuera de la ventana
             self._requests[key] = [t for t in reqs if now - t < window]
             if len(self._requests[key]) >= limit:
                 return False
@@ -90,7 +188,7 @@ rate_limiter = RateLimiter()
 
 
 def rate_limit(limit=60, window=60):
-    """Decorator de rate limiting por IP."""
+    """Decorator for per-IP rate limiting."""
     def decorator(f):
         @wraps(f)
         def decorated(*args, **kwargs):
@@ -101,7 +199,7 @@ def rate_limit(limit=60, window=60):
                 return jsonify({
                     "error": "Rate limit excedido",
                     "retry_after": window,
-                    "remaining": remaining
+                    "remaining": remaining,
                 }), 429
             return f(*args, **kwargs)
         return decorated
@@ -111,8 +209,6 @@ def rate_limit(limit=60, window=60):
 # =============================================================================
 # Input Sanitization
 # =============================================================================
-import re
-
 _DANGEROUS_PATTERNS = [
     re.compile(r'<script[^>]*>', re.IGNORECASE),
     re.compile(r'javascript:', re.IGNORECASE),
@@ -126,7 +222,7 @@ _DANGEROUS_PATTERNS = [
 
 
 def sanitize_input(value):
-    """Sanitiza un string contra XSS y SQL injection básica."""
+    """Sanitize a string against basic XSS and SQL injection."""
     if not isinstance(value, str):
         return value
     for pattern in _DANGEROUS_PATTERNS:
@@ -136,7 +232,7 @@ def sanitize_input(value):
 
 
 def sanitize_dict(data):
-    """Sanitiza recursivamente un diccionario."""
+    """Recursively sanitize a dictionary."""
     if not isinstance(data, dict):
         return data
     cleaned = {}
@@ -160,32 +256,87 @@ def sanitize_dict(data):
 
 
 # =============================================================================
-# Opcode Whitelist para Scratch Builder
+# Opcode Whitelist — single source of truth: scripts/opcodes_gen.py
 # =============================================================================
-VALID_OPCODES = {
-    'on_mode_init', 'on_question_load', 'on_question_start',
-    'on_player_buzz', 'on_player_answer', 'on_timer_expire',
-    'on_hardware_disconnect', 'on_custom_signal',
-    'wait_seconds', 'wait_until_timestamp',
-    'if_then', 'if_then_else', 'repeat_times', 'repeat_until',
-    'repeat_for_range', 'exit_loop', 'continue_loop',
-    'try_catch_fallback', 'break_stack', 'global_panic_reset',
-    'set_theme', 'set_custom_theme', 'set_gradient_bg',
-    'set_text_smooth', 'set_text_shadow', 'set_border',
-    'set_rounded_corners', 'set_opacity_block', 'set_rotation',
-    'set_scale', 'set_filter', 'set_position',
-    'screen_flash', 'screen_shake', 'announce', 'display_set_timer',
-    'show_ui_component', 'hide_ui_component', 'set_component_property',
-    'inject_css_raw', 'play_css_animation', 'spawn_particle_emitter',
+# SECURITY: execute_raw_javascript and inject_css_raw are BLOCKED (not in this set).
+# They must never be allowed in production — they allow arbitrary JS/CSS injection.
+from scripts.opcodes_gen import VALID_SCRATCH_OPCODES as _GEN_OPCODES
+
+# Additional opcodes that exist in the builder but are NOT in the generated list
+# (procedures, custom events, engine extras). Merged here as the single Python set.
+_EXTRAS = {
+    # Procedures / Mis Bloques
+    'proc_def', 'proc_param', 'proc_call', 'proc_call_reporter', 'proc_call_boolean', 'proc_return',
+    # Custom events
+    'emit_event', 'on_custom_event', 'event_data',
+    # Engine extras not in sync_opcodes output
+    'render_update_proyector_leaderboard', 'engine_create_player_client',
+    'engine_load_game_template', 'engine_on_client_event', 'engine_get_leaderboard_data',
+    # Players extras
+    'players_get_score_of', 'players_set_var', 'players_get_var',
+    'players_send_message', 'players_show_effect',
+    # Timer extras
+    'timer_is_paused',
+    # Sprite extras
+    'create_clone', 'delete_clone',
+    # Physics extras
+    'physics_create_distance_joint', 'physics_create_revolute_joint',
+    'physics_create_prismatic_joint', 'physics_raycast', 'physics_query_aabb', 'physics',
+    # Power Pack safe opcodes (math, strings, etc.)
+    'burst_particles', 'triqui_triqui', 'triqui_triqui_slot_machine', 'spawn_money_rain',
+    'physics_enable', 'physics_disable', 'physics_create_body', 'physics_destroy_body',
+    'physics_set_velocity', 'physics_apply_force', 'physics_apply_impulse',
+    'physics_set_gravity_scale', 'physics_on_collision', 'physics_get_position',
+    'physics_get_velocity',
+    # Additional look/display opcodes
     'show_image', 'show_video', 'set_background_image',
     'load_font', 'create_overlay', 'move_component',
     'toggle_fullscreen_layer', 'trigger_scene_wipe',
     'show_component', 'hide_component',
-    'play_bg_music', 'stop_bg_music_fade', 'play_sfx',
-    'play_sfx_by_name', 'set_master_volume',
+    'create_tween', 'say', 'think', 'change_size', 'set_size',
+    'change_color_effect', 'clear_graphic_effects',
+    'go_to_xy', 'glide_to_xy', 'change_x', 'change_y',
+    'set_x', 'set_y', 'get_x', 'get_y',
+    # Audio extras
     'set_audio_category_volume', 'trigger_audio_ducking', 'stop_all_sounds',
-    'display_register_setup', 'display_broadcast_payload', 'display_sync_clocks',
-    'set_layer_z_index', 'set_grid_anchor', 'clear_all_displays',
+    # NDI extras
+    'get_ndi_latency', 'is_ndi_source_online',
+    # Display extras
+    'get_display_connection_count',
+    # Quiz extras
+    'quiz_get_total_questions', 'quiz_get_round', 'quiz_is_paused',
+    'quiz_get_current_question_text', 'quiz_get_answer_text', 'quiz_get_leaderboard_json',
+    # State extras
+    'variable_set', 'variable_change', 'variable_get', 'variable_init',
+    'show_variable', 'hide_variable',
+    'state_set_persistent', 'state_get_persistent', 'state_load_persistent',
+    'state_get_memory_value',
+    # List extras
+    'list_set_item', 'list_shuffle', 'list_sort', 'list_join', 'list_count',
+    'list_pop', 'list_reverse', 'list_unique', 'list_to_json',
+    'list_get_item_at', 'list_get_length', 'list_contains',
+    'list_get_random_item', 'list_index_of',
+    # Player extras
+    'players_get_all_names', 'players_get_count', 'players_eliminate', 'players_revive',
+    'players_get_rank', 'players_sort_by_score', 'players_get_top_n',
+    'players_award_bonus',
+    # DB extras
+    'db_query_get_hint_text', 'db_query_get_unanswered_count', 'db_query_search_by_keyword',
+    # Runtime extras
+    'runtime_snapshot_take', 'runtime_hot_reload', 'runtime_debug_log', 'runtime_export_json',
+    'system_replicate_state_to_node', 'get_timestamp', 'get_current_time',
+    # Animation extras
+    'anim_mode', 'anim_burst', 'anim_flash', 'anim_confetti', 'anim_clear_fx',
+    # Sprite extras
+    'sprite_spawn', 'sprite_destroy', 'sprite_set_animation',
+    'sprite_move_to', 'sprite_set_velocity', 'sprite_on_collision',
+    'sprite_is_touching',
+    # Math extras (Power Pack)
+    'math_clamp', 'type_of', 'math_lerp',
+    'math_const', 'math_round_to', 'json_parse', 'json_stringify',
+    'random_choice',
+    'string_trim', 'string_repeat', 'string_split', 'string_to_number', 'string_matches',
+    # Quiz full set
     'quiz_init_engine', 'quiz_fetch_next_question', 'quiz_lock_answers',
     'quiz_verify_player_answer', 'quiz_add_score_to_player',
     'quiz_set_question', 'quiz_reveal_answer', 'quiz_get_score',
@@ -193,61 +344,38 @@ VALID_OPCODES = {
     'quiz_get_option_count', 'quiz_shuffle_options',
     'get_timer_remaining', 'set_timer_duration', 'timer_pause', 'timer_resume',
     'quiz_get_correct_option', 'quiz_get_question_image', 'quiz_get_difficulty',
-    'quiz_get_total_questions',
+    'quiz_get_total_questions', 'quiz_get_round', 'quiz_is_paused',
+    'quiz_get_current_question_text', 'quiz_get_answer_text', 'quiz_get_leaderboard_json',
+    # State full set
     'state_init_memory_key', 'state_set_memory', 'state_increment_memory',
     'state_commit_to_sqlite', 'state_clear_volatile_cache',
-    'state_set_persistent', 'state_get_persistent', 'state_load_persistent',
-    'variable_set', 'variable_change', 'show_variable', 'hide_variable',
+    # Operators full set
     'math_calc', 'logic_compare', 'logic_and_or', 'logic_not',
     'math_unary', 'math_binary', 'logic_xor', 'logic_between',
     'get_random_number', 'string_join', 'string_contains', 'parse_json_key',
     'string_length', 'string_case', 'string_replace', 'string_slice',
     'string_starts_with', 'string_ends_with',
-    'string_trim', 'string_repeat', 'string_split', 'string_to_number',
-    'string_matches', 'math_const', 'math_round_to',
-    'json_parse', 'json_stringify', 'random_choice',
-    'list_create', 'list_add_item', 'list_delete_item', 'list_insert_item',
-    'list_get_item', 'list_length', 'list_contains', 'list_delete_all',
-    'for_each_in_list', 'list_index_of', 'list_get_random_item',
-    'list_set_item', 'list_shuffle', 'list_sort', 'list_join', 'list_count',
-    'list_pop', 'list_reverse', 'list_unique', 'list_to_json',
-    'players_set_active_slots', 'players_strike_penalize',
-    'players_swap_positions', 'players_toggle_lockout',
-    'players_set_avatar',
-    'players_get_points', 'players_get_count', 'players_get_all_names',
-    'players_eliminate', 'players_revive', 'players_get_rank',
-    'players_sort_by_score', 'players_get_top_n', 'players_award_bonus',
-    'db_query_filter_difficulty', 'db_query_exclude_last_questions',
-    'db_query_mark_as_burned', 'db_query_shuffle_answers',
-    'runtime_snapshot_take', 'runtime_hot_reload',
-    'runtime_debug_log', 'runtime_export_json',
-    'get_timestamp', 'get_current_time',
-    'system_replicate_state_to_node',
-    'broadcast', 'broadcast_and_wait', 'when_i_receive',
-    'go_to_xy', 'glide_to_xy', 'change_x', 'change_y',
-    'set_x', 'set_y',
-    'say', 'think', 'change_size', 'set_size',
-    'change_color_effect', 'clear_graphic_effects',
-    'create_clone', 'delete_clone',
-    'ask_and_wait',
-    # Reporters / booleanos / hooks que faltaban en la whitelist inicial.
-    # Todos forman parte del registro vetted de ScratchBlocks; se añaden para
-    # que el backend acepte cualquier bloque que el editor pueda colocar.
-    # (execute_raw_javascript se mantiene FUERA a propósito: es inseguro en prod).
-    'db_query_get_hint_text', 'db_query_get_unanswered_count', 'db_query_search_by_keyword',
-    'get_answer', 'get_display_connection_count', 'get_ndi_latency', 'get_x', 'get_y',
-    'is_ndi_source_online', 'key_pressed',
-    'list_get_item_at', 'list_get_length', 'list_remove_index', 'mouse_x', 'mouse_y',
-    'ndi_connect_source', 'ndi_disconnect_source', 'ndi_send_canvas_scene',
-    'ndi_set_frame_rate', 'ndi_start_discovery_worker', 'ndi_toggle_failover_image',
-    'players_get_fastest_buzzer', 'players_get_name', 'players_is_alive',
-    'quiz_get_answer_text', 'quiz_get_current_question_text', 'quiz_get_leaderboard_json',
-    'state_get_memory_value', 'variable_get', 'when_i_start_as_clone',
+    # Broadcasts
+    'broadcast', 'broadcast_and_wait',
+    # Input
+    'ask_and_wait', 'get_answer', 'mouse_x', 'mouse_y', 'key_pressed',
 }
+
+# Merge: generated opcodes (from JS) + safe extras. DANGEROUS opcodes are EXCLUDED.
+VALID_OPCODES: set = _GEN_OPCODES | _EXTRAS
+
+# Explicit blocklist — these opcodes MUST NEVER be in VALID_OPCODES
+_DANGEROUS_OPCODES = frozenset({'execute_raw_javascript', 'inject_css_raw'})
+VALID_OPCODES -= _DANGEROUS_OPCODES
+
+# Verify no dangerous opcodes leaked in
+assert not (VALID_OPCODES & _DANGEROUS_OPCODES), (
+    f"Dangerous opcodes found in VALID_OPCODES: {VALID_OPCODES & _DANGEROUS_OPCODES}"
+)
 
 
 def validate_opcodes_recursive(blocks):
-    """Valida que todos los opcodes en una cadena de bloques estén en la whitelist."""
+    """Validate that all opcodes in a block chain are in the whitelist."""
     errors = []
     if isinstance(blocks, list):
         for block in blocks:
@@ -255,6 +383,8 @@ def validate_opcodes_recursive(blocks):
                 opcode = block.get('opcode', '')
                 if opcode and opcode not in VALID_OPCODES:
                     errors.append(f"Opcode no permitido: {opcode}")
+                if opcode in _DANGEROUS_OPCODES:
+                    errors.append(f"Opcode de seguridad bloqueado: {opcode}")
                 args = block.get('args', {})
                 if isinstance(args, dict):
                     for key, val in args.items():
@@ -269,21 +399,24 @@ def validate_opcodes_recursive(blocks):
 
 
 # =============================================================================
-# Security Headers (enhanced)
+# Security Headers (enhanced with HSTS)
 # =============================================================================
 def add_security_headers(resp: Response) -> Response:
-    """Aplica headers de seguridad a todas las respuestas."""
+    """Apply security headers to all responses."""
     ct = resp.content_type or ""
     if ct.startswith("text/") and "charset" not in ct:
         resp.content_type = ct + "; charset=utf-8"
     elif ct in ("application/json", "application/javascript") and "charset" not in ct:
         resp.content_type = ct + "; charset=utf-8"
 
-    # Headers de seguridad
+    # Core security headers
     resp.headers.setdefault("X-Content-Type-Options", "nosniff")
     resp.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
     resp.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     resp.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+
+    # HSTS — only for HTTPS (safe to add unconditionally; browsers ignore on HTTP)
+    resp.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 
     # Content Security Policy
     csp_directives = [
@@ -297,12 +430,12 @@ def add_security_headers(resp: Response) -> Response:
     ]
     resp.headers["Content-Security-Policy"] = "; ".join(csp_directives)
 
-    # Eliminar headers obsoletos
+    # Remove obsolete headers
     resp.headers.pop("X-XSS-Protection", None)
     if resp.headers.get("Cache-Control"):
         resp.headers.pop("Expires", None)
 
-    # CSRF token en respuestas HTML
+    # CSRF token in HTML responses
     if resp.content_type and "text/html" in resp.content_type:
         token = generar_token_csrf()
         resp.headers["X-CSRF-Token"] = token

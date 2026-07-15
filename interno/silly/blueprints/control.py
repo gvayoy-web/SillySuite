@@ -7,7 +7,7 @@ A/B/C, Pantallas con mapeo/edge-blend, Temas WYSIWYG, Config con export
 CSV/HTML/PNG y audio, Preview flotante, y el Modo Builder) vive en el
 frontend y se comunica con la API bajo /api.
 
-Estética: brutalista (alto contraste, monoespaciado, sin bordes redondeados)
+Estetica: brutalista (alto contraste, monoespaciado, sin bordes redondeados)
 definida en /css/control.css + /css/control-brutalist.css.
 """
 
@@ -41,6 +41,7 @@ def index(subpath):
     if subpath in legacy:
         return redirect("/sillycontrol/", code=302)
 
+    from silly.blueprints._security import require_auth_html
     resp = send_from_directory(FRONTEND_DIR, "sillycontrol.html")
     resp.headers["Cache-Control"] = "no-cache"
     return resp

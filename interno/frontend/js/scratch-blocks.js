@@ -7,33 +7,36 @@
  * de un golpe (cero interpretación en caliente durante el show).
  *
  * Sin dependencias externas. Expone window.ScratchBlocks y window.ScratchAOT.
+ *
+ * INYECTE dynamic-blocks.js para soporte de bloques dinámicos en tiempo de ejecución.
  */
 
 (function (global) {
   'use strict';
 
-  /* ===================================================================
-   * CATEGORÍAS — colorVar apunta a las CSS vars de scratch-blocks.css
-   * (las clases .block-* se añaden en la fase de estilos CSS final).
-   * =================================================================== */
-  const CATEGORIES = {
-    events:    { id: 'events',    label: 'Eventos',             colorVar: '--cat-events',       order: 1 },
-    control:   { id: 'control',   label: 'Control',             colorVar: '--cat-control',      order: 2 },
-    looks:     { id: 'looks',     label: 'Looks / Visual',      colorVar: '--cat-looks',        order: 3 },
-    audio:     { id: 'audio',     label: 'Audio',               colorVar: '--cat-sound',        order: 4 },
-    ndi:       { id: 'ndi',       label: 'NDI / Broadcast',     colorVar: '--cat-ndi',          order: 5 },
-    displays:  { id: 'displays',  label: 'Multi-Display',       colorVar: '--cat-displays',     order: 6 },
-    quiz:      { id: 'quiz',      label: 'Quiz / Juego',        colorVar: '--cat-motion',       order: 7 },
-    state:     { id: 'state',     label: 'Estado / Variables',  colorVar: '--cat-variables',    order: 8 },
-    operators: { id: 'operators', label: 'Operadores',          colorVar: '--cat-operators',    order: 9 },
-    custom:    { id: 'custom',    label: 'Listas / Custom',     colorVar: '--cat-custom',       order: 10 },
-    players:   { id: 'players',   label: 'Concursantes',        colorVar: '--cat-players',      order: 11 },
-    db:        { id: 'db',        label: 'Query Engine',        colorVar: '--cat-db',           order: 12 },
-    runtime:   { id: 'runtime',   label: 'Runtime / Sistema',   colorVar: '--cat-runtime',      order: 13 },
-    engine:    { id: 'engine',    label: 'Engine / Game',        colorVar: '--cat-engine',       order: 14 },
-    sprites:   { id: 'sprites',   label: 'Engine Sprites',       colorVar: '--cat-sprites',      order: 15 },
-    physics:   { id: 'physics',   label: 'Física / Physics',     colorVar: '--cat-physics',      order: 16 }
-  };
+/* ===================================================================
+   CATEGORÍAS — colorVar apunta a las CSS vars de scratch-blocks.css
+   (las clases .block-* se añaden en la fase de estilos CSS final).
+   =================================================================== */
+const CATEGORIES = {
+  events:    { id: 'events',    label: 'Eventos',             colorVar: '--sq-cat-events',      order: 1,  icon: '⚡',  desc: 'Disparadores de inicio y mensajes' },
+  control:   { id: 'control',   label: 'Control',             colorVar: '--sq-cat-control',     order: 2,  icon: '🔧',  desc: 'Bucles, condicionales, flujo' },
+  looks:     { id: 'looks',     label: 'Looks / Visual',      colorVar: '--sq-cat-looks',       order: 3,  icon: '🎨',  desc: 'Apariencia, animación, efectos' },
+  audio:     { id: 'audio',     label: 'Audio',               colorVar: '--sq-cat-audio',       order: 4,  icon: '🔊',  desc: 'Música, SFX, control de sonido' },
+  ndi:       { id: 'ndi',       label: 'NDI / Broadcast',     colorVar: '--sq-cat-ndi',         order: 5,  icon: '📡',  desc: 'Video NDI, discovery, streaming' },
+  displays:  { id: 'displays',  label: 'Multi-Display',       colorVar: '--sq-cat-displays',    order: 6,  icon: '🖥️',  desc: 'Pantallas, layers, sincronización' },
+  quiz:      { id: 'quiz',      label: 'Quiz / Juego',        colorVar: '--sq-cat-quiz',        order: 7,  icon: '🧠',  desc: 'Motor de preguntas y puntuación' },
+  state:     { id: 'state',     label: 'Estado / Variables',  colorVar: '--sq-cat-state',       order: 8,  icon: '📦',  desc: 'RAM, SQLite, persistencia' },
+  operators: { id: 'operators', label: 'Operadores',          colorVar: '--sq-cat-operators',   order: 9,  icon: '⚙️',  desc: 'Matemáticas, lógica, strings, JSON' },
+  custom:    { id: 'custom',    label: 'Listas / Custom',     colorVar: '--sq-cat-custom',      order: 10, icon: '📋',  desc: 'Arrays, iteración, transformación' },
+  players:   { id: 'players',   label: 'Concursantes',        colorVar: '--sq-cat-players',     order: 11, icon: '👥',  desc: 'Slots, strikes, ranking, avatares' },
+  db:        { id: 'db',        label: 'Query Engine',        colorVar: '--sq-cat-db',          order: 12, icon: '🗄️',  desc: 'Filtrado, búsqueda, metadatos BD' },
+  runtime:   { id: 'runtime',   label: 'Runtime / Sistema',   colorVar: '--sq-cat-runtime',     order: 13, icon: '🔄',  desc: 'Snapshots, hot-reload, debug' },
+  engine:    { id: 'engine',    label: 'Engine / Game',       colorVar: '--sq-cat-engine',      order: 14, icon: '🎮',  desc: 'Mini-juegos, clientes, sprites' },
+  sprites:   { id: 'sprites',   label: 'Engine Sprites',      colorVar: '--sq-cat-sprites',     order: 15, icon: '🎭',  desc: 'Sprites 2D, animación, física ligera' },
+  physics:   { id: 'physics',   label: 'Física / Physics',    colorVar: '--sq-cat-physics',     order: 16, icon: '⚖️',  desc: 'Cuerpos, fuerzas, colisiones, joints' },
+  procedures: { id: 'procedures', label: 'Mis Bloques',        colorVar: '--sq-cat-procedures', order: 17, icon: '📖',  desc: 'Procedimientos personalizados, funciones' },
+};
 
   /* Tipos de puerto para el tipado visual de enchufes (color del conector) */
   const PORT = {
@@ -132,8 +135,9 @@
       { COMP: { type: 'id', port: PORT.any } }, { sideEffects: ['ui'] });
   def('set_component_property', 'looks', 'stack', 'fijar [COMP] [PROP] a [VAL]',
       { COMP: { type: 'id', port: PORT.any }, PROP: { type: 'dropdown', port: PORT.any, options: ['font', 'opacity', 'size', 'color'] }, VAL: { type: 'input', port: PORT.any } }, { sideEffects: ['ui'] });
-  def('inject_css_raw', 'looks', 'stack', 'inyectar CSS en [DISP]: [CSS]',
-      { DISP: { type: 'display_id', port: PORT.display }, CSS: { type: 'textarea', port: PORT.any } }, { sideEffects: ['ui'] });
+  // SECURITY: inject_css_raw BLOCKED — allows arbitrary CSS injection
+  // def('inject_css_raw', 'looks', 'stack', 'inyectar CSS en [DISP]: [CSS]',
+  //     { DISP: { type: 'display_id', port: PORT.display }, CSS: { type: 'textarea', port: PORT.any } }, { sideEffects: ['ui'] });
   def('play_css_animation', 'looks', 'stack', 'animar [COMP] con [ANIM]',
       { COMP: { type: 'id', port: PORT.any }, ANIM: { type: 'dropdown', port: PORT.any, options: ['elastic-in', 'shake', 'flash', 'fade'] } }, { sideEffects: ['ui'] });
   def('spawn_particle_emitter', 'looks', 'stack', 'partículas [KIND] en X:[X] Y:[Y]',
@@ -291,8 +295,9 @@
       { NAME: { type: 'string', port: PORT.string }, IDX: { type: 'number', port: PORT.number, default: 0 } }, { returns: 'any' });
   def('list_get_length', 'custom', 'reporter', 'largo [NAME]',
       { NAME: { type: 'string', port: PORT.string } }, { returns: 'number' });
-  def('execute_raw_javascript', 'custom', 'stack', 'JS: [CODE]',
-      { CODE: { type: 'textarea', port: PORT.any } }, { sideEffects: ['unsafe'], disabledInProd: true });
+  // SECURITY: execute_raw_javascript BLOCKED — allows arbitrary JS execution
+  // def('execute_raw_javascript', 'runtime', 'stack', 'JS: [CODE]',
+  //     { CODE: { type: 'textarea', port: PORT.any } }, { sideEffects: ['runtime'], exec: 'async', timeout: 300000, disabledInProd: true });
 
   /* ===================================================================
    * 11. CONCURSANTES (Azul Eléctrico) — 8
@@ -366,18 +371,8 @@
       { VAR: { type: 'string', port: PORT.string }, DISP: { type: 'display_id', port: PORT.display } }, { sideEffects: ['ui'] });
   def('hide_variable', 'looks', 'stack', 'ocultar variable [VAR]',
       { VAR: { type: 'string', port: PORT.string } }, { sideEffects: ['ui'] });
-  def('list_create', 'custom', 'stack', 'crear lista [NAME]',
-      { NAME: { type: 'string', port: PORT.string } }, { sideEffects: ['state'] });
-  def('list_add_item', 'custom', 'stack', 'lista [NAME] += [VAL]',
-      { NAME: { type: 'string', port: PORT.string }, VAL: { type: 'input', port: PORT.any } }, { sideEffects: ['state'] });
-  def('list_delete_item', 'custom', 'stack', 'lista [NAME] quitar ítem [IDX]',
-      { NAME: { type: 'string', port: PORT.string }, IDX: { type: 'number', port: PORT.number, default: 1 } }, { sideEffects: ['state'] });
   def('list_insert_item', 'custom', 'stack', 'lista [NAME] insertar [VAL] en [IDX]',
       { NAME: { type: 'string', port: PORT.string }, VAL: { type: 'input', port: PORT.any }, IDX: { type: 'number', port: PORT.number, default: 1 } }, { sideEffects: ['state'] });
-  def('list_get_item', 'custom', 'reporter', 'lista [NAME] ítem [IDX]',
-      { NAME: { type: 'string', port: PORT.string }, IDX: { type: 'number', port: PORT.number, default: 1 } }, { returns: 'any' });
-  def('list_length', 'custom', 'reporter', 'lista [NAME] largo',
-      { NAME: { type: 'string', port: PORT.string } }, { returns: 'number' });
   def('list_contains', 'custom', 'boolean', 'lista [NAME] contiene [VAL]',
       { NAME: { type: 'string', port: PORT.string }, VAL: { type: 'input', port: PORT.any } }, {});
   def('list_delete_all', 'custom', 'stack', 'lista [NAME] vaciar',
@@ -710,6 +705,164 @@ def('sprite_on_collision', 'sprites', 'hat', 'al colisionar [A] con [B]',
       { JID: { type: 'string', port: PORT.string }, A: { type: 'string', port: PORT.string },
         B: { type: 'string', port: PORT.string }, LEN: { type: 'number', port: PORT.number, default: 1 } },
       { sideEffects: ['state'] });
+
+  /* ===================================================================
+   * 33. PHYSICS ADVANCED — Física avanzada (Raycast, Queries, Joints)
+   * =================================================================== */
+  
+  /* ---- Raycast ---- */
+  def('physics_raycast', 'physics', 'reporter', 'raycast desde X:[X] Y:[Y] dir X:[DX] Y:[DY] max:[MAXDIST] filtro:[FILTER]',
+      { X: { type: 'number', port: PORT.number, default: 0 }, Y: { type: 'number', port: PORT.number, default: 0 },
+        DX: { type: 'number', port: PORT.number, default: 1 }, DY: { type: 'number', port: PORT.number, default: 0 },
+        MAXDIST: { type: 'number', port: PORT.number, default: 100 }, FILTER: { type: 'string', port: PORT.string, default: '' } },
+      { returns: 'json' });
+  
+  /* ---- AABB Query ---- */
+  def('physics_query_aabb', 'physics', 'reporter', 'query AABB min X:[MINX] Y:[MINY] max X:[MAXX] Y:[MAXY] filtro:[FILTER]',
+      { MINX: { type: 'number', port: PORT.number }, MINY: { type: 'number', port: PORT.number },
+        MAXX: { type: 'number', port: PORT.number }, MAXY: { type: 'number', port: PORT.number },
+        FILTER: { type: 'string', port: PORT.string, default: '' } },
+      { returns: 'json' });
+  
+  /* ---- Point Query ---- */
+  def('physics_query_point', 'physics', 'reporter', 'query punto X:[X] Y:[Y] filtro:[FILTER]',
+      { X: { type: 'number', port: PORT.number }, Y: { type: 'number', port: PORT.number },
+        FILTER: { type: 'string', port: PORT.string, default: '' } },
+      { returns: 'json' });
+  
+  /* ---- Collision Filter ---- */
+  def('physics_set_collision_filter', 'physics', 'stack', 'filtro colisión [BID] = [FILTER]',
+      { BID: { type: 'string', port: PORT.string }, FILTER: { type: 'string', port: PORT.string, default: 'default' } },
+      { sideEffects: ['state'] });
+  
+  /* ---- Add Fixture ---- */
+  def('physics_add_fixture', 'physics', 'stack', 'añadir fixture a [BID] forma:[SHAPE] radio:[RAD] ancho:[W] alto:[H] densidad:[DEN] fricción:[FRIC] restitución:[REST] sensor:[ISENSOR] offsetX:[OX] offsetY:[OY]',
+      { BID: { type: 'string', port: PORT.string }, SHAPE: { type: 'dropdown', port: PORT.string, options: ['circle', 'polygon', 'box'], default: 'circle' },
+        RADIUS: { type: 'number', port: PORT.number, default: 0.5 }, WIDTH: { type: 'number', port: PORT.number, default: 1 },
+        HEIGHT: { type: 'number', port: PORT.number, default: 1 }, DENSITY: { type: 'number', port: PORT.number, default: 1 },
+        FRIC: { type: 'number', port: PORT.number, default: 0.3 }, REST: { type: 'number', port: PORT.number, default: 0.5 },
+        ISENSOR: { type: 'boolean', port: PORT.boolean, default: false }, OX: { type: 'number', port: PORT.number, default: 0 },
+        OY: { type: 'number', port: PORT.number, default: 0 } },
+      { sideEffects: ['state'] });
+  
+  /* ---- Revolute Joint ---- */
+  def('physics_create_revolute_joint', 'physics', 'stack', 'joint pivote [JID] [A]-[B] ancla X:[AX] Y:[AY] motor:[MOTOR] vel:[MSPEED] torque:[MTORQUE] límites:[LIMITS] min:[MINA] max:[MAXA]',
+      { JID: { type: 'string', port: PORT.string }, A: { type: 'string', port: PORT.string }, B: { type: 'string', port: PORT.string },
+        AX: { type: 'number', port: PORT.number, default: 0 }, AY: { type: 'number', port: PORT.number, default: 0 },
+        MOTOR: { type: 'boolean', port: PORT.boolean, default: false }, MSPEED: { type: 'number', port: PORT.number, default: 0 },
+        MTORQUE: { type: 'number', port: PORT.number, default: 1000 }, LIMITS: { type: 'boolean', port: PORT.boolean, default: false },
+        MINA: { type: 'number', port: PORT.number, default: -3.14 }, MAXA: { type: 'number', port: PORT.number, default: 3.14 } },
+      { sideEffects: ['state'] });
+  
+  /* ---- Prismatic Joint ---- */
+  def('physics_create_prismatic_joint', 'physics', 'stack', 'joint prismático [JID] [A]-[B] ancla X:[AX] Y:[AY] eje X:[AXISX] Y:[AXISY] motor:[MOTOR] vel:[MSPEED] fuerza:[MFUERZA] límites:[LIMITS] min:[MIN] max:[MAX]',
+      { JID: { type: 'string', port: PORT.string }, A: { type: 'string', port: PORT.string }, B: { type: 'string', port: PORT.string },
+        AX: { type: 'number', port: PORT.number, default: 0 }, AY: { type: 'number', port: PORT.number, default: 0 },
+        AXISX: { type: 'number', port: PORT.number, default: 1 }, AXISY: { type: 'number', port: PORT.number, default: 0 },
+        MOTOR: { type: 'boolean', port: PORT.boolean, default: false }, MSPEED: { type: 'number', port: PORT.number, default: 0 },
+        MFUERZA: { type: 'number', port: PORT.number, default: 1000 }, LIMITS: { type: 'boolean', port: PORT.boolean, default: false },
+        MIN: { type: 'number', port: PORT.number, default: 0 }, MAX: { type: 'number', port: PORT.number, default: 10 } },
+      { sideEffects: ['state'] });
+  
+  /* ---- Destroy Joint ---- */
+  def('physics_destroy_joint', 'physics', 'stack', 'destruir joint [JID]',
+      { JID: { type: 'string', port: PORT.string } },
+      { sideEffects: ['state'] });
+
+  /* ---- Animación (categoría engine) ---- */
+  def('anim_mode', 'engine', 'stack', 'modo de formas [MODE]',
+      { MODE: { type: 'string', port: PORT.string, default: 'idle' } }, { sideEffects: ['engine'] });
+  def('anim_burst', 'engine', 'stack', 'ráfaga de formas [N]',
+      { N: { type: 'number', port: PORT.number, default: 6 } }, { sideEffects: ['engine'] });
+  def('anim_flash', 'engine', 'stack', 'destello de color [COLOR]',
+      { COLOR: { type: 'string', port: PORT.string, default: '#ffffff' } }, { sideEffects: ['engine'] });
+  def('anim_confetti', 'engine', 'stack', 'confeti', {}, { sideEffects: ['engine'] });
+  def('anim_clear_fx', 'engine', 'stack', 'limpiar efectos de animación', {}, { sideEffects: ['engine'] });
+
+  /* ===================================================================
+   * 32. POWER PACK 3 — BLOQUES NUEVOS (Mejoras flagship)
+   * Control, operadores, quiz, concursantes, runtime, looks.
+   * =================================================================== */
+
+  /* ---- Control: While Loop ---- */
+  def('while_loop', 'control', 'c', 'mientras [COND]',
+      { COND: { type: 'boolean', port: PORT.boolean } }, { bodies: ['body'] });
+
+  /* ---- Control: For Each with Index ---- */
+  def('for_each_with_index', 'control', 'c', 'para cada [VAR] con índice [IDX] en [LIST]',
+      { VAR: { type: 'string', port: PORT.string }, IDX: { type: 'string', port: PORT.string, default: 'i' }, LIST: { type: 'string', port: PORT.string } }, { bodies: ['body'], sideEffects: ['state'] });
+
+  /* ---- Operators: Clamp ---- */
+  def('math_clamp', 'operators', 'reporter', '[VAL] clamp [MIN]..[MAX]',
+      { VAL: { type: 'reporter', port: PORT.number, returns: 'number' }, MIN: { type: 'number', port: PORT.number, default: 0 }, MAX: { type: 'number', port: PORT.number, default: 100 } }, { returns: 'number' });
+
+  /* ---- Operators: Type Of ---- */
+  def('type_of', 'operators', 'reporter', 'tipo de [VAL]',
+      { VAL: { type: 'input', port: PORT.any } }, { returns: 'string' });
+
+  /* ---- Operators: Lerp ---- */
+  def('math_lerp', 'operators', 'reporter', 'lerp [A] → [B] por [T]',
+      { A: { type: 'reporter', port: PORT.number, returns: 'number' }, B: { type: 'reporter', port: PORT.number, returns: 'number' }, T: { type: 'reporter', port: PORT.number, returns: 'number' } }, { returns: 'number' });
+
+  /* ---- Quiz: Is Paused ---- */
+  def('quiz_is_paused', 'quiz', 'boolean', '¿quiz pausado?', {}, {});
+
+  /* ---- Quiz: Get Round ---- */
+  def('quiz_get_round', 'quiz', 'reporter', 'ronda actual', {}, { returns: 'number' });
+
+  /* ---- Players: Get Score Of ---- */
+  def('players_get_score_of', 'players', 'reporter', 'puntos de [PLAYER]',
+      { PLAYER: { type: 'player_id', port: PORT.any } }, { returns: 'number' });
+
+  /* ---- Runtime: Timer Is Paused ---- */
+  def('timer_is_paused', 'runtime', 'boolean', '¿timer pausado?', {}, {});
+
+  /* ---- Looks: Tween ---- */
+  def('create_tween', 'looks', 'stack', 'tween [PROP] de [FROM] a [TO] en [DUR]ms',
+      { PROP: { type: 'string', port: PORT.string }, FROM: { type: 'number', port: PORT.number, default: 0 }, TO: { type: 'number', port: PORT.number, default: 100 }, DUR: { type: 'number', port: PORT.number, default: 300 } }, { sideEffects: ['ui'] });
+
+  /* ===================================================================
+   * 33. PROCEDURES / MIS BLOQUES — Procedimientos personalizados
+   * Define y llama tus propios bloques con parámetros.
+   * =================================================================== */
+
+  /* ---- Definir procedimiento (Hat) ---- */
+  def('proc_def', 'procedures', 'hat', 'definir [NAME]',
+      { NAME: { type: 'string', port: PORT.string } }, { bodies: ['body'], scope: 'procedure' });
+
+  /* ---- Parámetro del procedimiento ---- */
+  def('proc_param', 'procedures', 'reporter', 'parámetro [NAME]',
+      { NAME: { type: 'string', port: PORT.string } }, { returns: 'any' });
+
+  /* ---- Llamar procedimiento ---- */
+  def('proc_call', 'procedures', 'stack', 'llamar [NAME]',
+      { NAME: { type: 'string', port: PORT.string } }, { sideEffects: ['state'] });
+
+  /* ---- Llamar procedimiento con retorno ---- */
+  def('proc_call_reporter', 'procedures', 'reporter', 'llamar [NAME] →',
+      { NAME: { type: 'string', port: PORT.string } }, { returns: 'any' });
+
+  /* ---- Llamar procedimiento booleano ---- */
+  def('proc_call_boolean', 'procedures', 'boolean', '¿llamar [NAME]?',
+      { NAME: { type: 'string', port: PORT.string } }, {});
+
+  /* ---- Retornar valor del procedimiento ---- */
+  def('proc_return', 'procedures', 'stack', 'retornar [VAL]',
+      { VAL: { type: 'input', port: PORT.any } }, { sideEffects: ['state'] });
+
+  /* ===================================================================
+   * 34. EVENTOS PERSONALIZADOS — Custom Events System
+   * Dispara y escucha eventos con nombre dinámico.
+   * =================================================================== */
+
+  def('emit_event', 'events', 'stack', 'emitir evento [NAME] con [DATA]',
+      { NAME: { type: 'string', port: PORT.string }, DATA: { type: 'input', port: PORT.any } }, { sideEffects: ['all'] });
+
+  def('on_custom_event', 'events', 'hat', 'al recibir evento [NAME] → [DATA]',
+      { NAME: { type: 'string', port: PORT.string } }, { scope: 'custom_event' });
+
+  def('event_data', 'events', 'reporter', 'datos del evento', {}, { returns: 'any' });
+
   const ScratchBlocks = {
     CATEGORIES,
     PORT,

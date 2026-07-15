@@ -1,0 +1,29 @@
+# ruff.toml — SillyQuiz Python linter config
+target-version = "py310"
+line-length = 120
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "S",   # flake8-bandit (security)
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "B008",   # function call in default argument (Flask patterns)
+    "S101",   # assert usage (tests)
+    "S603",   # subprocess call (launcher)
+    "S607",   # partial executable path
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["S101", "S106"]
+"scripts/*" = ["S"]
+
+[format]
+quote-style = "double"
+indent-style = "space"

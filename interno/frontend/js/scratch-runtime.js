@@ -21,6 +21,7 @@
 
   const ScratchBlocks = global.ScratchBlocks
     || (typeof require !== 'undefined' ? require('./scratch-blocks.js').ScratchBlocks : null);
+  const DynamicBlocks = global.DynamicBlocks || (typeof require !== 'undefined' ? require('./dynamic-blocks.js').DynamicBlocks : null);
 
   const SandboxedJS = global.SandboxedJS
     || (typeof require !== 'undefined' ? require('./scratch-sandbox.js').SandboxedJS : null);
@@ -120,6 +121,183 @@
       physics.stepCount = (physics.stepCount || 0) + 1;
     }
 
+    // ===================================================================
+    // DEBUGGING SUPPORT
+    // ===================================================================
+
+    /** Registra un breakpoint en un bloque por su _id */
+    setBreakpoint(blockId, enabled = true) {
+      if (!this._breakpoints) this._breakpoints = new Set();
+      if (enabled) this._breakpoints.add(blockId);
+      else this._breakpoints.delete(blockId);
+    }
+
+    /** Elimina un breakpoint */
+    clearBreakpoint(blockId) {
+      if (this._breakpoints) this._breakpoints.delete(blockId);
+    }
+
+    /** Limpia todos los breakpoints */
+    clearAllBreakpoints() {
+      if (this._breakpoints) this._breakpoints.clear();
+    }
+
+    /** Verifica si un bloque tiene breakpoint activo */
+    _hasBreakpoint(blockId) {
+      return this._breakpoints && this._breakpoints.has(blockId);
+    }
+
+    /** Configura el modo debug */
+    setDebugMode(enabled) {
+      this._debugMode = enabled;
+      this._paused = false;
+      this._stepMode = null; // 'over' | 'into' | 'out'
+      this._callStack = [];
+      this._watchExpressions = [];
+    }
+
+    /** Pausa la ejecución en el siguiente bloque */
+    pause() {
+      this._paused = true;
+    }
+
+    /** Reanuda la ejecución */
+    resume() {
+      this._paused = false;
+      this._stepMode = null;
+    }
+
+    /** Step into - entra en el siguiente bloque */
+    stepInto() {
+      this._paused = false;
+      this._stepMode = 'into';
+    }
+
+    /** Step over - salta sobre contenedores */
+    stepOver() {
+      this._paused = false;
+      this._stepMode = 'over';
+      // Track stack depth for step over
+      this._stepOverDepth = this._callStack.length;
+    }
+
+    /** Step out - sale del contenedor actual */
+    stepOut() {
+      this._paused = false;
+      this._stepMode = 'out';
+      this._stepOutDepth = this._callStack.length - 1;
+    }
+
+    /** Añade una expresión watch */
+    addWatchExpression(expr) {
+      this._watchExpressions.push(expr);
+    }
+
+    /** Elimina una expresión watch */
+    removeWatchExpression(index) {
+      this._watchExpressions.splice(index, 1);
+    }
+
+    /** Evalúa todas las expresiones watch en el contexto actual */
+    _evalWatchExpressions(ctx) {
+      if (!this._watchExpressions || this._watchExpressions.length === 0) return {};
+      const results = {};
+      for (const expr of this._watchExpressions) {
+        try {
+          // Simple evaluation - in production would use a proper sandbox
+          results[expr] = this._evalWatchExpr(expr, ctx);
+        } catch (e) {
+          results[expr] = { error: e.message };
+        }
+      }
+      return results;
+    }
+
+    /** Evalúa una expresión watch simple */
+    _evalWatchExpr(expr, ctx) {
+      // Very simple evaluator for common patterns
+      // In production, use a proper expression parser
+      const state = ctx.state || {};
+      try {
+        // Allow simple property access like "state.var_score"
+        return Function('s', 'return ' + expr.replace(/\bstate\./g, 's.'))(state);
+      } catch {
+        return undefined;
+      }
+    }
+
+    /** Verifica si debe pausar antes de ejecutar un bloque */
+    _checkPause(node, ctx) {
+      if (!this._debugMode || !this._paused) return false;
+      
+      // Check breakpoint
+      if (node._id && this._hasBreakpoint(node._id)) {
+        this._paused = true;
+        return true;
+      }
+      
+      // Check step modes
+      if (this._stepMode === 'into') {
+        this._paused = true;
+        this._stepMode = null;
+        return true;
+      }
+      
+      if (this._stepMode === 'over') {
+        if (this._callStack.length <= (this._stepOverDepth || 0)) {
+          this._paused = true;
+          this._stepMode = null;
+          return true;
+        }
+      }
+      
+      if (this._stepMode === 'out') {
+        if (this._callStack.length <= (this._stepOutDepth || 0)) {
+          this._paused = true;
+          this._stepMode = null;
+          return true;
+        }
+      }
+      
+      return false;
+    }
+
+    /** Espera hasta que se reanude (para modo debug) */
+    async _waitForResume() {
+      if (!this._paused) return;
+      
+      return new Promise(resolve => {
+        this._resumeResolver = resolve;
+        // Poll for resume
+        const check = () => {
+          if (!this._paused) {
+            resolve();
+          } else {
+            setTimeout(check, 50);
+          }
+        };
+        check();
+      });
+    }
+
+    /** Notifica al hook de debug que se ha pausado */
+    _notifyDebugPause(node, ctx, reason) {
+      if (this.hooks.onDebugPause) {
+        this.hooks.onDebugPause(node, ctx, reason, {
+          callStack: [...this._callStack],
+          watchValues: this._evalWatchExpressions(ctx)
+        });
+      }
+    }
+
+    _resumeFromPause() {
+      this._paused = false;
+      if (this._resumeResolver) {
+        this._resumeResolver();
+        this._resumeResolver = null;
+      }
+    }
+
     /** Resolución simple de colisiones AABB entre cuerpos. */
     _resolveCollisions(bodies) {
       const ids = Object.keys(bodies);
@@ -214,7 +392,9 @@
         state: this.state,
         eventCtx: eventCtx || {},
         runtime: this,
-        killedRef: this
+        killedRef: this,
+        // Local variable scope stack (each frame is a Map of varName -> value)
+        scopeStack: []
       };
       ctx.runtime.steps = 0;
       return this.executeChain(chain, ctx);
@@ -227,16 +407,20 @@
     executeChain(chain, ctx) {
       if (!Array.isArray(chain)) return Promise.resolve();
       const queue = [];
-      chain.forEach(node => queue.push({ node, next: node.next || null }));
+      chain.forEach(node => queue.push({ node, next: node.next || null, scope: null }));
       const drain = () => {
         if (ctx.runtime.killed) return Promise.resolve();
         const frame = queue.shift();
         if (!frame) return Promise.resolve();
+        // Pop scope if this frame has one
+        if (frame.scope && ctx.scopeStack.length) {
+          ctx.scopeStack.pop();
+        }
         return Promise.resolve()
           .then(() => this.runBlock(frame.node, ctx))
           .then(() => {
             if (ctx.runtime.killed) return;
-            if (frame.next) queue.unshift({ node: frame.next, next: frame.next.next || null });
+            if (frame.next) queue.unshift({ node: frame.next, next: frame.next.next || null, scope: frame.scope });
             return drain();
           });
       };
@@ -260,21 +444,38 @@
     }
 
     runBlock(node, ctx) {
-      const def = ScratchBlocks.get(node.opcode);
-      if (!def) {
-        this.stepper('error', node, ctx, 'opcode desconocido: ' + node.opcode);
-        return Promise.resolve();
+      let def = ScratchBlocks.get(node.opcode);
+      if (!def && DynamicBlocks) {
+        def = DynamicBlocks.get(node.opcode);
+}
+    if (!def) {
+      this.stepper('error', node, ctx, 'opcode desconocido: ' + node.opcode);
+      return Promise.resolve();
+    }
+    // Presupuesto de ejecución (anti-hang): frena el show si se agota.
+    ctx.runtime.steps = (ctx.runtime.steps || 0) + 1;
+    if (ctx.runtime.steps > MAX_STEPS) {
+      this.panic();
+      this.stepper('error', node, ctx, 'presupuesto de ejecución agotado (' + MAX_STEPS + ')');
+      return Promise.resolve();
+    }
+    
+    // DEBUG: Check for breakpoints / step modes
+    if (this._debugMode && this._paused) {
+      if (this._checkPause(node, ctx)) {
+        this._notifyDebugPause(node, ctx, 'breakpoint');
+        return this._waitForResume().then(() => this.runBlock(node, ctx));
       }
-      // Presupuesto de ejecución (anti-hang): frena el show si se agota.
-      ctx.runtime.steps = (ctx.runtime.steps || 0) + 1;
-      if (ctx.runtime.steps > MAX_STEPS) {
-        this.panic();
-        this.stepper('error', node, ctx, 'presupuesto de ejecución agotado (' + MAX_STEPS + ')');
-        return Promise.resolve();
-      }
-      this.stepper('start', node, ctx);
-      const startTime = performance.now();
-      try {
+    }
+    
+    // Track call stack for step debugging
+    if (def.hasBody) {
+      this._callStack.push({ opcode: node.opcode, id: node._id, depth: this._callStack.length });
+    }
+    
+    this.stepper('start', node, ctx);
+    const startTime = performance.now();
+    try {
         if (def.hasBody) {
           return this.runContainer(node, def, ctx);
         } else if (def.type === 'hat') {
@@ -283,6 +484,7 @@
           const resolved = this.resolveArgs(node, ctx);
           node._resolved = resolved;
           const res = this.providers.sideEffect(node.opcode, resolved, ctx);
+          this._emitStage(node.opcode, resolved, ctx, res);
           if (res && res.ok === false) {
             this.stepper('error', node, ctx, res.error || 'fallo');
             throw new BlockError(node.opcode, res.error || 'sideEffect falló');
@@ -314,24 +516,44 @@
       const a = this.resolveArgs(node, ctx);
       node._resolved = a;
       switch (node.opcode) {
-        case 'if_then':
-          if (truthy(a.COND)) return this.executeChain(node.body, ctx);
+        case 'if_then': {
+          if (truthy(a.COND)) {
+            this._pushScope(ctx);
+            return this.executeChain(node.body, ctx).finally(() => this._popScope(ctx));
+          }
           return Promise.resolve();
-        case 'if_then_else':
-          if (truthy(a.COND)) return this.executeChain(node.body, ctx);
-          else return this.executeChain(node.elseBody, ctx);
+        }
+        case 'if_then_else': {
+          if (truthy(a.COND)) {
+            this._pushScope(ctx);
+            return this.executeChain(node.body, ctx).finally(() => this._popScope(ctx));
+          } else {
+            this._pushScope(ctx);
+            return this.executeChain(node.elseBody, ctx).finally(() => this._popScope(ctx));
+          }
+        }
         case 'repeat_times': {
           const n = Math.max(0, Math.floor(Number(a.N) || 0));
           let chain = [];
-          for (let i = 0; i < n && !ctx.runtime.killed; i++) chain.push(node.body);
-          return this.executeChain(chain, ctx);
+          for (let i = 0; i < n && !ctx.runtime.killed; i++) {
+            this._pushScope(ctx);
+            chain.push(node.body);
+          }
+          return this.executeChain(chain, ctx).finally(() => {
+            // Pop all scopes pushed for this loop
+            for (let i = 0; i < n; i++) this._popScope(ctx);
+          });
         }
         case 'repeat_until': {
           const body = node.body;
           const cond = () => truthy(a.COND);
           const step = () => {
             if (cond() || ctx.runtime.killed || ctx.runtime.steps > MAX_STEPS) return Promise.resolve();
-            return this.executeChain(body, ctx).then(step);
+            this._pushScope(ctx);
+            return this.executeChain(body, ctx).then(() => {
+              this._popScope(ctx);
+              return step();
+            });
           };
           return step();
         }
@@ -340,51 +562,103 @@
           if (!Array.isArray(list)) return Promise.resolve();
           const chains = [];
           for (let i = 0; i < list.length && !ctx.runtime.killed; i++) {
+            this._pushScope(ctx);
             ctx.state['var_' + a.VAR] = list[i];
             chains.push(node.body);
           }
-          return this.executeChain(chains, ctx);
+          return this.executeChain(chains, ctx).finally(() => {
+            for (let i = 0; i < list.length; i++) this._popScope(ctx);
+          });
         }
         case 'repeat_for_range': {
           const from = Math.floor(toNum(a.FROM, 0));
           const to = Math.floor(toNum(a.TO, 0));
           const step = toNum(a.STEP, 1) || 1;
           const chains = [];
+          let count = 0;
           if (step > 0) {
             for (let v = from; v <= to && !ctx.runtime.killed; v += step) {
+              this._pushScope(ctx);
               ctx.state['var_' + a.VAR] = v;
               chains.push(node.body);
+              count++;
             }
           } else {
             for (let v = from; v >= to && !ctx.runtime.killed; v += step) {
+              this._pushScope(ctx);
               ctx.state['var_' + a.VAR] = v;
               chains.push(node.body);
+              count++;
             }
           }
-          return this.executeChain(chains, ctx);
+          return this.executeChain(chains, ctx).finally(() => {
+            for (let i = 0; i < count; i++) this._popScope(ctx);
+          });
+        }
+        case 'for_each_with_index': {
+          const list = ctx.state['list_' + a.LIST];
+          if (!Array.isArray(list)) return Promise.resolve();
+          const chains = [];
+          for (let i = 0; i < list.length && !ctx.runtime.killed; i++) {
+            this._pushScope(ctx);
+            ctx.state['var_' + a.VAR] = list[i];
+            ctx.state['var_' + a.IDX] = i;
+            chains.push(node.body);
+          }
+          return this.executeChain(chains, ctx).finally(() => {
+            for (let i = 0; i < list.length; i++) this._popScope(ctx);
+          });
+        }
+        case 'while_loop': {
+          const cond = () => truthy(a.COND);
+          const step = () => {
+            if (!cond() || ctx.runtime.killed || ctx.runtime.steps > MAX_STEPS) return Promise.resolve();
+            this._pushScope(ctx);
+            return this.executeChain(node.body, ctx).then(() => {
+              this._popScope(ctx);
+              return step();
+            });
+          };
+          return step();
         }
         case 'try_catch_fallback':
-          return this.executeChain(node.body, ctx).catch(e => {
+          this._pushScope(ctx);
+          return this.executeChain(node.body, ctx).finally(() => this._popScope(ctx)).catch(e => {
             if (e instanceof BreakSignal || e instanceof ContinueSignal) throw e;
             this.stepper('catch', node, ctx, e.message);
-            return this.executeChain(node.fallback, ctx);
+            this._pushScope(ctx);
+            return this.executeChain(node.fallback, ctx).finally(() => this._popScope(ctx));
           });
         default:
           return Promise.resolve();
       }
     }
 
-    /* Evalúa un nodo reporter/boolean (o devuelve valor literal). */
-    evalNode(v, ctx) {
-      if (v && v.opcode) {
-        const def = ScratchBlocks.get(v.opcode);
-        const resolved = this.resolveArgs(v, ctx);
-        if (def.type === 'boolean') {
-          return truthy(this.providers.boolean(v.opcode, resolved, ctx));
-        }
-        return this.providers.reporter(v.opcode, resolved, ctx);
+    _pushScope(ctx) {
+      ctx.scopeStack.push(new Map());
+    }
+
+    _popScope(ctx) {
+      if (ctx.scopeStack.length > 0) ctx.scopeStack.pop();
+    }
+
+    _getFromScope(ctx, name) {
+      // Search from innermost to outermost scope
+      for (let i = ctx.scopeStack.length - 1; i >= 0; i--) {
+        const scope = ctx.scopeStack[i];
+        if (scope.has(name)) return scope.get(name);
       }
-      return v;
+      // Fall back to global state
+      return ctx.state[name];
+    }
+
+    _setInScope(ctx, name, value) {
+      // Set in innermost scope if exists, else global
+      if (ctx.scopeStack.length > 0) {
+        ctx.scopeStack[ctx.scopeStack.length - 1].set(name, value);
+      } else {
+        ctx.state[name] = value;
+      }
     }
 
     stepper(phase, node, ctx, msg) {
@@ -392,6 +666,15 @@
       if (phase === 'start' && h.onBlockStart) h.onBlockStart(node, ctx);
       else if (phase === 'end' && h.onBlockEnd) h.onBlockEnd(node, ctx);
       else if ((phase === 'error' || phase === 'catch') && h.onError) h.onError(node, phase, msg, ctx);
+    }
+
+    /* Reenvía cada sideEffect/reporter al Stage (si existe) para preview en vivo.
+       Envuelto en try/catch: el Stage NUNCA debe romper la ejecución del modo. */
+    _emitStage(opcode, args, ctx, res) {
+      const s = global.ScratchStage;
+      if (s && typeof s.handle === 'function') {
+        try { s.handle(opcode, args, ctx, res); } catch (e) { /* ignore */ }
+      }
     }
 
     /** Avanza la simulación física un paso (Euler semi-implícito simplificado). */
@@ -613,7 +896,13 @@
           case 'list_get_item': { const l = ctx.state['list_' + args.NAME]; return Array.isArray(l) ? (l[num(args.IDX) - 1] || '') : ''; }
           case 'list_length': { const l = ctx.state['list_' + args.NAME]; return Array.isArray(l) ? l.length : 0; }
           case 'get_display_connection_count': return 1;
-          case 'variable_get': return ctx.state['var_' + args.VAR];
+          case 'variable_get': {
+            // Use scope stack if available
+            if (ctx.runtime && typeof ctx.runtime._getFromScope === 'function') {
+              return ctx.runtime._getFromScope(ctx, 'var_' + args.VAR);
+            }
+            return ctx.state['var_' + args.VAR];
+          }
           case 'get_x': return 0;
           case 'get_y': return 0;
           case 'get_answer': return '';
@@ -763,8 +1052,23 @@
             opcode === 'ask_and_wait' ||
             opcode === 'broadcast' || opcode === 'broadcast_and_wait') { return { ok: true }; }
         // Variables
-        if (opcode === 'variable_set') { ctx.state['var_' + args.VAR] = args.VAL; return { ok: true }; }
-        if (opcode === 'variable_change') { ctx.state['var_' + args.VAR] = num(ctx.state['var_' + args.VAR]) + num(args.VAL); return { ok: true }; }
+        if (opcode === 'variable_set') {
+            if (ctx.runtime && typeof ctx.runtime._setInScope === 'function') {
+              ctx.runtime._setInScope(ctx, 'var_' + args.VAR, args.VAL);
+            } else {
+              ctx.state['var_' + args.VAR] = args.VAL;
+            }
+            return { ok: true };
+          }
+          if (opcode === 'variable_change') {
+            if (ctx.runtime && typeof ctx.runtime._getFromScope === 'function' && typeof ctx.runtime._setInScope === 'function') {
+              const current = ctx.runtime._getFromScope(ctx, 'var_' + args.VAR) || 0;
+              ctx.runtime._setInScope(ctx, 'var_' + args.VAR, num(current) + num(args.VAL));
+            } else {
+              ctx.state['var_' + args.VAR] = num(ctx.state['var_' + args.VAR]) + num(args.VAL);
+            }
+            return { ok: true };
+          }
         // Listas Pro
         if (opcode === 'list_set_item') { const l = ctx.state['list_' + args.NAME]; if (Array.isArray(l)) l[num(args.IDX) - 1] = args.VAL; return { ok: true }; }
         if (opcode === 'list_shuffle') { const l = ctx.state['list_' + args.NAME]; if (Array.isArray(l)) { for (let i = l.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = l[i]; l[i] = l[j]; l[j] = t; } } return { ok: true }; }
@@ -809,10 +1113,10 @@
         if (opcode === 'system_replicate_state_to_node') { return { ok: true }; }
         if (opcode === 'global_panic_reset') { ctx.runtime.panic(); return { ok: true }; }
         if (opcode === 'execute_raw_javascript') {
-          if (!SandboxedJS) return { ok: false, error: 'Sandbox no disponible' };
-          return SandboxedJS.run(args.CODE || '', { timeoutMs: 2000, memoryLimitMb: 10, globals: { state: ctx.state } })
-            .then(res => ({ ok: true, result: res }))
-            .catch(err => ({ ok: false, error: err.message }));
+          return { ok: false, error: 'SECURITY: execute_raw_javascript está bloqueado por razones de seguridad.' };
+        }
+        if (opcode === 'inject_css_raw') {
+          return { ok: false, error: 'SECURITY: inject_css_raw está bloqueado por razones de seguridad.' };
         }
         if (opcode === 'break_stack') { throw new BreakSignal(); }
         if (opcode === 'wait_seconds') {
@@ -902,6 +1206,175 @@
           };
           return { ok: true };
         }
+        // ===== ADVANCED PHYSICS =====
+        if (opcode === 'physics_raycast') {
+          const physics = ctx.state.__physics;
+          if (!physics || !physics.bodies) return { ok: false, error: 'Física no activada' };
+          const x1 = num(args.X1), y1 = num(args.Y1);
+          const x2 = num(args.X2), y2 = num(args.Y2);
+          const maxDist = num(args.MAXDIST, 1000);
+          const filter = args.FILTER || null;
+          
+          const dx = x2 - x1;
+          const dy = y2 - y1;
+          const dist = Math.hypot(dx, dy);
+          if (dist === 0) return { ok: true, hit: false };
+          
+          const ux = dx / dist;
+          const uy = dy / dist;
+          
+          let closestHit = null;
+          let closestDist = maxDist;
+          
+          for (const [bid, body] of Object.entries(physics.bodies)) {
+            if (filter && body.collisionFilter !== filter) continue;
+            if (body.type === 'static') continue;
+            
+            // Simple AABB ray intersection
+            const radius = body.radius || 0.5;
+            const cx = body.x;
+            const cy = body.y;
+            
+            // Vector from ray start to circle center
+            const fx = cx - x1;
+            const fy = cy - y1;
+            
+            // Project onto ray
+            const proj = fx * ux + fy * uy;
+            if (proj < 0 || proj > closestDist) continue;
+            
+            // Perpendicular distance
+            const px = fx - proj * ux;
+            const py = fy - proj * uy;
+            const perpDist = Math.hypot(px, py);
+            
+            if (perpDist <= radius) {
+              // Hit!
+              const offset = Math.sqrt(Math.max(0, radius * radius - perpDist * perpDist));
+              const hitDist = proj - offset;
+              if (hitDist >= 0 && hitDist < closestDist) {
+                closestDist = hitDist;
+                closestHit = {
+                  bodyId: bid,
+                  point: { x: x1 + ux * hitDist, y: y1 + uy * hitDist },
+                  normal: { x: -px / perpDist || 0, y: -py / perpDist || 0 },
+                  distance: hitDist
+                };
+              }
+            }
+          }
+          
+          return { 
+            ok: true, 
+            hit: !!closestHit, 
+            bodyId: closestHit?.bodyId || null,
+            point: closestHit?.point || { x: 0, y: 0 },
+            normal: closestHit?.normal || { x: 0, y: 0 },
+            distance: closestHit?.distance || 0
+          };
+        }
+        if (opcode === 'physics_query_aabb') {
+          const physics = ctx.state.__physics;
+          if (!physics || !physics.bodies) return { ok: true, bodies: [] };
+          const minX = num(args.MINX), minY = num(args.MINY);
+          const maxX = num(args.MAXX), maxY = num(args.MAXY);
+          const filter = args.FILTER || null;
+          
+          const results = [];
+          for (const [bid, body] of Object.entries(physics.bodies)) {
+            if (filter && body.collisionFilter !== filter) continue;
+            const radius = body.radius || 0.5;
+            const bx = body.x, by = body.y;
+            if (bx + radius >= minX && bx - radius <= maxX &&
+                by + radius >= minY && by - radius <= maxY) {
+              results.push({
+                bodyId: bid,
+                x: bx, y: by,
+                vx: body.vx || 0, vy: body.vy || 0,
+                type: body.type
+              });
+            }
+          }
+          return { ok: true, bodies: results };
+        }
+        if (opcode === 'physics_set_collision_filter') {
+          const physics = ctx.state.__physics;
+          if (physics && physics.bodies && physics.bodies[args.BID]) {
+            physics.bodies[args.BID].collisionFilter = args.FILTER || 'default';
+          }
+          return { ok: true };
+        }
+        if (opcode === 'physics_add_fixture') {
+          const physics = ctx.state.__physics;
+          if (!physics || !physics.bodies || !physics.bodies[args.BID]) {
+            return { ok: false, error: 'Cuerpo no encontrado' };
+          }
+          const body = physics.bodies[args.BID];
+          body.fixtures = body.fixtures || [];
+          const fixture = {
+            shape: args.SHAPE || 'circle',
+            radius: num(args.RADIUS, 0.5),
+            width: num(args.WIDTH, 1),
+            height: num(args.HEIGHT, 1),
+            density: num(args.DENSITY, 1),
+            friction: num(args.FRICTION, 0.3),
+            restitution: num(args.RESTITUTION, 0.5),
+            isSensor: !!args.IS_SENSOR,
+            offsetX: num(args.OFFSETX, 0),
+            offsetY: num(args.OFFSETY, 0)
+          };
+          body.fixtures.push(fixture);
+          return { ok: true };
+        }
+        if (opcode === 'physics_create_revolute_joint') {
+          const physics = ctx.state.__physics;
+          if (!physics) return { ok: false, error: 'Física no activada' };
+          physics.joints = physics.joints || {};
+          physics.joints[args.JID] = {
+            type: 'revolute',
+            bodyA: args.A,
+            bodyB: args.B,
+            anchorX: num(args.ANCHORX, 0),
+            anchorY: num(args.ANCHORY, 0),
+            enableMotor: !!args.ENABLEMOTOR,
+            motorSpeed: num(args.MOTORSPEED, 0),
+            maxMotorTorque: num(args.MAXMOTORTOQUE, 1000),
+            enableLimit: !!args.ENABLELIMIT,
+            lowerAngle: num(args.LOWERANGLE, -Math.PI),
+            upperAngle: num(args.UPPERANGLE, Math.PI)
+          };
+          return { ok: true };
+        }
+        if (opcode === 'physics_create_prismatic_joint') {
+          const physics = ctx.state.__physics;
+          if (!physics) return { ok: false, error: 'Física no activada' };
+          physics.joints = physics.joints || {};
+          physics.joints[args.JID] = {
+            type: 'prismatic',
+            bodyA: args.A,
+            bodyB: args.B,
+            anchorX: num(args.ANCHORX, 0),
+            anchorY: num(args.ANCHORY, 0),
+            axisX: num(args.AXISX, 1),
+            axisY: num(args.AXISY, 0),
+            enableMotor: !!args.ENABLEMOTOR,
+            motorSpeed: num(args.MOTORSPEED, 0),
+            maxMotorForce: num(args.MAXMOTORFORCE, 1000),
+            enableLimit: !!args.ENABLELIMIT,
+            lowerTranslation: num(args.LOWERTRANS, 0),
+            upperTranslation: num(args.UPPERTRANS, 10)
+          };
+          return { ok: true };
+        }
+        if (opcode === 'physics_destroy_joint') {
+          const physics = ctx.state.__physics;
+          if (physics && physics.joints) {
+            delete physics.joints[args.JID];
+          }
+          return { ok: true };
+        }
+        // ===== END ADVANCED PHYSICS =====
+        
         if (opcode === 'physics_get_position') {
           const physics = ctx.state.__physics;
           const b = physics && physics.bodies && physics.bodies[args.BID];
