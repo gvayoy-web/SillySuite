@@ -14,6 +14,34 @@ MIN_POINTS: int = -99999
 MIN_GRUPO_PUNTOS: int = 0
 
 
+# Caché del leaderboard del Game Engine: evita bloquear snapshot()/SSE
+# cuando el WS :8081 está caído (antes: 5s x 3 reintentos por cada tick/botón).
+import time as _time
+
+_LB_CACHE: dict = {"ts": 0.0, "data": {}}
+_LB_TTL: float = 10.0
+
+
+def _get_leaderboard_fast() -> dict:
+    now = _time.monotonic()
+    if now - _LB_CACHE["ts"] < _LB_TTL and _LB_CACHE["data"]:
+        return _LB_CACHE["data"]
+    try:
+        from silly.blueprints.sync_bridge import bridge
+        res = bridge._call_sync(
+            {"type": "play_leaderboard", "session_id": "game_persona", "metric": "kills"},
+            timeout=0.4,
+            retries=0,
+        )
+        if res and res.get("leaderboard"):
+            _LB_CACHE["data"] = {"game_persona": {"kills": res["leaderboard"]}}
+            _LB_CACHE["ts"] = now
+            return _LB_CACHE["data"]
+    except Exception:
+        pass
+    return _LB_CACHE["data"]
+
+
 class AppState:
     def __init__(self, config: dict, preguntas: list[dict]) -> None:
         self._lock: threading.Lock = threading.Lock()
@@ -144,15 +172,8 @@ class AppState:
                 {**g, "color": color_map.get(g["grupo"], "#888")}
                 for g in grupos_ordenados
             ]
-            # Leaderboard del Game Engine (si existe)
-            leaderboard_data = {}
-            try:
-                from silly.blueprints.sync_bridge import bridge
-                lb = bridge.get_leaderboard("game_persona", "kills")
-                if lb and lb.get("leaderboard"):
-                    leaderboard_data = {"game_persona": {"kills": lb["leaderboard"]}}
-            except Exception:
-                pass
+            # Leaderboard del Game Engine (si existe) — vía caché rápida no bloqueante
+            leaderboard_data = _get_leaderboard_fast()
             return {
                 "pregunta_actual": deepcopy(self.pregunta_actual),
                 "mostrar_respuesta": self.mostrar_respuesta,
@@ -187,15 +208,8 @@ class AppState:
 
     def datos_persistibles(self) -> dict:
         with self._lock:
-            # Leaderboard del Game Engine (si existe)
-            leaderboard_data = {}
-            try:
-                from silly.blueprints.sync_bridge import bridge
-                lb = bridge.get_leaderboard("game_persona", "kills")
-                if lb and lb.get("leaderboard"):
-                    leaderboard_data = {"game_persona": {"kills": lb["leaderboard"]}}
-            except Exception:
-                pass
+            # Leaderboard del Game Engine (si existe) — vía caché rápida no bloqueante
+            leaderboard_data = _get_leaderboard_fast()
             return {
                 "preguntas": [dict(p) for p in self.preguntas],
                 "puntos": dict(self.puntos),

@@ -24,6 +24,16 @@ class QuestionsMode(BaseMode):
             if pid is None:
                 return {"error": "id requerido"}
             return self._set_pregunta(pid)
+        elif action == "seleccionar":
+            pid = data.get("id") if data else None
+            if pid is None:
+                return {"error": "id requerido"}
+            return self._set_pregunta(pid)
+        elif action == "effects":
+            cur = bool(self.state.display_config.get("quiz_mode_effects", False))
+            self.state.display_config["quiz_mode_effects"] = not cur
+            self.log_actividad(f"Efectos de modo preguntas: {'ON' if not cur else 'OFF'}")
+            return {"ok": True, "quiz_mode_effects": not cur}
         elif action == "mostrar_respuesta":
             mostrar = data.get("mostrar", False) if data else False
             return self._mostrar_respuesta(mostrar)

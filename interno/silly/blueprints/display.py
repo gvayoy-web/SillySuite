@@ -550,6 +550,45 @@ def toggle_ambient():
 
 
 
+def _toggle_flag(key, default=False):
+    with container.state.lock:
+        container.state.display_config[key] = not container.state.display_config.get(key, default)
+        v = container.state.display_config[key]
+    container.event_bus.notify(EVENT_DISPLAY_UPDATE)
+    return jsonify({"ok": True, key: v})
+
+
+@display_bp.route("/timer-mode-effects", methods=["POST"])
+def toggle_timer_mode_effects():
+    return _toggle_flag("timer_mode_effects", False)
+
+
+@display_bp.route("/score-effects", methods=["POST"])
+def toggle_score_effects():
+    return _toggle_flag("score_effects", False)
+
+
+@display_bp.route("/answer-reveal-effects", methods=["POST"])
+def toggle_answer_reveal_effects():
+    return _toggle_flag("answer_reveal_effects", False)
+
+
+@display_bp.route("/animated-bg", methods=["POST"])
+def toggle_animated_bg():
+    return _toggle_flag("animated_bg", False)
+
+
+@display_bp.route("/dynamic-theme", methods=["POST"])
+def toggle_dynamic_theme():
+    return _toggle_flag("dynamic_theme", False)
+
+
+@display_bp.route("/custom-effects", methods=["POST"])
+def toggle_custom_effects():
+    return _toggle_flag("custom_effects", False)
+
+
+
 SCREEN_ELEMENTS = ("timer", "question", "scores", "shapes", "overlays")
 SCREEN_ROLES = ("main", "secondary", "scoreboard", "timer", "stage")
 

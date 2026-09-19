@@ -26,6 +26,7 @@ def iniciar_temporizador():
 @timer_bp.route("/temporizador/reiniciar", methods=["POST"])
 def reiniciar_temporizador():
     with container.state.lock:
+        container.state.timer_segundos = container.state.timer_totales
         container.state.timer_activo = True
     container.cronometro.reiniciar()
     container.event_bus.notify(EVENT_TIMER_START)
@@ -36,6 +37,7 @@ def reiniciar_temporizador():
 def parar_temporizador():
     with container.state.lock:
         container.state.timer_activo = False
+        container.state.timer_segundos = 0
     container.cronometro.parar()
     container.event_bus.notify(EVENT_TIMER_STOP)
     return jsonify({"ok": True})

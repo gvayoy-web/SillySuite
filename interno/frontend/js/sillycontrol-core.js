@@ -1027,9 +1027,10 @@ function formatTimerDisplay(seconds) {
   return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
 }
 
-ctrl.startRoundTimer = function() {
+ctrl.startRoundTimer = async function() {
   if (_roundTimerInterval) { clearInterval(_roundTimerInterval); }
   _roundTimerSeconds = parseInt(id('inRoundTimer')?.value || 120);
+  try { await apiPost('/temporizador/iniciar', { segundos: _roundTimerSeconds }); } catch { toast('❌ Error al proyectar timer de ronda'); }
   const display = id('roundTimerDisplay');
   if (display) display.textContent = formatTimerDisplay(_roundTimerSeconds);
   _roundTimerInterval = setInterval(function() {
@@ -1044,14 +1045,16 @@ ctrl.startRoundTimer = function() {
   toast('▶ Timer de ronda iniciado');
 };
 
-ctrl.stopRoundTimer = function() {
+ctrl.stopRoundTimer = async function() {
   if (_roundTimerInterval) { clearInterval(_roundTimerInterval); _roundTimerInterval = null; }
+  try { await fetchRetry(API + '/temporizador/parar', { method: 'POST' }); } catch { /* display ya actualizado local */ }
   toast('■ Timer de ronda detenido');
 };
 
-ctrl.startGameTimer = function() {
+ctrl.startGameTimer = async function() {
   if (_gameTimerInterval) { clearInterval(_gameTimerInterval); }
   _gameTimerSeconds = parseInt(id('inGameTimer')?.value || 3600);
+  try { await apiPost('/temporizador/iniciar', { segundos: _gameTimerSeconds }); } catch { toast('❌ Error al proyectar timer de juego'); }
   const display = id('gameTimerDisplay');
   if (display) display.textContent = formatTimerDisplay(_gameTimerSeconds);
   _gameTimerInterval = setInterval(function() {
@@ -1066,8 +1069,9 @@ ctrl.startGameTimer = function() {
   toast('▶ Timer de juego iniciado');
 };
 
-ctrl.stopGameTimer = function() {
+ctrl.stopGameTimer = async function() {
   if (_gameTimerInterval) { clearInterval(_gameTimerInterval); _gameTimerInterval = null; }
+  try { await fetchRetry(API + '/temporizador/parar', { method: 'POST' }); } catch { /* display ya actualizado local */ }
   toast('■ Timer de juego detenido');
 };
 
