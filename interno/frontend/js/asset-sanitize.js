@@ -9,15 +9,15 @@
 
   const ASSET_LIMITS = {
     image: {
-      maxBytes: 10 * 1024 * 1024,
-      maxW: 4096,
-      maxH: 4096,
-      allowed: ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif']
+      maxBytes: 25 * 1024 * 1024,
+      maxW: 8192,
+      maxH: 8192,
+      allowed: ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif', 'image/svg+xml']
     },
     audio: {
-      maxBytes: 25 * 1024 * 1024,
-      maxDuration: 300,
-      allowed: ['audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/ogg', 'audio/webm', 'audio/mp4', 'audio/aac', 'audio/x-m4a']
+      maxBytes: 50 * 1024 * 1024,
+      maxDuration: 600,
+      allowed: ['audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/ogg', 'audio/webm', 'audio/mp4', 'audio/aac', 'audio/x-m4a', 'audio/flac']
     }
   };
 

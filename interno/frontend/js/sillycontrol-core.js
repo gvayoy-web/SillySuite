@@ -116,7 +116,7 @@ let state = {
 // ── Undo/Redo System ──
 const _undoStack = [];
 const _redoStack = [];
-const MAX_UNDO = 20;
+const MAX_UNDO = 100;
 
 function pushUndoAction(action) {
   _undoStack.push(action);

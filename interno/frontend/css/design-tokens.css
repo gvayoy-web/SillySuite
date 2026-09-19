@@ -1,306 +1,829 @@
 /**
- * design-tokens.css — Sistema unificado de variables de diseño para SillyQuiz.
- * Consolidación de las 3 definiciones :root fragmentadas en un solo lugar.
- *
- * Uso: importar este archivo PRIMERO en todos los CSS:
- *   @import url('design-tokens.css');
- *
- * Temas: dark, fire, ocean se aplican con clases en <html>:
- *   <html class="theme-dark"> o <html class="theme-fire">
+ * design-tokens.css — Unified Design System for SillyQuiz
+ * Single source of truth for all design tokens across Display, Builder, and Control Panel.
+ * 
+ * Usage: @import url('design-tokens.css') FIRST in every CSS file.
+ * 
+ * Token naming convention: --sq-<category>-<property>
+ * Categories: color, space, radius, shadow, font, transition, z-index, shape, effect
  */
 
 :root {
   /* =========================================================================
-   * 1. COLORES BASE (sin tema)
+   * 1. COLOR PALETTE — Semantic, themeable colors
    * ========================================================================= */
-  --silly-bg: #050505;
-  --silly-bg-deep: #020204;
-  --silly-surface: #0f0f1a;
-  --silly-surface-raised: #171730;
-  --silly-surface-floating: #252545;
-  --silly-border: #2d2d50;
-  --silly-border-light: #3d3d6a;
-  --silly-border-subtle: #505072;
-  --silly-text: #f0f0f8;
-  --silly-text-muted: #a0a0b0;
-  --silly-text-dim: #707080;
-  --silly-text-bright: #ffffff;
-  --silly-accent: #ff5e3a;
-  --silly-accent-primary: #ff7a5c;
-  --silly-accent-secondary: #ff3300;
-  --silly-accent-tertiary: #ff8c66;
-  --silly-accent-glow: rgba(255, 94, 58, 0.5);
-  --silly-success: #10b981;
-  --silly-success-bright: #34d399;
-  --silly-success-dark: #059669;
-  --silly-danger: #ef4444;
-  --silly-danger-bright: #f87171;
-  --silly-danger-dark: #dc2626;
-  --silly-warning: #f59e0b;
-  --silly-warning-bright: #fbbf24;
-  --silly-warning-dark: #d97706;
-  --silly-info: #3b82f6;
-  --silly-info-bright: #60a5fa;
-  --silly-info-dark: #2563eb;
 
-  /* Grupos */
-  --silly-jovenes: #ff00ff;
-  --silly-jovenes-bright: #ff66ff;
-  --silly-jovenes-glow: rgba(255, 0, 255, 0.6);
-  --silly-damas: #ffcc00;
-  --silly-damas-bright: #ffee00;
-  --silly-damas-glow: rgba(255, 204, 0, 0.6);
-  --silly-caball: #ff5500;
-  --silly-caball-bright: #ff8c33;
-  --silly-caball-glow: rgba(255, 85, 0, 0.6);
-  --silly-ninos: #00ff55;
-  --silly-ninos-bright: #00ff80;
-  --silly-ninos-glow: rgba(0, 255, 85, 0.6);
+  /* ---- Base Neutrals ---- */
+  --sq-color-bg-primary:       #0B0B0B;
+  --sq-color-bg-secondary:     #121212;
+  --sq-color-bg-tertiary:      #1A1A1A;
+  --sq-color-bg-hover:         #1E1E1E;
+  --sq-color-bg-active:        #2A2A2A;
+  --sq-color-bg-elevated:      #161616;
+  --sq-color-bg-overlay:       rgba(0, 0, 0, 0.85);
 
-  /* =========================================================================
-   * 2. SOMBRAS
-   * ========================================================================= */
-  --silly-shadow-sm: 2px 2px 0px rgba(0,0,0,0.4);
-  --silly-shadow: 4px 4px 0px rgba(0,0,0,0.5);
-  --silly-shadow-lg: 0 8px 40px rgba(0,0,0,0.55);
-  --silly-shadow-glow: 0 0 20px var(--silly-accent);
+  --sq-color-fg-primary:       #F2EBDD;
+  --sq-color-fg-secondary:     #A8A090;
+  --sq-color-fg-muted:         #7A7468;
+  --sq-color-fg-inverse:       #0B0B0B;
+  --sq-color-fg-disabled:      #4A453E;
 
-  /* =========================================================================
-   * 3. TIPOGRAFÍA
-   * ========================================================================= */
-  --silly-font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --silly-font-heading: Georgia, 'Times New Roman', serif;
-  --silly-font-mono: 'Fira Code', 'Cascadia Code', Consolas, monospace;
-  --silly-font-size-xs: 0.7rem;
-  --silly-font-size-sm: 0.85rem;
-  --silly-font-size-base: 1rem;
-  --silly-font-size-lg: 1.2rem;
-  --silly-font-size-xl: 1.5rem;
-  --silly-font-size-2xl: 2rem;
-  --silly-font-size-3xl: 3rem;
+  --sq-color-border-subtle:    #2A2A2A;
+  --sq-color-border-default:   #3A3A3A;
+  --sq-color-border-strong:    #4A4A4A;
+  --sq-color-border-focus:     #FF5E3A;
 
-  /* =========================================================================
-   * 4. ESPACIADO
-   * ========================================================================= */
-  --silly-space-xs: 4px;
-  --silly-space-sm: 8px;
-  --silly-space-md: 16px;
-  --silly-space-lg: 24px;
-  --silly-space-xl: 32px;
-  --silly-space-2xl: 48px;
+  /* ---- Brand / Accent ---- */
+  --sq-color-accent-primary:   #FF5E3A;  /* Silly Orange */
+  --sq-color-accent-hover:     #FF7A5C;
+  --sq-color-accent-active:    #E04D2E;
+  --sq-color-accent-subtle:    rgba(255, 94, 58, 0.15);
+  --sq-color-accent-glow:      rgba(255, 94, 58, 0.4);
 
-  /* =========================================================================
-   * 5. BORDES
-   * ========================================================================= */
-  --silly-radius-sm: 4px;
-  --silly-radius-md: 8px;
-  --silly-radius-lg: 12px;
-  --silly-radius-xl: 16px;
-  --silly-radius-full: 9999px;
+  --sq-color-accent-secondary: #9B6BFF;  /* Purple */
+  --sq-color-accent-tertiary:  #FFB000;  /* Gold */
 
-  /* =========================================================================
-   * 6. TRANSICIONES
-   * ========================================================================= */
-  --silly-ease: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  --silly-ease-out: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --silly-ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --silly-ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-  --silly-ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
-  --silly-transition-fast: 150ms var(--silly-ease-smooth);
-  --silly-transition-base: 250ms var(--silly-ease-smooth);
-  --silly-transition-slow: 400ms var(--silly-ease-smooth);
+  /* ---- Semantic Status ---- */
+  --sq-color-success:          #10B981;
+  --sq-color-success-hover:    #34D399;
+  --sq-color-success-subtle:   rgba(16, 185, 129, 0.15);
+  --sq-color-success-glow:     rgba(16, 185, 129, 0.4);
 
-  /* =========================================================================
-   * 7. TIMERS & SCORES
-   * ========================================================================= */
-  --silly-timer-bg: #1a1a2e;
-  --silly-timer-text: #FF5E3A;
-  --silly-timer-critical: #ef4444;
-  --silly-score-bg: rgba(0,0,0,0.6);
-  --silly-score-text: #f4f2ec;
-  --silly-score-accent: #FFD700;
+  --sq-color-warning:          #F59E0B;
+  --sq-color-warning-hover:    #FBBF24;
+  --sq-color-warning-subtle:   rgba(245, 158, 11, 0.15);
+  --sq-color-warning-glow:     rgba(245, 158, 11, 0.4);
+
+  --sq-color-danger:           #EF4444;
+  --sq-color-danger-hover:     #F87171;
+  --sq-color-danger-subtle:    rgba(239, 68, 68, 0.15);
+  --sq-color-danger-glow:      rgba(239, 68, 68, 0.4);
+
+  --sq-color-info:             #0EA5E9;
+  --sq-color-info-hover:       #38BDF8;
+  --sq-color-info-subtle:      rgba(14, 165, 233, 0.15);
+  --sq-color-info-glow:        rgba(14, 165, 233, 0.4);
+
+  /* ---- Team Colors (Quiz Groups) ---- */
+  --sq-color-team-jovenes:     #FF00FF;
+  --sq-color-team-jovenes-bright: #FF66FF;
+  --sq-color-team-jovenes-glow:    rgba(255, 0, 255, 0.5);
+
+  --sq-color-team-damas:       #FFCC00;
+  --sq-color-team-damas-bright: #FFEE00;
+  --sq-color-team-damas-glow:    rgba(255, 204, 0, 0.5);
+
+  --sq-color-team-caballeros:  #FF5500;
+  --sq-color-team-caballeros-bright: #FF8833;
+  --sq-color-team-caballeros-glow:    rgba(255, 85, 0, 0.5);
+
+  --sq-color-team-ninos:       #00FF55;
+  --sq-color-team-ninos-bright: #00FF80;
+  --sq-color-team-ninos-glow:    rgba(0, 255, 85, 0.5);
+
+  /* ---- Category Colors (Builder Blocks) ---- */
+  --sq-color-cat-events:       #FFD700;  /* Gold */
+  --sq-color-cat-control:      #00D9FF;  /* Cyan */
+  --sq-color-cat-looks:        #FF6B6B;  /* Red */
+  --sq-color-cat-audio:        #4CAF50;  /* Green */
+  --sq-color-cat-ndi:          #9C27B0;  /* Purple */
+  --sq-color-cat-displays:     #2196F3;  /* Blue */
+  --sq-color-cat-quiz:         #FF9800;  /* Orange */
+  --sq-color-cat-state:        #795548;  /* Brown */
+  --sq-color-cat-operators:    #607D8B;  /* Blue Grey */
+  --sq-color-cat-custom:       #E91E63;  /* Pink */
+  --sq-color-cat-players:      #FF5722;  /* Deep Orange */
+  --sq-color-cat-db:           #3F51B5;  /* Indigo */
+  --sq-color-cat-runtime:      #757575;  /* Grey */
+  --sq-color-cat-engine:       #FFEB3B;  /* Yellow */
+  --sq-color-cat-sprites:      #FF9800;  /* Orange */
+  --sq-color-cat-physics:      #2196F3;  /* Blue */
+  --sq-color-cat-procedures:   #9C27B0;  /* Purple */
+
+  /* ---- Port Colors (Input/Output connectors) ---- */
+  --sq-color-port-number:      #00D9FF;
+  --sq-color-port-string:      #FF6B6B;
+  --sq-color-port-boolean:     #4CAF50;
+  --sq-color-port-color:       #E91E63;
+  --sq-color-port-ndi:         #9C27B0;
+  --sq-color-port-display:     #2196F3;
+  --sq-color-port-any:         #6E7681;
 
   /* =========================================================================
-   * 8. SHAPES
+   * 2. SPACING — Consistent spacing scale
    * ========================================================================= */
-  --silly-shape-square: 0;
-  --silly-shape-rounded: 8px;
-  --silly-shape-pill: 9999px;
-  --silly-shape-circle: 50%;
+  --sq-space-0:        0;
+  --sq-space-1:        2px;
+  --sq-space-2:        4px;
+  --sq-space-3:        8px;
+  --sq-space-4:        12px;
+  --sq-space-5:        16px;
+  --sq-space-6:        20px;
+  --sq-space-7:        24px;
+  --sq-space-8:        32px;
+  --sq-space-9:        40px;
+  --sq-space-10:       48px;
+  --sq-space-11:       64px;
+  --sq-space-12:       80px;
+  --sq-space-13:       96px;
+
+  /* Semantic spacing aliases */
+  --sq-space-xs:       var(--sq-space-2);
+  --sq-space-sm:       var(--sq-space-3);
+  --sq-space-md:       var(--sq-space-5);
+  --sq-space-lg:       var(--sq-space-7);
+  --sq-space-xl:       var(--sq-space-8);
+  --sq-space-2xl:      var(--sq-space-10);
+  --sq-space-3xl:      var(--sq-space-11);
 
   /* =========================================================================
-   * 9. TEXTURES
+   * 3. BORDER RADIUS
    * ========================================================================= */
-  --silly-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  --silly-dot-pattern: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='10' cy='10' r='0.8' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E");
+  --sq-radius-none:    0;
+  --sq-radius-xs:      2px;
+  --sq-radius-sm:      4px;
+  --sq-radius-md:      8px;
+  --sq-radius-lg:      12px;
+  --sq-radius-xl:      16px;
+  --sq-radius-2xl:     24px;
+  --sq-radius-full:    9999px;
+
+  /* Brutalist sharp corners (for blocks, panels) */
+  --sq-radius-brutal:  0;
+  --sq-radius-brutal-sm: 4px;
 
   /* =========================================================================
-   * LEGACY ALIASES — --lzq-* (deprecated, migrar a --silly-*)
+   * 4. SHADOWS & ELEVATION
    * ========================================================================= */
-  --lzq-bg: var(--silly-bg);
-  --lzq-surface: var(--silly-surface);
-  --lzq-surface-raised: var(--silly-surface-raised);
-  --lzq-border: var(--silly-border);
-  --lzq-text: var(--silly-text);
-  --lzq-text-muted: var(--silly-text-muted);
-  --lzq-text-dim: var(--silly-text-dim);
-  --lzq-accent: var(--silly-accent);
-  --lzq-accent-hover: var(--silly-accent-hover);
-  --lzq-success: var(--silly-success);
-  --lzq-danger: var(--silly-danger);
-  --lzq-warning: var(--silly-warning);
-  --lzq-info: var(--silly-info);
-  --lzq-jovenes: var(--silly-jovenes);
-  --lzq-damas: var(--silly-damas);
-  --lzq-caball: var(--silly-caball);
-  --lzq-ninos: var(--silly-ninos);
-  --lzq-shadow-sm: var(--silly-shadow-sm);
-  --lzq-shadow: var(--silly-shadow);
-  --lzq-shadow-lg: var(--silly-shadow-lg);
-  --lzq-shadow-glow: var(--silly-shadow-glow);
-  --lzq-font-body: var(--silly-font-body);
-  --lzq-font-heading: var(--silly-font-heading);
-  --lzq-font-mono: var(--silly-font-mono);
-  --lzq-font-size-xs: var(--silly-font-size-xs);
-  --lzq-font-size-sm: var(--silly-font-size-sm);
-  --lzq-font-size-base: var(--silly-font-size-base);
-  --lzq-font-size-lg: var(--silly-font-size-lg);
-  --lzq-font-size-xl: var(--silly-font-size-xl);
-  --lzq-font-size-2xl: var(--silly-font-size-2xl);
-  --lzq-font-size-3xl: var(--silly-font-size-3xl);
-  --lzq-space-xs: var(--silly-space-xs);
-  --lzq-space-sm: var(--silly-space-sm);
-  --lzq-space-md: var(--silly-space-md);
-  --lzq-space-lg: var(--silly-space-lg);
-  --lzq-space-xl: var(--silly-space-xl);
-  --lzq-space-2xl: var(--silly-space-2xl);
-  --lzq-radius-sm: var(--silly-radius-sm);
-  --lzq-radius-md: var(--silly-radius-md);
-  --lzq-radius-lg: var(--silly-radius-lg);
-  --lzq-radius-xl: var(--silly-radius-xl);
-  --lzq-radius-full: var(--silly-radius-full);
-  --lzq-ease: var(--silly-ease);
-  --lzq-ease-out: var(--silly-ease-out);
-  --lzq-ease-in: var(--silly-ease-in);
-  --lzq-ease-smooth: var(--silly-ease-smooth);
-  --lzq-ease-bounce: var(--silly-ease-bounce);
-  --lzq-transition-fast: var(--silly-transition-fast);
-  --lzq-transition-base: var(--silly-transition-base);
-  --lzq-transition-slow: var(--silly-transition-slow);
-  --lzq-timer-bg: var(--silly-timer-bg);
-  --lzq-timer-text: var(--silly-timer-text);
-  --lzq-timer-critical: var(--silly-timer-critical);
-  --lzq-score-bg: var(--silly-score-bg);
-  --lzq-score-text: var(--silly-score-text);
-  --lzq-score-accent: var(--silly-score-accent);
-  --lzq-shape-square: var(--silly-shape-square);
-  --lzq-shape-rounded: var(--silly-shape-rounded);
-  --lzq-shape-pill: var(--silly-shape-pill);
-  --lzq-shape-circle: var(--silly-shape-circle);
-  --lzq-noise: var(--silly-noise);
-  --lzq-dot-pattern: var(--silly-dot-pattern);
+  /* Brutalist hard shadows */
+  --sq-shadow-brutal-sm:  2px 2px 0 var(--sq-color-bg-primary);
+  --sq-shadow-brutal:     4px 4px 0 var(--sq-color-bg-primary);
+  --sq-shadow-brutal-lg:  6px 6px 0 var(--sq-color-bg-primary);
+  --sq-shadow-brutal-xl:  8px 8px 0 var(--sq-color-bg-primary);
+  --sq-shadow-brutal-2xl: 12px 12px 0 var(--sq-color-bg-primary);
+
+  /* Soft elevation shadows */
+  --sq-shadow-xs:  0 1px 2px rgba(0, 0, 0, 0.3);
+  --sq-shadow-sm:  0 2px 4px rgba(0, 0, 0, 0.4);
+  --sq-shadow-md:  0 4px 8px rgba(0, 0, 0, 0.5);
+  --sq-shadow-lg:  0 8px 24px rgba(0, 0, 0, 0.55);
+  --sq-shadow-xl:  0 16px 40px rgba(0, 0, 0, 0.6);
+  --sq-shadow-2xl: 0 24px 60px rgba(0, 0, 0, 0.65);
+
+  /* Colored glow shadows */
+  --sq-shadow-glow:        0 0 20px var(--sq-color-accent-glow);
+  --sq-shadow-glow-strong: 0 0 40px var(--sq-color-accent-glow);
+  --sq-shadow-success:     0 0 20px var(--sq-color-success-glow);
+  --sq-shadow-warning:     0 0 20px var(--sq-color-warning-glow);
+  --sq-shadow-danger:      0 0 20px var(--sq-color-danger-glow);
+  --sq-shadow-info:        0 0 20px var(--sq-color-info-glow);
+
+  /* =========================================================================
+   * 5. TYPOGRAPHY
+   * ========================================================================= */
+  --sq-font-sans:      'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --sq-font-mono:      'Space Mono', 'JetBrains Mono', 'Fira Code', 'SF Mono', Monaco, Consolas, monospace;
+  --q-font-display:    'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --sq-font-heading:   'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+
+  --sq-font-size-2xs:  0.625rem;  /* 10px */
+  --sq-font-size-xs:   0.75rem;   /* 12px */
+  --sq-font-size-sm:   0.875rem;  /* 14px */
+  --sq-font-size-base: 1rem;      /* 16px */
+  --sq-font-size-lg:   1.125rem;  /* 18px */
+  --sq-font-size-xl:   1.25rem;   /* 20px */
+  --sq-font-size-2xl:  1.5rem;    /* 24px */
+  --sq-font-size-3xl:  2rem;      /* 32px */
+  --sq-font-size-4xl:  3rem;      /* 48px */
+  --sq-font-size-5xl:  4rem;      /* 64px */
+
+  --sq-font-weight-normal: 400;
+  --sq-font-weight-medium: 500;
+  --sq-font-weight-bold:   700;
+  --sq-font-weight-black:  900;
+
+  --sq-line-height-tight:  1.1;
+  --sq-line-height-normal: 1.5;
+  --sq-line-height-relaxed: 1.75;
+
+  /* =========================================================================
+   * 6. TRANSITIONS & ANIMATION
+   * ========================================================================= */
+  --sq-ease-linear:       linear;
+  --sq-ease-in:           cubic-bezier(0.4, 0, 1, 1);
+  --sq-ease-out:          cubic-bezier(0, 0, 0.2, 1);
+  --sq-ease-in-out:       cubic-bezier(0.4, 0, 0.2, 1);
+  --sq-ease-bounce:       cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  --sq-ease-spring:       cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --sq-ease-expo:         cubic-bezier(0.16, 1, 0.3, 1);
+
+  --sq-duration-instant:  0ms;
+  --sq-duration-fast:     150ms;
+  --sq-duration-normal:   250ms;
+  --sq-duration-slow:     350ms;
+  --sq-duration-slower:   500ms;
+  --sq-duration-slowest:  700ms;
+
+  --sq-transition-fast:    var(--sq-duration-fast) var(--sq-ease-out);
+  --sq-transition-normal:  var(--sq-duration-normal) var(--sq-ease-out);
+  --sq-transition-slow:    var(--sq-duration-slow) var(--sq-ease-out);
+  --sq-transition-spring:  var(--sq-duration-slower) var(--sq-ease-spring);
+
+  /* =========================================================================
+   * 7. Z-INDEX LAYERS
+   * ========================================================================= */
+  --sq-z-base:        0;
+  --sq-z-dropdown:    100;
+  --sq-z-sticky:      200;
+  --sq-z-modal-back:  300;
+  --sq-z-modal:       400;
+  --sq-z-popover:     500;
+  --sq-z-tooltip:     600;
+  --sq-z-toast:       700;
+  --sq-z-toolbar:     800;
+  --sq-z-max:         9999;
+
+  /* =========================================================================
+   * 8. SHAPES & EFFECTS
+   * ========================================================================= */
+  --sq-shape-square:     0;
+  --sq-shape-rounded:    var(--sq-radius-md);
+  --sq-shape-pill:       var(--sq-radius-full);
+  --sq-shape-circle:     50%;
+  --sq-shape-brutal:     var(--sq-radius-brutal);
+
+  --sq-noise-opacity:    0.04;
+  --sq-noise-frequency:  0.85;
+  --sq-dot-pattern-size: 20px;
+  --sq-dot-pattern-opacity: 0.06;
+
+  /* =========================================================================
+   * 9. BREAKPOINTS (for container queries / media queries)
+   * ========================================================================= */
+  --sq-bp-xs:   320px;
+  --sq-bp-sm:   480px;
+  --sq-bp-md:   768px;
+  --sq-bp-lg:   1024px;
+  --sq-bp-xl:   1280px;
+  --sq-bp-2xl:  1536px;
+
+  /* =========================================================================
+   * 10. COMPONENT-SPECIFIC TOKENS
+   * ========================================================================= */
+
+  /* Buttons */
+  --sq-btn-height-sm:        32px;
+  --sq-btn-height-md:        40px;
+  --sq-btn-height-lg:        48px;
+  --sq-btn-padding-x-sm:     var(--sq-space-3);
+  --sq-btn-padding-x-md:     var(--sq-space-5);
+  --sq-btn-padding-x-lg:     var(--sq-space-7);
+  --sq-btn-radius:           var(--sq-radius-md);
+  --sq-btn-font-size:        var(--sq-font-size-sm);
+  --sq-btn-font-weight:      var(--sq-font-weight-bold);
+
+  /* Inputs */
+  --sq-input-height:         40px;
+  --sq-input-padding-x:      var(--sq-space-4);
+  --sq-input-radius:         var(--sq-radius-md);
+  --sq-input-border-width:   2px;
+  --sq-input-font-size:      var(--sq-font-size-sm);
+  --sq-input-font-family:    var(--sq-font-mono);
+
+  /* Cards / Panels */
+  --sq-card-padding:         var(--sq-space-5);
+  --sq-card-radius:          var(--sq-radius-lg);
+  --sq-card-border-width:    2px;
+  --sq-card-shadow:          var(--sq-shadow-brutal);
+
+  /* Blocks (Builder) */
+  --sq-block-min-height:     36px;
+  --sq-block-padding-y:      8px;
+  --sq-block-padding-x:      12px;
+  --sq-block-radius:         var(--sq-radius-brutal-sm);
+  --sq-block-gap:            4px;
+  --sq-block-shadow:         var(--sq-shadow-brutal);
+
+  /* Timer (Display) */
+  --sq-timer-size-sm:        60px;
+  --sq-timer-size-md:        100px;
+  --sq-timer-size-lg:        160px;
+  --sq-timer-size-xl:        240px;
+  --sq-timer-stroke-width:   8px;
+  --sq-timer-font-size:      var(--sq-font-size-4xl);
+
+  /* Score Cards */
+  --sq-score-card-gap:       var(--sq-space-3);
+  --sq-score-card-radius:    var(--sq-radius-lg);
+  --sq-score-animation-duration: 600ms;
+
+  /* =========================================================================
+   * 11. LEGACY ALIASES — Deprecated, for backward compatibility
+   * ========================================================================= */
+  /* --lzq-* (old display system) */
+  --lzq-bg:            var(--sq-color-bg-primary);
+  --lzq-surface:       var(--sq-color-bg-tertiary);
+  --lzq-surface-raised:var(--sq-color-bg-elevated);
+  --lzq-border:        var(--sq-color-border-default);
+  --lzq-text:          var(--sq-color-fg-primary);
+  --lzq-text-muted:    var(--sq-color-fg-muted);
+  --lzq-text-dim:      var(--sq-color-fg-disabled);
+  --lzq-accent:        var(--sq-color-accent-primary);
+  --lzq-accent-hover:  var(--sq-color-accent-hover);
+  --lzq-success:       var(--sq-color-success);
+  --lzq-danger:        var(--sq-color-danger);
+  --lzq-warning:       var(--sq-color-warning);
+  --lzq-info:          var(--sq-color-info);
+  --lzq-jovenes:       var(--sq-color-team-jovenes);
+  --lzq-damas:         var(--sq-color-team-damas);
+  --lzq-caball:        var(--sq-color-team-caballeros);
+  --lzq-ninos:         var(--sq-color-team-ninos);
+  --lzq-shadow:        var(--sq-shadow-brutal);
+  --lzq-shadow-sm:     var(--sq-shadow-brutal-sm);
+  --lzq-shadow-lg:     var(--sq-shadow-brutal-xl);
+  --lzq-shadow-glow:   var(--sq-shadow-glow);
+  --lzq-font-body:     var(--sq-font-sans);
+  --lzq-font-heading:  var(--sq-font-heading);
+  --lzq-font-mono:     var(--sq-font-mono);
+  --lzq-font-size-xs:  var(--sq-font-size-xs);
+  --lzq-font-size-sm:  var(--sq-font-size-sm);
+  --lzq-font-size-base:var(--sq-font-size-base);
+  --lzq-font-size-lg:  var(--sq-font-size-lg);
+  --lzq-font-size-xl:  var(--sq-font-size-xl);
+  --lzq-font-size-2xl: var(--sq-font-size-2xl);
+  --lzq-font-size-3xl: var(--sq-font-size-3xl);
+  --lzq-space-xs:      var(--sq-space-xs);
+  --lzq-space-sm:      var(--sq-space-sm);
+  --lzq-space-md:      var(--sq-space-md);
+  --lzq-space-lg:      var(--sq-space-lg);
+  --lzq-space-xl:      var(--sq-space-xl);
+  --lzq-space-2xl:     var(--sq-space-2xl);
+  --lzq-radius-sm:     var(--sq-radius-sm);
+  --lzq-radius-md:     var(--sq-radius-md);
+  --lzq-radius-lg:     var(--sq-radius-lg);
+  --lzq-radius-xl:     var(--sq-radius-xl);
+  --lzq-radius-full:   var(--sq-radius-full);
+  --lzq-ease:          var(--sq-ease-spring);
+  --lzq-ease-out:      var(--sq-ease-out);
+  --lzq-ease-in:       var(--sq-ease-in);
+  --lzq-ease-smooth:   var(--sq-ease-out);
+  --lzq-ease-bounce:   var(--sq-ease-bounce);
+  --lzq-transition-fast: var(--sq-transition-fast);
+  --lzq-transition-base: var(--sq-transition-normal);
+  --lzq-transition-slow: var(--sq-transition-slow);
+  --lzq-timer-bg:      var(--sq-color-bg-tertiary);
+  --lzq-timer-text:    var(--sq-color-accent-primary);
+  --lzq-timer-critical:var(--sq-color-danger);
+  --lzq-score-bg:      var(--sq-color-bg-overlay);
+  --lzq-score-text:    var(--sq-color-fg-primary);
+  --lzq-score-accent:  var(--sq-color-accent-tertiary);
+  --lzq-shape-square:  var(--sq-shape-square);
+  --lzq-shape-rounded: var(--sq-shape-rounded);
+  --lzq-shape-pill:    var(--sq-shape-pill);
+  --lzq-shape-circle:  var(--sq-shape-circle);
+  --lzq-noise:         var(--sq-noise-opacity);
+  --lzq-dot-pattern:   var(--sq-dot-pattern-size);
+
+  /* --bg-* (old display-base.css) */
+  --bg:                var(--sq-color-bg-primary);
+  --surface:           var(--sq-color-bg-tertiary);
+  --border:            var(--sq-color-border-default);
+  --text:              var(--sq-color-fg-primary);
+  --jovenes:           var(--sq-color-team-jovenes);
+  --damas:             var(--sq-color-team-damas);
+  --caball:            var(--sq-color-team-caballeros);
+  --ninos:             var(--sq-color-team-ninos);
+  --red:               var(--sq-color-danger);
+  --green:             var(--sq-color-success);
+  --yellow:            var(--sq-color-warning);
+  --muted:             var(--sq-color-fg-muted);
+  --accent:            var(--sq-color-accent-primary);
+  --glow:              var(--sq-shadow-glow);
+  --glow-strong:       var(--sq-shadow-glow-strong);
+  --shadow:            var(--sq-shadow-brutal);
+  --shadow-sm:         var(--sq-shadow-brutal-sm);
+  --shadow-lg:         var(--sq-shadow-brutal-xl);
+  --ease:              var(--sq-ease-spring);
+  --ease-out:          var(--sq-ease-out);
+  --ease-in:           var(--sq-ease-in);
+  --ease-smooth:       var(--sq-ease-out);
+  --ease-bounce:       var(--sq-ease-bounce);
+
+  /* --cat-* (scratch-blocks.css legacy) */
+  --cat-events:        var(--sq-color-cat-events);
+  --cat-control:       var(--sq-color-cat-control);
+  --cat-looks:         var(--sq-color-cat-looks);
+  --cat-audio:         var(--sq-color-cat-audio);
+  --cat-ndi:           var(--sq-color-cat-ndi);
+  --cat-displays:      var(--sq-color-cat-displays);
+  --cat-quiz:          var(--sq-color-cat-quiz);
+  --cat-state:         var(--sq-color-cat-state);
+  --cat-operators:     var(--sq-color-cat-operators);
+  --cat-custom:        var(--sq-color-cat-custom);
+  --cat-players:       var(--sq-color-cat-players);
+  --cat-db:            var(--sq-color-cat-db);
+  --cat-runtime:       var(--sq-color-cat-runtime);
+  --cat-engine:        var(--sq-color-cat-engine);
+  --cat-sprites:       var(--sq-color-cat-sprites);
+  --cat-physics:       var(--sq-color-cat-physics);
+  --cat-procedures:    var(--sq-color-cat-procedures);
+
+  --port-number:       var(--sq-color-port-number);
+  --port-string:       var(--sq-color-port-string);
+  --port-boolean:      var(--sq-color-port-boolean);
+  --port-color:        var(--sq-color-port-color);
+  --port-ndi:          var(--sq-color-port-ndi);
+  --port-display:      var(--sq-color-port-display);
+  --port-any:          var(--sq-color-port-any);
+
+  --paper:             var(--sq-color-bg-tertiary);
+  --paper-2:           var(--sq-color-bg-secondary);
+  --ink:               var(--sq-color-bg-primary);
+  --line:              var(--sq-color-border-default);
+  --hard:              var(--sq-shadow-brutal);
+  --hard-lg:           var(--sq-shadow-brutal-lg);
+  --hard-xl:           var(--sq-shadow-brutal-xl);
+  --hard-xxl:          var(--sq-shadow-brutal-2xl);
+
+  --font-mono:         var(--sq-font-mono);
+  --font-display:      var(--sq-font-display);
+  --font-body:         var(--sq-font-sans);
+  --fw-black:          var(--sq-font-weight-black);
+  --fw-bold:           var(--sq-font-weight-bold);
+  --fw-medium:         var(--sq-font-weight-medium);
+
+  --space-xs:          var(--sq-space-xs);
+  --space-sm:          var(--sq-space-sm);
+  --space-md:          var(--sq-space-md);
+  --space-lg:          var(--sq-space-lg);
+  --space-xl:          var(--sq-space-xl);
+
+  --icon-events:       '⚡';
+  --icon-control:      '⚙️';
+  --icon-looks:        '🎨';
+  --icon-audio:        '🔊';
+  --icon-ndi:          '📡';
+  --icon-displays:     '🖥️';
+  --icon-quiz:         '🧠';
+  --icon-state:        '📦';
+  --icon-operators:    '⚙️';
+  --icon-custom:       '📋';
+  --icon-players:      '👥';
+  --icon-db:           '🗄️';
+  --icon-runtime:      '🔄';
+  --icon-engine:       '🎮';
+  --icon-sprites:      '🎭';
+  --icon-physics:      '⚖️';
+  --icon-procedures:   '📖';
 }
 
 /* =========================================================================
- * TEMA: DARK (default)
+ * THEME VARIANTS — Applied via <html class="theme-*">
  * ========================================================================= */
-html.theme-dark,
-html:not(.theme-fire):not(.theme-ocean):not(.theme-light) {
-  --silly-bg: #001144;
-  --silly-surface: #001a66;
-  --silly-surface-raised: #002288;
-  --silly-border: #0033aa;
-  --silly-text: #89b3ff;
-  --silly-text-muted: #5577aa;
-  --silly-accent: #7C3AED;
+
+/* ---- Dark Theme (Default) ---- */
+html:not(.theme-light):not(.theme-fire):not(.theme-ocean):not(.theme-neon):not(.theme-retro):not(.theme-nature) {
+  /* Already defined above as defaults */
 }
 
-/* =========================================================================
- * TEMA: FIRE
- * ========================================================================= */
-html.theme-fire {
-  --silly-bg: #1a0000;
-  --silly-surface: #330000;
-  --silly-surface-raised: #4d0000;
-  --silly-border: #660000;
-  --silly-text: #ff9966;
-  --silly-text-muted: #cc8866;
-  --silly-accent: #ff4400;
-  --silly-success: #00ff00;
-  --silly-danger: #ff0000;
-  --silly-warning: #ffa500;
-  --silly-jovenes: #ff4400;
-  --silly-damas: #ffbb00;
-  --silly-caball: #ff6600;
-  --silly-ninos: #ff0000;
-}
-
-/* =========================================================================
- * TEMA: OCEAN
- * ========================================================================= */
-html.theme-ocean {
-  --silly-bg: #001122;
-  --silly-surface: #002244;
-  --silly-surface-raised: #003366;
-  --silly-border: #004488;
-  --silly-text: #66ccff;
-  --silly-text-muted: #4499cc;
-  --silly-accent: #00aaff;
-  --silly-success: #00ffcc;
-  --silly-danger: #ff4466;
-  --silly-warning: #ffaa00;
-  --silly-jovenes: #66ffff;
-  --silly-damas: #66ccff;
-  --silly-caball: #3399ff;
-  --silly-ninos: #00ff99;
-}
-
-/* =========================================================================
- * TEMA: LIGHT
- * ========================================================================= */
+/* ---- Light Theme ---- */
 html.theme-light {
-  --silly-bg: #f8f9fa;
-  --silly-surface: #ffffff;
-  --silly-surface-raised: #f0f0f0;
-  --silly-border: #dee2e6;
-  --silly-text: #212529;
-  --silly-text-muted: #6c757d;
-  --silly-accent: #0d6efd;
-  --silly-accent-hover: #0b5ed7;
-  --silly-success: #198754;
-  --silly-danger: #dc3545;
-  --silly-warning: #ffc107;
-  --silly-info: #0dcaf0;
-  --silly-shadow-sm: 2px 2px 0px rgba(0,0,0,0.1);
-  --silly-shadow: 4px 4px 0px rgba(0,0,0,0.15);
-  --silly-shadow-lg: 0 8px 40px rgba(0,0,0,0.1);
+  --sq-color-bg-primary:       #F8FAFC;
+  --sq-color-bg-secondary:     #F1F5F9;
+  --sq-color-bg-tertiary:      #E2E8F0;
+  --sq-color-bg-hover:         #E2E8F0;
+  --sq-color-bg-active:        #CBD5E1;
+  --sq-color-bg-elevated:      #FFFFFF;
+  --sq-color-bg-overlay:       rgba(255, 255, 255, 0.95);
+
+  --sq-color-fg-primary:       #0F172A;
+  --sq-color-fg-secondary:     #475569;
+  --sq-color-fg-muted:         #94A3B8;
+  --sq-color-fg-inverse:       #F8FAFC;
+  --sq-color-fg-disabled:      #CBD5E1;
+
+  --sq-color-border-subtle:    #E2E8F0;
+  --sq-color-border-default:   #CBD5E1;
+  --sq-color-border-strong:    #94A3B8;
+  --sq-color-border-focus:     #0D6EFD;
+
+  --sq-color-accent-primary:   #0D6EFD;
+  --sq-color-accent-hover:     #0B5ED7;
+  --sq-color-accent-active:    #0A58CA;
+  --sq-color-accent-subtle:    rgba(13, 110, 253, 0.15);
+  --sq-color-accent-glow:      rgba(13, 110, 253, 0.3);
+
+  --sq-shadow-brutal-sm:       2px 2px 0 var(--sq-color-bg-primary);
+  --sq-shadow-brutal:          4px 4px 0 var(--sq-color-bg-primary);
+  --sq-shadow-brutal-lg:       6px 6px 0 var(--sq-color-bg-primary);
+  --sq-shadow-brutal-xl:       8px 8px 0 var(--sq-color-bg-primary);
+  --sq-shadow-brutal-2xl:      12px 12px 0 var(--sq-color-bg-primary);
+
+  --sq-shadow-xs:  0 1px 2px rgba(0, 0, 0, 0.05);
+  --sq-shadow-sm:  0 2px 4px rgba(0, 0, 0, 0.06);
+  --sq-shadow-md:  0 4px 8px rgba(0, 0, 0, 0.08);
+  --sq-shadow-lg:  0 8px 24px rgba(0, 0, 0, 0.1);
+  --sq-shadow-xl:  0 16px 40px rgba(0, 0, 0, 0.12);
+  --sq-shadow-2xl: 0 24px 60px rgba(0, 0, 0, 0.15);
+
+  --sq-shadow-glow:        0 0 20px var(--sq-color-accent-glow);
+  --sq-shadow-glow-strong: 0 0 40px var(--sq-color-accent-glow);
+}
+
+/* ---- Fire Theme ---- */
+html.theme-fire {
+  --sq-color-bg-primary:       #1A0000;
+  --sq-color-bg-secondary:     #2D0000;
+  --sq-color-bg-tertiary:      #400000;
+  --sq-color-bg-hover:         #500000;
+  --sq-color-bg-active:        #660000;
+  --sq-color-bg-elevated:      #330000;
+  --sq-color-bg-overlay:       rgba(26, 0, 0, 0.95);
+
+  --sq-color-fg-primary:       #FFCC99;
+  --sq-color-fg-secondary:     #CC9966;
+  --sq-color-fg-muted:         #997744;
+  --sq-color-fg-inverse:       #1A0000;
+
+  --sq-color-border-subtle:    #660000;
+  --sq-color-border-default:   #880000;
+  --sq-color-border-strong:    #AA0000;
+
+  --sq-color-accent-primary:   #FF4400;
+  --sq-color-accent-hover:     #FF6633;
+  --sq-color-accent-glow:      rgba(255, 68, 0, 0.5);
+
+  --sq-color-success:          #00FF00;
+  --sq-color-danger:           #FF0000;
+  --sq-color-warning:          #FFA500;
+
+  --sq-color-team-jovenes:     #FF4400;
+  --sq-color-team-damas:       #FFBB00;
+  --sq-color-team-caballeros:  #FF6600;
+  --sq-color-team-ninos:       #FF0000;
+}
+
+/* ---- Ocean Theme ---- */
+html.theme-ocean {
+  --sq-color-bg-primary:       #001122;
+  --sq-color-bg-secondary:     #002244;
+  --sq-color-bg-tertiary:      #003366;
+  --sq-color-bg-hover:         #004488;
+  --sq-color-bg-active:        #0055AA;
+  --sq-color-bg-elevated:      #002244;
+  --sq-color-bg-overlay:       rgba(0, 17, 34, 0.95);
+
+  --sq-color-fg-primary:       #66CCFF;
+  --sq-color-fg-secondary:     #4499CC;
+  --sq-color-fg-muted:         #337799;
+  --sq-color-fg-inverse:       #001122;
+
+  --sq-color-border-subtle:    #004488;
+  --sq-color-border-default:   #0055AA;
+  --sq-color-border-strong:    #0066CC;
+
+  --sq-color-accent-primary:   #00AAFF;
+  --sq-color-accent-hover:     #33BBFF;
+  --sq-color-accent-glow:      rgba(0, 170, 255, 0.5);
+
+  --sq-color-success:          #00FFCC;
+  --sq-color-danger:           #FF4466;
+  --sq-color-warning:          #FFEE66;
+
+  --sq-color-team-jovenes:     #66FFFF;
+  --sq-color-team-damas:       #FFFF66;
+  --sq-color-team-caballeros:  #FFAA44;
+  --sq-color-team-ninos:       #44FFAA;
+}
+
+/* ---- Neon / Cyberpunk Theme ---- */
+html.theme-neon {
+  --sq-color-bg-primary:       #0A0A2E;
+  --sq-color-bg-secondary:     #12124A;
+  --sq-color-bg-tertiary:      #1A1A66;
+  --sq-color-bg-hover:         #222288;
+  --sq-color-bg-active:        #2A2AAA;
+  --sq-color-bg-elevated:      #151555;
+  --sq-color-bg-overlay:       rgba(10, 10, 46, 0.95);
+
+  --sq-color-fg-primary:       #E0E0FF;
+  --sq-color-fg-secondary:     #A0A0DD;
+  --sq-color-fg-muted:         #8080BB;
+  --sq-color-fg-inverse:       #0A0A2E;
+
+  --sq-color-border-subtle:    #3333AA;
+  --sq-color-border-default:   #4444CC;
+  --sq-color-border-strong:    #5555EE;
+
+  --sq-color-accent-primary:   #00FFFF;
+  --sq-color-accent-hover:     #33FFFF;
+  --sq-color-accent-glow:      rgba(0, 255, 255, 0.6);
+
+  --sq-color-accent-secondary: #FF00FF;
+  --sq-color-accent-tertiary:  #FFFF00;
+
+  --sq-color-success:          #00FF88;
+  --sq-color-danger:           #FF0088;
+  --sq-color-warning:          #FFCC00;
+
+  --sq-shadow-glow:        0 0 30px var(--sq-color-accent-glow);
+  --sq-shadow-glow-strong: 0 0 60px var(--sq-color-accent-glow);
+}
+
+/* ---- Retro / Synthwave Theme ---- */
+html.theme-retro {
+  --sq-color-bg-primary:       #2D1B69;
+  --sq-color-bg-secondary:     #3D2B89;
+  --sq-color-bg-tertiary:      #4D3BA9;
+  --sq-color-bg-hover:         #5D4BC9;
+  --sq-color-bg-active:        #6D5BE9;
+  --sq-color-bg-elevated:      #382879;
+  --sq-color-bg-overlay:       rgba(45, 27, 105, 0.95);
+
+  --sq-color-fg-primary:       #E0E0E0;
+  --sq-color-fg-secondary:     #CCCCCC;
+  --sq-color-fg-muted:         #AAAAAA;
+  --sq-color-fg-inverse:       #2D1B69;
+
+  --sq-color-border-subtle:    #6655AA;
+  --sq-color-border-default:   #8877CC;
+  --sq-color-border-strong:    #AA99EE;
+
+  --sq-color-accent-primary:   #FF6B35;
+  --sq-color-accent-hover:     #FF8B55;
+  --sq-color-accent-glow:      rgba(255, 107, 53, 0.5);
+
+  --sq-color-accent-secondary: #00FFFF;
+  --sq-color-accent-tertiary:  #FF00FF;
+
+  --sq-color-success:          #00FF88;
+  --sq-color-danger:           #FF3366;
+  --sq-color-warning:          #FFCC00;
+}
+
+/* ---- Nature Themes ---- */
+html.theme-nature-forest {
+  --sq-color-bg-primary:       #0D1B0D;
+  --sq-color-bg-secondary:     #1A2E1A;
+  --sq-color-bg-tertiary:      #2A422A;
+  --sq-color-bg-hover:         #3A563A;
+  --sq-color-bg-active:        #4A6A4A;
+  --sq-color-bg-elevated:      #152515;
+  --sq-color-bg-overlay:       rgba(13, 27, 13, 0.95);
+
+  --sq-color-fg-primary:       #E8F5E8;
+  --sq-color-fg-secondary:     #CCE0CC;
+  --sq-color-fg-muted:         #AACCBB;
+  --sq-color-fg-inverse:       #0D1B0D;
+
+  --sq-color-border-subtle:    #3A5A3A;
+  --sq-color-border-default:   #4A7A4A;
+  --sq-color-border-strong:    #5A9A5A;
+
+  --sq-color-accent-primary:   #4ADE80;
+  --sq-color-accent-hover:     #6AEE90;
+  --sq-color-accent-glow:      rgba(74, 222, 128, 0.5);
+
+  --sq-color-accent-secondary: #FBBF24;
+  --sq-color-accent-tertiary:  #FB923C;
+
+  --sq-color-success:          #22C55E;
+  --sq-color-danger:           #EF4444;
+  --sq-color-warning:          #F59E0B;
+}
+
+html.theme-nature-ocean {
+  --sq-color-bg-primary:       #00152A;
+  --sq-color-bg-secondary:     #00254A;
+  --sq-color-bg-tertiary:      #00356A;
+  --sq-color-bg-hover:         #00458A;
+  --sq-color-bg-active:        #0055AA;
+  --sq-color-bg-elevated:      #001E3A;
+  --sq-color-bg-overlay:       rgba(0, 21, 42, 0.95);
+
+  --sq-color-fg-primary:       #D0E8FF;
+  --sq-color-fg-secondary:     #A0D0FF;
+  --sq-color-fg-muted:         #80B8E0;
+  --sq-color-fg-inverse:       #00152A;
+
+  --sq-color-border-subtle:    #00458A;
+  --sq-color-border-default:   #0055AA;
+  --sq-color-border-strong:    #0065CA;
+
+  --sq-color-accent-primary:   #00D4FF;
+  --sq-color-accent-hover:     #33DDFF;
+  --sq-color-accent-glow:      rgba(0, 212, 255, 0.5);
+
+  --sq-color-accent-secondary: #FFD700;
+  --sq-color-accent-tertiary:  #FF8C00;
+
+  --sq-color-success:          #00FFCC;
+  --sq-color-danger:           #FF4466;
+  --sq-color-warning:          #FFCC00;
 }
 
 /* =========================================================================
- * COMPAT: Variables legacy (deprecated, migrar a --silly-*)
+ * UTILITY CLASSES — For rapid prototyping / one-off styling
  * ========================================================================= */
-:root {
-  /* Legacy aliases — usar --silly-* en código nuevo */
-  --bg: var(--silly-bg);
-  --surface: var(--silly-surface);
-  --border: var(--silly-border);
-  --text: var(--silly-text);
-  --accent: var(--silly-accent);
-  --jovenes: var(--silly-jovenes);
-  --damas: var(--silly-damas);
-  --caball: var(--silly-caball);
-  --ninos: var(--silly-ninos);
-  --shadow: var(--silly-shadow);
-  --shadow-sm: var(--silly-shadow-sm);
-  --shadow-lg: var(--silly-shadow-lg);
-  --ease: var(--silly-ease);
-  --ease-out: var(--silly-ease-out);
-  --ease-in: var(--silly-ease-in);
-  --ease-smooth: var(--silly-ease-smooth);
-  --ease-bounce: var(--silly-ease-bounce);
 
-  /* Scratch builder compat */
-  --paper: var(--silly-surface);
-  --ink: var(--silly-text);
-  --primary: var(--silly-accent);
+/* Spacing */
+.sq-m-0 { margin: var(--sq-space-0); }
+.sq-m-1 { margin: var(--sq-space-1); }
+.sq-m-2 { margin: var(--sq-space-2); }
+.sq-m-3 { margin: var(--sq-space-3); }
+.sq-m-4 { margin: var(--sq-space-4); }
+.sq-m-5 { margin: var(--sq-space-5); }
+.sq-m-6 { margin: var(--sq-space-6); }
+.sq-m-7 { margin: var(--sq-space-7); }
+.sq-m-8 { margin: var(--sq-space-8); }
+.sq-m-auto { margin: auto; }
+
+.sq-p-0 { padding: var(--sq-space-0); }
+.sq-p-1 { padding: var(--sq-space-1); }
+.sq-p-2 { padding: var(--sq-space-2); }
+.sq-p-3 { padding: var(--sq-space-3); }
+.sq-p-4 { padding: var(--sq-space-4); }
+.sq-p-5 { padding: var(--sq-space-5); }
+.sq-p-6 { padding: var(--sq-space-6); }
+.sq-p-7 { padding: var(--sq-space-7); }
+.sq-p-8 { padding: var(--sq-space-8); }
+
+/* Typography */
+.sq-text-xs { font-size: var(--sq-font-size-xs); }
+.sq-text-sm { font-size: var(--sq-font-size-sm); }
+.sq-text-base { font-size: var(--sq-font-size-base); }
+.sq-text-lg { font-size: var(--sq-font-size-lg); }
+.sq-text-xl { font-size: var(--sq-font-size-xl); }
+.sq-text-2xl { font-size: var(--sq-font-size-2xl); }
+.sq-text-3xl { font-size: var(--sq-font-size-3xl); }
+.sq-text-4xl { font-size: var(--sq-font-size-4xl); }
+.sq-text-5xl { font-size: var(--sq-font-size-5xl); }
+
+.sq-font-mono { font-family: var(--sq-font-mono); }
+.sq-font-sans { font-family: var(--sq-font-sans); }
+.sq-font-heading { font-family: var(--sq-font-heading); }
+
+.sq-font-normal { font-weight: var(--sq-font-weight-normal); }
+.sq-font-medium { font-weight: var(--sq-font-weight-medium); }
+.sq-font-bold { font-weight: var(--sq-font-weight-bold); }
+.sq-font-black { font-weight: var(--sq-font-weight-black); }
+
+/* Colors */
+.sq-bg-primary { background-color: var(--sq-color-bg-primary); }
+.sq-bg-secondary { background-color: var(--sq-color-bg-secondary); }
+.sq-bg-tertiary { background-color: var(--sq-color-bg-tertiary); }
+.sq-bg-accent { background-color: var(--sq-color-accent-primary); }
+.sq-bg-success { background-color: var(--sq-color-success); }
+.sq-bg-warning { background-color: var(--sq-color-warning); }
+.sq-bg-danger { background-color: var(--sq-color-danger); }
+.sq-bg-info { background-color: var(--sq-color-info); }
+
+.sq-text-primary { color: var(--sq-color-fg-primary); }
+.sq-text-secondary { color: var(--sq-color-fg-secondary); }
+.sq-text-muted { color: var(--sq-color-fg-muted); }
+.sq-text-accent { color: var(--sq-color-accent-primary); }
+.sq-text-success { color: var(--sq-color-success); }
+.sq-text-warning { color: var(--sq-color-warning); }
+.sq-text-danger { color: var(--sq-color-danger); }
+.sq-text-inverse { color: var(--sq-color-fg-inverse); }
+
+.sq-border { border: 2px solid var(--sq-color-border-default); }
+.sq-border-accent { border-color: var(--sq-color-accent-primary); }
+.sq-border-success { border-color: var(--sq-color-success); }
+.sq-border-danger { border-color: var(--sq-color-danger); }
+.sq-border-focus { border-color: var(--sq-color-border-focus); }
+
+.sq-rounded-none { border-radius: var(--sq-radius-none); }
+.sq-rounded-sm { border-radius: var(--sq-radius-sm); }
+.sq-rounded-md { border-radius: var(--sq-radius-md); }
+.sq-rounded-lg { border-radius: var(--sq-radius-lg); }
+.sq-rounded-xl { border-radius: var(--sq-radius-xl); }
+.sq-rounded-full { border-radius: var(--sq-radius-full); }
+.sq-rounded-brutal { border-radius: var(--sq-radius-brutal); }
+
+.sq-shadow-brutal { box-shadow: var(--sq-shadow-brutal); }
+.sq-shadow-brutal-lg { box-shadow: var(--sq-shadow-brutal-lg); }
+.sq-shadow-sm { box-shadow: var(--sq-shadow-sm); }
+.sq-shadow-md { box-shadow: var(--sq-shadow-md); }
+.sq-shadow-lg { box-shadow: var(--sq-shadow-lg); }
+.sq-shadow-glow { box-shadow: var(--sq-shadow-glow); }
+
+.sq-transition-fast { transition: var(--sq-transition-fast); }
+.sq-transition-normal { transition: var(--sq-transition-normal); }
+.sq-transition-slow { transition: var(--sq-transition-slow); }
+.sq-transition-spring { transition: var(--sq-transition-spring); }
+
+/* =========================================================================
+ * PRINT STYLES
+ * ========================================================================= */
+@media print {
+  :root {
+    --sq-color-bg-primary: #FFFFFF;
+    --sq-color-fg-primary: #000000;
+    --sq-color-border-default: #CCCCCC;
+    --sq-shadow-brutal: none;
+    --sq-shadow-brutal-lg: none;
+    --sq-shadow-brutal-xl: none;
+  }
+  .no-print { display: none !important; }
 }

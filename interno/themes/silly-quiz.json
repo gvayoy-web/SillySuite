@@ -1,0 +1,72 @@
+{
+  "id": "silly-quiz",
+  "name": "SillyQuiz Flagship",
+  "category": "modern",
+  "description": "Tema flagship de SillyQuiz - azul vibrante con acentos púrpura",
+  "colors": {
+    "primary": "#3B82F6",
+    "primaryLight": "#60A5FA",
+    "primaryDark": "#2563EB",
+    "secondary": "#64748B",
+    "accent": "#8B5CF6",
+    "accentLight": "#A78BFA",
+    "accentDark": "#7C3AED",
+    "success": "#10B981",
+    "successLight": "#34D399",
+    "warning": "#F59E0B",
+    "warningLight": "#FBBF24",
+    "danger": "#EF4444",
+    "dangerLight": "#F87171",
+    "info": "#0EA5E9",
+    "bgPrimary": "#050510",
+    "bgSecondary": "#0A0A15",
+    "bgTertiary": "#13132A",
+    "bgHover": "#0F0F1F",
+    "bgActive": "#15152F",
+    "textPrimary": "#E2E8F0",
+    "textSecondary": "#94A3B8",
+    "textMuted": "#64748B",
+    "textInverse": "#0F172A",
+    "borderColor": "#2A2A4A",
+    "borderLight": "#3A3A5A",
+    "borderLighter": "#4A4A6A"
+  },
+  "fonts": {
+    "heading": "'Space Grotesk', sans-serif",
+    "body": "'Space Grotesk', sans-serif",
+    "mono": "'Space Mono', monospace",
+    "timer": "'Bebas Neue', sans-serif",
+    "score": "'Space Grotesk', sans-serif"
+  },
+  "animations": {
+    "enabled": true,
+    "speed": 1.0,
+    "ease": "cubic-bezier(0.34, 1.56, 0.64, 1)"
+  },
+  "shapes": {
+    "count": 20,
+    "opacity": 0.08,
+    "speed": 1.0,
+    "behavior": "float"
+  },
+  "timer": {
+    "style": "circle",
+    "size": 100,
+    "position": "top-right",
+    "bgColor": "rgba(0,0,0,0.6)",
+    "textColor": "#FFFFFF",
+    "progressColor": "#8B5CF6",
+    "glowColor": "rgba(139, 92, 246, 0.3)",
+    "urgentColor": "#FF4444",
+    "animation": "pulse"
+  },
+  "scores": {
+    "position": "bottom",
+    "height": 280
+  },
+  "decorations": {
+    "showLogo": true,
+    "showShapes": true,
+    "showParticles": true
+  }
+}

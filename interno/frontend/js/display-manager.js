@@ -35,7 +35,7 @@
         this.ws = new global.WebSocket(this.url);
         this.ws.onopen = () => {
           this.connected = true;
-          this.send({ type: 'register', display_id: opts_display_id() });
+          this.send({ type: 'register', display_id: getDisplayId() });
           this._emitStatus();
           this._log('Conectado a sync WS: ' + this.url);
         };
@@ -83,7 +83,7 @@
     _log(m) { if (global.console) global.console.info('[DisplayManager] ' + m); }
   }
 
-  function opts_display_id() { return 'control_' + (global.location ? global.location.hostname : 'local'); }
+  function getDisplayId() { return 'control_' + (global.location ? global.location.hostname : 'local'); }
 
   global.DisplayManager = DisplayManager;
   if (typeof module !== 'undefined' && module.exports) module.exports = { DisplayManager };

@@ -130,7 +130,7 @@ let _accumulatedTime = 0;
 
 
 let _particlePool = [];
-const MAX_PARTICLES = 15;
+const MAX_PARTICLES = 500;
 
 function spawnParticle() {
     if (_particlePool.length >= MAX_PARTICLES) return;

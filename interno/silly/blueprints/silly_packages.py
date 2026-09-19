@@ -49,7 +49,7 @@ from flask import Blueprint, request, jsonify, send_file, current_app
 from jsonschema import validate, ValidationError
 
 from silly.template_registry import template_registry, TEMPLATE_SCHEMA
-from silly.blueprints.asset_sanitizer import sanitize_and_clean
+from silly.blueprints.asset_sanitizer import sanitize
 
 silly_packages_bp = Blueprint('silly_packages', __name__, url_prefix='/api/silly-packages')
 
@@ -148,7 +148,7 @@ def _import_package(zf, extract_dir, mode_id):
             continue
 
         # Sanitizar (valida magic bytes, strip EXIF, ffprobe)
-        ok, mime, ext, reason = sanitize_and_clean(str(src), kind)
+        ok, mime, ext, reason = sanitize(str(src), kind)
         if not ok:
             errors.append(f'asset "{key}" rechazado: {reason}')
             continue

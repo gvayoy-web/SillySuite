@@ -430,10 +430,12 @@ def add_security_headers(resp: Response) -> Response:
     # HSTS — only for HTTPS (safe to add unconditionally; browsers ignore on HTTP)
     resp.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 
-    # Content Security Policy
+    # Content Security Policy — nonce-based for inline scripts
+    nonce = secrets.token_urlsafe(16)
+    g.nonce = nonce
     csp_directives = [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline'",
+        f"script-src 'self' 'nonce-{nonce}'",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "img-src 'self' data: blob:",
         "font-src 'self' data: https://fonts.gstatic.com",
@@ -441,6 +443,16 @@ def add_security_headers(resp: Response) -> Response:
         "frame-ancestors 'self'",
     ]
     resp.headers["Content-Security-Policy"] = "; ".join(csp_directives)
+
+    # Inject nonce into HTML responses (replace __NONCE__ placeholder)
+    if resp.content_type and "text/html" in resp.content_type:
+        try:
+            data = resp.get_data(as_text=True)
+            if "__NONCE__" in data:
+                resp.set_data(data.replace("__NONCE__", nonce))
+                resp.headers["Content-Length"] = str(len(resp.get_data()))
+        except (RuntimeError, UnicodeError):
+            pass
 
     # Remove obsolete headers
     resp.headers.pop("X-XSS-Protection", None)

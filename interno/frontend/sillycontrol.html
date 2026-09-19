@@ -3,28 +3,35 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="theme-color" content="#07070e" />
+<meta name="theme-color" content="#0B0B0B" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>SILLYQUIZ — Control</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Cinzel:wght@600;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/control.css" />
-  <link rel="stylesheet" href="/css/modo-builder.css" />
-  <link rel="stylesheet" href="/css/template-gallery.css" />
-  <link rel="stylesheet" href="/css/preview-engine.css" />
-  <link rel="stylesheet" href="/css/dynamic-tabs.css" />
-  <link rel="stylesheet" href="/css/control-brutalist.css" />
-  <script>
-    (function () {
-      try {
-        if (localStorage.getItem('silly-control-theme') === 'light') {
-          document.documentElement.classList.add('control-light');
-        }
-      } catch (e) {}
-    })();
-  </script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<!-- Unified Design Tokens (MUST BE FIRST) -->
+    <link rel="stylesheet" href="/css/design-tokens.css" />
+    
+    <!-- Control Panel Styles -->
+    <link rel="stylesheet" href="/css/silly-control.css" />
+    <link rel="stylesheet" href="/css/control.css" />
+    <link rel="stylesheet" href="/css/control-brutalist.css" />
+    <link rel="stylesheet" href="/css/modo-builder.css" />
+    <link rel="stylesheet" href="/css/template-gallery.css" />
+    <link rel="stylesheet" href="/css/preview-engine.css" />
+    <link rel="stylesheet" href="/css/dynamic-tabs.css" />
+
+<script nonce="__NONCE__">
+  (function () {
+    try {
+      if (localStorage.getItem('silly-control-theme') === 'light') {
+        document.documentElement.classList.add('control-light');
+      }
+    } catch (e) {}
+  })();
+</script>
 </head>
 
 <body>
@@ -1403,17 +1410,29 @@
   <script type="module" src="/js/template-gallery.js"></script>
   <script type="module" src="/js/preview-engine.js"></script>
   <script type="module" src="/js/dynamic-tabs.js"></script>
-  <script nonce="__NONCE__">
-window.addEventListener('DOMContentLoaded', function() {
-  if (typeof window.ctrl === 'undefined' || !window.ctrl || Object.keys(window.ctrl).length < 5) {
-    var errEl = document.createElement('div');
-    errEl.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#e74c3c;color:#fff;padding:12px 20px;font-size:14px;z-index:99999;text-align:center';
-    errEl.textContent = '⚠ Error: El módulo control-core.js no se cargó correctamente. Revisa la consola (F12).';
-    document.body.prepend(errEl);
-  }
+<script nonce="__NONCE__">
+// Wait for ES modules to load (they are deferred by default)
+function waitForCtrl() {
+  return new Promise(resolve => {
+    const check = () => {
+      if (typeof window.ctrl !== 'undefined' && window.ctrl && Object.keys(window.ctrl).length >= 5) {
+        resolve();
+      } else {
+        setTimeout(check, 50);
+      }
+    };
+    check();
+  });
+}
+
+waitForCtrl().catch(() => {
+  var errEl = document.createElement('div');
+  errEl.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#e74c3c;color:#fff;padding:12px 20px;font-size:14px;z-index:99999;text-align:center';
+  errEl.textContent = '? Error: El m�dulo control-core.js no se carg� correctamente. Revisa la consola (F12).';
+  document.body.prepend(errEl);
 });
 </script>
-<script>
+<script nonce="__NONCE__">
   window.toggleSillyTheme = function () {
     var html = document.documentElement;
     html.classList.toggle('control-light');

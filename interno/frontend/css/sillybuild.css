@@ -252,7 +252,7 @@ html.light ::-webkit-scrollbar-thumb {
 
 .sb-toast-warn {
   background: linear-gradient(135deg, var(--sq-warning), #d97706);
-  color: #0f172a;
+  color: var(--sq-text-inverse, #0f172a);
   border-color: var(--sq-warning);
 }
 
@@ -710,7 +710,7 @@ html.light .sq-shortcuts-table kbd {
 
 .sq-toast-warn {
   background: linear-gradient(135deg, var(--sq-warning), #d97706);
-  color: #0f172a;
+  color: var(--sq-text-inverse, #0f172a);
   border-color: var(--sq-warning);
 }
 
@@ -721,8 +721,187 @@ html.light .sq-shortcuts-table kbd {
 }
 
 /* ==========================================
+   BLOCK ANIMATIONS & STATES
+   ========================================== */
+
+@keyframes blockEnter {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.block-enter {
+  animation: blockEnter 0.2s ease-out both;
+}
+
+@keyframes blockGlow {
+  0%, 100% { box-shadow: 0 0 6px 2px var(--sq-danger); }
+  50%      { box-shadow: 0 0 14px 4px var(--sq-danger-light); }
+}
+
+.block-glow {
+  animation: blockGlow 1.4s ease-in-out infinite;
+}
+
+@keyframes blockActivePulse {
+  0%, 100% { background-color: transparent; box-shadow: none; }
+  50%      { background-color: rgba(59, 130, 246, 0.12); box-shadow: inset 0 0 8px rgba(59, 130, 246, 0.2); }
+}
+
+.block-active {
+  outline: 2px solid var(--sq-primary);
+  outline-offset: 1px;
+  animation: blockActivePulse 1.6s ease-in-out infinite;
+}
+
+.block-error {
+  border-left: 3px solid var(--sq-danger) !important;
+  background-color: rgba(239, 68, 68, 0.08);
+}
+
+/* Block interactions */
+.scratch-block {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, outline 0.15s ease;
+}
+.scratch-block:hover {
+  transform: translateY(-1px);
+}
+.scratch-block:active {
+  transform: translateY(0);
+}
+.block-dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+/* ==========================================
+   DEBUG MODE CANVAS
+   ========================================== */
+
+.debug-mode .scratch-canvas {
+  background-color: #020208;
+  background-image:
+    linear-gradient(rgba(42, 42, 74, 0.25) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(42, 42, 74, 0.25) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+html.light .debug-mode .scratch-canvas {
+  background-color: #f0f0f5;
+  background-image:
+    linear-gradient(rgba(180, 180, 200, 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(180, 180, 200, 0.3) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* ==========================================
+   BLOCK DROP ZONE
+   ========================================== */
+
+.scratch-block-body-zone.body-drop-active {
+  border: 2px solid var(--sq-primary) !important;
+  border-style: solid !important;
+  background-color: rgba(59, 130, 246, 0.1);
+  transition: border-style 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+/* ==========================================
+   TOAST CONTAINER ANIMATIONS
+   ========================================== */
+
+@keyframes toastSlideUp {
+  from { opacity: 0; transform: translateY(16px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.sq-toast-container .sq-toast.show {
+  animation: toastSlideUp 0.3s ease-out both;
+}
+
+/* ==========================================
+   LIVE PREVIEW SCREEN
+   ========================================== */
+
+.lp-screen {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #000;
+  border: 2px solid var(--sq-border-color);
+  border-radius: var(--sq-radius-md);
+}
+
+html.light .lp-screen {
+  border-color: var(--sq-border-color-light);
+}
+
+/* ==========================================
+   CANVAS INNER TRANSITION (smooth zoom/pan)
+   ========================================== */
+
+.scratch-canvas-inner {
+  transition: transform 0.1s ease;
+  will-change: transform;
+}
+
+/* ==========================================
+   ACCESSIBILITY: FOCUS-VISIBLE
+   ========================================== */
+
+/* Accessibility: focus-visible ring for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--sq-primary);
+  outline-offset: 2px;
+}
+html.light :focus-visible {
+  outline-color: var(--sq-primary-dark);
+}
+
+/* Ensure interactive canvas elements are focusable */
+.scratch-canvas [tabindex]:focus-visible,
+.scratch-palette [tabindex]:focus-visible {
+  outline: 2px solid var(--sq-accent);
+  outline-offset: 1px;
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  body::before, body::after { animation: none !important; }
+  .splash-logo { animation: none !important; }
+  .block-enter { animation: none !important; opacity: 1; transform: none; }
+  .block-glow  { animation: none !important; }
+  .block-active { animation: none !important; }
+}
+
+/* Smooth transitions for all interactive elements */
+button, a, input, select, textarea {
+  transition: background var(--sq-transition-fast),
+              color var(--sq-transition-fast),
+              border-color var(--sq-transition-fast),
+              box-shadow var(--sq-transition-fast),
+              transform var(--sq-transition-fast);
+}
+
+/* High-contrast mode support */
+@media (forced-colors: active) {
+  .sq-fab-btn, .sq-fab-item, .toolbar-btn {
+    border: 2px solid ButtonText;
+  }
+  .sq-modal-panel {
+    border: 2px solid ButtonText;
+  }
+  .block-error { border-left-color: MarkText; }
+}
+
+/* ==========================================
    RESPONSIVE
    ========================================== */
+
 @media (max-width: 768px) {
   .sq-float-toolbar {
     bottom: var(--sq-spacing-md);
@@ -731,17 +910,180 @@ html.light .sq-shortcuts-table kbd {
     justify-content: center;
     padding: var(--sq-spacing-sm);
   }
-  
+
   .splash-content {
     padding: var(--sq-spacing-lg);
   }
-  
+
   .splash-content h1 {
     font-size: 2rem;
   }
-  
+
   .sq-modal-panel {
     margin: var(--sq-spacing-md);
     max-height: 90vh;
+  }
+
+  /* Palette collapses to horizontal scrollable strip */
+  .scratch-palette {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    gap: var(--sq-spacing-xs);
+    padding: var(--sq-spacing-xs) var(--sq-spacing-sm);
+    scrollbar-width: thin;
+  }
+
+  /* Inspector slides in from right as overlay */
+  .scratch-inspector {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 80vw;
+    max-width: 320px;
+    height: 100vh;
+    z-index: 5000;
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .scratch-inspector.open,
+  .scratch-inspector.visible,
+  .scratch-inspector:not([hidden]) {
+    transform: translateX(0);
+  }
+
+  /* Toolbar buttons show only icons (hide text labels) */
+  .toolbar-btn .toolbar-label,
+  .toolbar-btn span:not(.toolbar-icon):not(.sq-ico) {
+    display: none;
+  }
+  .toolbar-btn {
+    min-width: auto;
+    padding: var(--sq-spacing-xs) var(--sq-spacing-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .sq-float-toolbar {
+    bottom: var(--sq-spacing-sm);
+    right: var(--sq-spacing-sm);
+    left: var(--sq-spacing-sm);
+  }
+  .sq-fab-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 1.2rem;
+  }
+  .sq-modal-panel {
+    max-height: 95vh;
+    border-radius: var(--sq-radius-lg);
+  }
+  .splash-content h1 {
+    font-size: 1.6rem;
+  }
+  .splash-tagline {
+    font-size: 0.95rem;
+  }
+}
+
+/* ==========================================
+   PRINT STYLES
+   ========================================== */
+
+@media print {
+  body {
+    background: #fff !important;
+    background-image: none !important;
+    overflow: visible !important;
+  }
+  body::before, body::after { display: none !important; }
+
+  /* Hide all editor UI */
+  .sq-float-toolbar,
+  .sq-toast-container,
+  .silly-splash,
+  .scratch-palette,
+  .scratch-inspector,
+  .toolbar-btn,
+  .sq-modal,
+  .sb-toast {
+    display: none !important;
+  }
+
+  /* Show only the preview/display */
+  .lp-screen,
+  #display,
+  .display-render {
+    width: 100% !important;
+    max-width: none !important;
+    aspect-ratio: 16 / 9 !important;
+    border: 1px solid #ccc !important;
+    page-break-inside: avoid;
+  }
+
+  #scratchBuilder {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+}
+
+/* ==========================================
+   ACCESSIBILITY: SCRATCH-APP FOCUS RING
+   ========================================== */
+
+/* Accessible focus indicators */
+.scratch-app *:focus-visible {
+  outline: 3px solid var(--sq-cat-control, #FF5E3A);
+  outline-offset: 2px;
+  border-radius: var(--sq-radius-sm, 2px);
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .scratch-app *,
+  .scratch-app *::before,
+  .scratch-app *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE EDITOR
+   ========================================== */
+
+@media (max-width: 1200px) {
+  .scratch-body {
+    grid-template-columns: 220px 1fr !important;
+  }
+  .scratch-inspector,
+  .scratch-debug {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .scratch-body {
+    grid-template-columns: 1fr !important;
+  }
+  .scratch-palette {
+    display: none !important;
+  }
+  .scratch-toolbar {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .scratch-toolbar .sb-brand span {
+    font-size: 0.7rem !important;
   }
 }

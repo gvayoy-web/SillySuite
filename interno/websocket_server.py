@@ -48,12 +48,24 @@ LOG = logging.getLogger("ws-sync")
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 
 # Configuración de seguridad
-JWT_SECRET = os.environ.get("JWT_SECRET", "sillyquiz-change-in-production").encode()
-TOKEN_TTL = 8 * 3600  # 8 horas
+# SECURITY: el secreto JWT debe venir de entorno. Si no está definido generamos una
+# clave efímera y advertimos (nunca usamos una clave conocida/predecible en producción).
+_JWT_SECRET_ENV = os.environ.get("JWT_SECRET")
+if _JWT_SECRET_ENV:
+    JWT_SECRET = _JWT_SECRET_ENV.encode()
+else:
+    JWT_SECRET = secrets.token_hex(32).encode()
+    LOG.warning(
+        "JWT_SECRET no definido en entorno: se genero una clave efimera. "
+        "Define JWT_SECRET para persistencia de tokens entre reinicios."
+    )
+TOKEN_TTL = 12 * 3600  # 12 horas
 RATE_LIMIT_WINDOW = 1.0  # 1 segundo
-MAX_EVENTS_PER_WINDOW = 10  # máx 10 eventos/seg por socket
-HEARTBEAT_INTERVAL = 30  # ping cada 30s
-HEARTBEAT_TIMEOUT = 10   # timeout pong 10s
+MAX_EVENTS_PER_WINDOW = int(os.environ.get("WS_MAX_EVENTS_PER_WINDOW", "50"))
+HEARTBEAT_INTERVAL = int(os.environ.get("WS_HEARTBEAT_INTERVAL", "25"))
+HEARTBEAT_TIMEOUT = int(os.environ.get("WS_HEARTBEAT_TIMEOUT", "12"))
+MAX_CONNECTIONS = int(os.environ.get("WS_MAX_CONNECTIONS", "200"))
+MAX_MESSAGE_SIZE = int(os.environ.get("WS_MAX_MESSAGE_SIZE", "65536"))  # 64KB
 
 
 @dataclass
@@ -92,29 +104,46 @@ class TokenBucketRateLimiter:
             self.buckets.pop(k, None)
 
 
+def _b64url_encode(raw: bytes) -> str:
+    return base64.urlsafe_b64encode(raw).decode().rstrip('=')
+
+
+def _b64url_decode(data: str) -> bytes:
+    # Restaura padding de forma segura antes de decodificar.
+    padding = '=' * (-len(data) % 4)
+    return base64.urlsafe_b64decode(data + padding)
+
+
 def create_jwt(payload: dict) -> str:
-    """Crea JWT simple (header.payload.signature) con HMAC-SHA256."""
+    """Crea JWT simple (header.payload.signature) con HMAC-SHA256.
+
+    NO muta el dict de entrada: trabaja sobre una copia para evitar
+    efectos colaterales en el llamador.
+    """
     header = {"alg": "HS256", "typ": "JWT"}
-    header_b64 = base64.urlsafe_b64encode(json.dumps(header, separators=(',', ':')).encode()).decode().rstrip('=')
+    header_b64 = _b64url_encode(json.dumps(header, separators=(',', ':')).encode())
+    payload = dict(payload)
     payload["iat"] = int(time.time())
     payload["exp"] = payload["iat"] + TOKEN_TTL
-    payload_b64 = base64.urlsafe_b64encode(json.dumps(payload, separators=(',', ':')).encode()).decode().rstrip('=')
+    payload_b64 = _b64url_encode(json.dumps(payload, separators=(',', ':')).encode())
     signing_input = f"{header_b64}.{payload_b64}"
     signature = hmac.new(JWT_SECRET, signing_input.encode(), hashlib.sha256).digest()
-    sig_b64 = base64.urlsafe_b64encode(signature).decode().rstrip('=')
+    sig_b64 = _b64url_encode(signature)
     return f"{header_b64}.{payload_b64}.{sig_b64}"
 
 
 def verify_jwt(token: str) -> dict | None:
     """Verifica JWT y devuelve payload si es válido."""
     try:
+        if not isinstance(token, str) or token.count('.') != 2:
+            return None
         header_b64, payload_b64, sig_b64 = token.split('.')
         signing_input = f"{header_b64}.{payload_b64}"
         expected_sig = hmac.new(JWT_SECRET, signing_input.encode(), hashlib.sha256).digest()
-        expected_b64 = base64.urlsafe_b64encode(expected_sig).decode().rstrip('=')
+        expected_b64 = _b64url_encode(expected_sig)
         if not hmac.compare_digest(sig_b64, expected_b64):
             return None
-        payload = json.loads(base64.urlsafe_b64decode(payload_b64 + '==').decode())
+        payload = json.loads(_b64url_decode(payload_b64).decode())
         if payload.get("exp", 0) < time.time():
             return None
         return payload
@@ -160,6 +189,30 @@ class SyncServer:
                 await self.unregister(display_id)
         return False
 
+    async def register(self, ws, display_id):
+        if len(self.displays) >= MAX_CONNECTIONS:
+            LOG.warning("Max connections reached (%d), rejecting %s", MAX_CONNECTIONS, display_id)
+            await ws.send(json.dumps({"type": "error", "msg": "max connections reached"}))
+            await ws.close(1013, "Too many connections")
+            return
+        if display_id in self.displays:
+            old_ws = self.displays[display_id]
+            try:
+                await old_ws.close(1000, "Replaced by new connection")
+            except Exception:
+                pass
+        self.displays[display_id] = ws
+        LOG.info("Display registrado: %s (total: %d)", display_id, len(self.displays))
+
+    async def unregister(self, display_id):
+        ws = self.displays.pop(display_id, None)
+        if ws:
+            try:
+                await ws.close()
+            except Exception:
+                pass
+            LOG.info("Display desregistrado: %s (total: %d)", display_id, len(self.displays))
+
     async def enqueue_hardware(self, event):
         """Empuja un evento de hardware a la cola FIFO con sello de microsegundos."""
         event = dict(event)
@@ -187,6 +240,9 @@ class SyncServer:
         display_id = None
         try:
             async for raw in ws:
+                if isinstance(raw, (bytes, str)) and len(raw) > MAX_MESSAGE_SIZE:
+                    await ws.send(json.dumps({"type": "error", "msg": "message too large"}))
+                    continue
                 try:
                     msg = json.loads(raw)
                 except json.JSONDecodeError:
@@ -264,9 +320,53 @@ class SyncServer:
                         "displays": len(self.displays),
                         "sessions": len(self.play_sessions),
                     }))
+                elif mtype == "stats":
+                    await ws.send(json.dumps({
+                        "type": "stats_result",
+                        "ok": True,
+                        "displays": len(self.displays),
+                        "sessions": len(self.play_sessions),
+                        "mobiles": len(self.mobile_clients),
+                        "tokens": len(self.tokens),
+                    }))
+                elif mtype == "engine_stats":
+                    await ws.send(json.dumps({
+                        "type": "engine_stats_result",
+                        "ok": True,
+                        "games": len(self.play_sessions),
+                        "players": sum(len(s.get("players", {})) for s in self.play_sessions.values()),
+                        "leaderboards": sum(len(v) for v in self.leaderboards.values()),
+                        "tokens": len(self.tokens),
+                    }))
+                elif mtype == "list_connections":
+                    conns = [
+                        {"id": did, "type": "display"}
+                        for did in self.displays
+                    ]
+                    conns.extend(
+                        {"id": t[:8] + "...", "type": "mobile", "session": self.mobile_sessions.get(t)}
+                        for t in self.mobile_clients
+                    )
+                    await ws.send(json.dumps({
+                        "type": "list_connections_result",
+                        "ok": True,
+                        "connections": conns,
+                    }))
+                elif mtype == "disconnect_client":
+                    target_id = msg.get("connection_id", "")
+                    found = False
+                    for did in list(self.displays):
+                        if did == target_id or did.startswith(target_id):
+                            await self.unregister(did)
+                            found = True
+                            break
+                    if found:
+                        await ws.send(json.dumps({"type": "disconnect_client_result", "ok": True}))
+                    else:
+                        await ws.send(json.dumps({"type": "disconnect_client_result", "ok": False, "error": "not found"}))
                 else:
                     await ws.send(json.dumps({"type": "error", "msg": "tipo desconocido: " + str(mtype)}))
-        except websockets.exceptions.ConnectionClosed:
+        except Exception:
             pass
         finally:
             if display_id:
@@ -333,6 +433,7 @@ class SyncServer:
             await ws.send(json.dumps({"type": "error", "msg": "rate limit exceeded"}))
             return False
         self.mobile_clients[token] = ws
+        self.mobile_sessions[token] = session_id
         self.heartbeats[token] = time.time()
         self.play_sessions[session_id]["players"][client_id]["connected"] = True
         await ws.send(json.dumps({"type": "play_ready", "client_id": client_id,
@@ -375,6 +476,7 @@ class SyncServer:
         """Desconecta un cliente móvil limpiamente."""
         ws = self.mobile_clients.pop(token, None)
         self.heartbeats.pop(token, None)
+        self.mobile_sessions.pop(token, None)
         pair = self.tokens.pop(token, (None, None))
         session_id, client_id = pair if isinstance(pair, tuple) else (None, None)
         if session_id and session_id in self.play_sessions:

@@ -1,0 +1,610 @@
+/* =====================================================================
+   theme-pastel-dream.css — Pastel Dream Theme for SillyQuiz Display
+   Soft, calming pastel color palette
+   ===================================================================== */
+
+.theme-pastel-dream {
+  --custom-primary: #A8D5E2;
+  --custom-secondary: #F8E8F0;
+  --custom-accent: #F5D6A9;
+  --custom-brightness: 85%;
+  --custom-saturation: 60%;
+  --custom-bg-opacity: 100%;
+  --custom-border-radius: 16px;
+  --custom-animation-speed: 0.8;
+
+  --bg: #FDFBF7;
+  --surface: #F5F0EB;
+  --border: #D5CDC5;
+  --text: #4A4540;
+  --jovenes: #A8D5E2;
+  --damas: #F5D6A9;
+  --caball: #C8D5A8;
+  --ninos: #E8C8D5;
+  --red: #F5A9A9;
+  --green: #A8E6A8;
+  --yellow: #F5D6A9;
+  --muted: #8A8580;
+  --label-angle: 0deg;
+  --label-radius: 0%;
+  --wc: #4A4540;
+  --shadow: 4px 4px 0px rgba(74, 69, 64, 0.15);
+  --shadow-sm: 2px 2px 0px rgba(74, 69, 64, 0.1);
+  --shadow-lg: 0 8px 32px rgba(74, 69, 64, 0.1);
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  --accent: #A8D5E2;
+  --glow: rgba(168, 213, 226, 0.3);
+  --glow-strong: rgba(168, 213, 226, 0.5);
+  --bg-gradient: radial-gradient(ellipse at 30% 20%, rgba(168, 213, 226, 0.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 80%, rgba(245, 214, 169, 0.15) 0%, transparent 50%);
+  --noise-texture: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  --texture-dot: url("data:image/svg+xml,%3Csvg width='30' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='15' cy='15' r='1' fill='rgba(74,69,64,0.04)'/%3E%3C/svg%3E");
+
+  /* Enhanced refined theme variables */
+  --dark-bg: #FDFBF7;
+  --dark-surface: #F5F0EB;
+  --dark-border: #D5CDC5;
+  --dark-text: #4A4540;
+  --dark-jovenes: #A8D5E2;
+  --dark-damas: #F5D6A9;
+  --dark-caball: #C8D5A8;
+  --dark-ninos: #E8C8D5;
+  --dark-red: #F5A9A9;
+  --dark-green: #A8E6A8;
+  --dark-yellow: #F5D6A9;
+  --dark-muted: #8A8580;
+  --fire-bg: #FDFBF7;
+  --fire-surface: #F5F0EB;
+  --fire-border: #D5CDC5;
+  --fire-text: #4A4540;
+  --fire-jovenes: #A8D5E2;
+  --fire-damas: #F5D6A9;
+  --fire-caball: #C8D5A8;
+  --fire-ninos: #E8C8D5;
+  --fire-red: #F5A9A9;
+  --fire-green: #A8E6A8;
+  --fire-yellow: #F5D6A9;
+  --fire-muted: #8A8580;
+  --ocean-bg: #FDFBF7;
+  --ocean-surface: #F5F0EB;
+  --ocean-border: #D5CDC5;
+  --ocean-text: #4A4540;
+  --ocean-jovenes: #A8D5E2;
+  --ocean-damas: #F5D6A9;
+  --ocean-caball: #C8D5A8;
+  --ocean-ninos: #E8C8D5;
+  --ocean-red: #F5A9A9;
+  --ocean-green: #A8E6A8;
+  --ocean-yellow: #F5D6A9;
+  --ocean-muted: #8A8580;
+
+  /* Animation enhancements */
+  --transition-fast: 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Enhanced glow effects */
+  --glow-strong-2: 0 0 30px rgba(168, 213, 226, 0.5);
+  --glow-3: 0 0 25px rgba(168, 213, 226, 0.3);
+  --glow-red: 0 0 25px rgba(245, 169, 169, 0.5);
+  --glow-green: 0 0 25px rgba(168, 230, 168, 0.5);
+  --glow-yellow: 0 0 25px rgba(245, 214, 169, 0.5);
+  --glow-blue: 0 0 25px rgba(168, 213, 226, 0.5);
+
+  /* Custom theme variables */
+  --custom-primary: #A8D5E2;
+  --custom-secondary: #F8E8F0;
+  --custom-accent: #F5D6A9;
+  --custom-brightness: 85%;
+  --custom-saturation: 60%;
+  --custom-bg-opacity: 100%;
+  --custom-border-radius: 16px;
+  --custom-animation-speed: 0.8;
+
+  /* Custom theme v2 overrides */
+  --custom-font-heading: 'Space Grotesk', sans-serif;
+  --custom-font-body: 'Space Grotesk', sans-serif;
+  --custom-font-timer: 'Space Grotesk', sans-serif;
+  --custom-font-score: 'Space Grotesk', sans-serif;
+  --custom-font-size-scale: 1;
+  --custom-text-shadow: none;
+  --custom-text-glow: none;
+  --custom-timer-style: circle;
+  --custom-timer-pos-x: auto;
+  --custom-timer-pos-y: auto;
+  --custom-timer-size: 90px;
+  --custom-timer-color-bg: rgba(168, 213, 226, 0.3);
+  --custom-timer-color-text: #4A4540;
+  --custom-timer-color-progress: #A8D5E2;
+  --custom-timer-color-glow: rgba(168, 213, 226, 0.4);
+  --custom-timer-color-urgent: #F5A9A9;
+  --custom-timer-animation: pulse;
+  --custom-scores-position: bottom;
+  --custom-header-display: flex;
+  --custom-question-height: 1fr;
+  --custom-logo-display: block;
+  --custom-decorations-display: block;
+  --custom-scores-height: 300px;
+  --custom-shape-opacity: 0.3;
+  --custom-shape-speed: 0.5;
+  --custom-shape-count: 12;
+  --custom-shape-behavior: float;
+  --custom-surface: #F5F0EB;
+  --custom-border: #D5CDC5;
+  --custom-glow: rgba(168, 213, 226, 0.3);
+  --custom-bg-gradient: radial-gradient(ellipse at 30% 20%, rgba(168, 213, 226, 0.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 80%, rgba(245, 214, 169, 0.15) 0%, transparent 50%);
+}
+
+/* =====================================================================
+   theme-neon-cyberpunk.css — Neon Cyberpunk Theme for SillyQuiz Display
+   High contrast neon colors on dark background
+   ===================================================================== */
+
+.theme-neon-cyberpunk {
+  --custom-primary: #00FFFF;
+  --custom-secondary: #FF00FF;
+  --custom-accent: #FFFF00;
+  --custom-brightness: 100%;
+  --custom-saturation: 100%;
+  --custom-bg-opacity: 100%;
+  --custom-border-radius: 8px;
+  --custom-animation-speed: 1.2;
+
+  --bg: #0A0A1F;
+  --surface: #13133A;
+  --border: #00FFFF;
+  --text: #E0E0FF;
+  --jovenes: #00FFFF;
+  --damas: #FF00FF;
+  --caball: #FFFF00;
+  --ninos: #00FF88;
+  --red: #FF3366;
+  --green: #00FF88;
+  --yellow: #FFFF00;
+  --muted: #8888CC;
+  --label-angle: 0deg;
+  --label-radius: 0%;
+  --wc: #E0E0FF;
+  --shadow: 0 0 20px #00FFFF;
+  --shadow-sm: 0 0 10px #00FFFF;
+  --shadow-lg: 0 0 40px #00FFFF;
+  --ease: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  --accent: #00FFFF;
+  --glow: rgba(0, 255, 255, 0.5);
+  --glow-strong: rgba(0, 255, 255, 0.8);
+  --bg-gradient: radial-gradient(ellipse at 30% 20%, rgba(0, 255, 255, 0.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 80%, rgba(255, 0, 255, 0.15) 0%, transparent 50%);
+  --noise-texture: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+  --texture-dot: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='10' cy='10' r='1.5' fill='rgba(0,255,255,0.1)'/%3E%3C/svg%3E");
+
+  /* Enhanced refined theme variables */
+  --dark-bg: #0A0A1F;
+  --dark-surface: #13133A;
+  --dark-border: #00FFFF;
+  --dark-text: #E0E0FF;
+  --dark-jovenes: #00FFFF;
+  --dark-damas: #FF00FF;
+  --dark-caball: #FFFF00;
+  --dark-ninos: #00FF88;
+  --dark-red: #FF3366;
+  --dark-green: #00FF88;
+  --dark-yellow: #FFFF00;
+  --dark-muted: #8888CC;
+  --fire-bg: #0A0A1F;
+  --fire-surface: #13133A;
+  --fire-border: #00FFFF;
+  --fire-text: #E0E0FF;
+  --fire-jovenes: #00FFFF;
+  --fire-damas: #FF00FF;
+  --fire-caball: #FFFF00;
+  --fire-ninos: #00FF88;
+  --fire-red: #FF3366;
+  --fire-green: #00FF88;
+  --fire-yellow: #FFFF00.
+  --fire-muted: #8888CC.
+  --ocean-bg: #0A0A1F;
+  --ocean-surface: #13133A.
+  --ocean-border: #00FFFF.
+  --ocean-text: #E0E0FF.
+  --ocean-jovenes: #00FFFF.
+  --ocean-damas: #FF00FF.
+  --ocean-caball: #FFFF00.
+  --ocean-ninos: #00FF88.
+  --ocean-red: #FF3366.
+  --ocean-green: #00FF88.
+  --ocean-yellow: #FFFF00.
+  --ocean-muted: #8888CC.
+
+  /* Animation enhancements */
+  --transition-fast: 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-normal: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Enhanced glow effects */
+  --glow-strong-2: 0 0 50px #00FFFF;
+  --glow-3: 0 0 40px rgba(255, 255, 255, 0.3);
+  --glow-red: 0 0 40px #FF3366;
+  --glow-green: 0 0 40px #00FF88;
+  --glow-yellow: 0 0 40px #FFFF00;
+  --glow-blue: 0 0 40px #00FFFF;
+
+  /* Custom theme variables */
+  --custom-primary: #00FFFF;
+  --custom-secondary: #FF00FF;
+  --custom-accent: #FFFF00;
+  --custom-brightness: 100%;
+  --custom-saturation: 100%;
+  --custom-bg-opacity: 100%;
+  --custom-border-radius: 8px;
+  --custom-animation-speed: 1.2;
+
+  /* Custom theme v2 overrides */
+  --custom-font-heading: 'Space Grotesk', sans-serif;
+  --custom-font-body: 'Space Grotesk', sans-serif;
+  --custom-font-timer: 'Space Grotesk', sans-serif;
+  --custom-font-score: 'Space Grotesk', sans-serif;
+  --custom-font-size-scale: 1;
+  --custom-text-shadow: 0 0 10px currentColor;
+  --custom-text-glow: 0 0 20px currentColor;
+  --custom-timer-style: circle;
+  --custom-timer-pos-x: auto;
+  --custom-timer-pos-y: auto;
+  --custom-timer-size: 80px;
+  --custom-timer-color-bg: rgba(0, 255, 255, 0.2);
+  --custom-timer-color-text: #E0E0FF;
+  --custom-timer-color-progress: #00FFFF;
+  --custom-timer-color-glow: rgba(0, 255, 255, 0.6);
+  --custom-timer-color-urgent: #FF3366;
+  --custom-timer-animation: pulse;
+  --custom-scores-position: bottom;
+  --custom-header-display: flex;
+  --custom-question-height: 1fr;
+  --custom-logo-display: block;
+  --custom-decorations-display: block.
+  --custom-scores-height: 300px.
+  --custom-shape-opacity: 0.6.
+  --custom-shape-speed: 1.2.
+  --custom-shape-count: 20.
+  --custom-shape-behavior: float.
+  --custom-surface: #13133A.
+  --custom-border: #00FFFF.
+  --custom-glow: rgba(0, 255, 255, 0.5).
+  --custom-bg-gradient: radial-gradient(ellipse at 30% 20%, rgba(0, 255, 255, 0.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 80%, rgba(255, 0, 255, 0.15) 0%, transparent 50%).
+}
+
+/* Neon glow animations */
+@keyframes neon-pulse {
+  0%, 100% { 
+    text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 20px currentColor; 
+    box-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 40px currentColor;
+  }
+  50% { 
+    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 40px currentColor; 
+    box-shadow: 0 0 20px currentColor, 0 0 40px currentColor, 0 0 80px currentColor;
+  }
+}
+
+.theme-neon-cyberpunk .score-card,
+.theme-neon-cyberpunk .timer-circle,
+.theme-neon-cyberpunk .question-text {
+  animation: neon-pulse 2s ease-in-out infinite;
+}
+
+/* =====================================================================
+   theme-high-contrast.css — High Contrast Theme for Accessibility
+   WCAG AA compliant high contrast theme
+   ===================================================================== */
+
+.theme-high-contrast {
+  --custom-primary: #0000FF;
+  --custom-secondary: #FFFFFF;
+  --custom-accent: #FFFF00;
+  --custom-brightness: 100%;
+  --custom-saturation: 100%;
+  --custom-bg-opacity: 100%;
+  --custom-border-radius: 4px;
+  --custom-animation-speed: 0;
+
+  --bg: #000000;
+  --surface: #000000;
+  --border: #FFFFFF;
+  --text: #FFFFFF;
+  --jovenes: #0000FF;
+  --damas: #FFFF00.
+  --caball: #FF8800.
+  --ninos: #00FF00.
+  --red: #FF0000.
+  --green: #00FF00.
+  --yellow: #FFFF00.
+  --muted: #CCCCCC.
+  --label-angle: 0deg.
+  --label-radius: 0%.
+  --wc: #FFFFFF.
+  --shadow: 4px 4px 0px #FFFFFF.
+  --shadow-sm: 2px 2px 0px #FFFFFF.
+  --shadow-lg: 8px 8px 0px #FFFFFF.
+  --ease: linear.
+  --ease-out: linear.
+  --ease-in: linear.
+  --ease-smooth: linear.
+  --ease-bounce: linear.
+  --accent: #0000FF.
+  --glow: none.
+  --glow-strong: none.
+  --bg-gradient: none.
+  --noise-texture: none.
+  --texture-dot: none.
+
+  /* Enhanced refined theme variables */
+  --dark-bg: #000000.
+  --dark-surface: #000000.
+  --dark-border: #FFFFFF.
+  --dark-text: #FFFFFF.
+  --dark-jovenes: #0000FF.
+  --dark-damas: #FFFF00.
+  --dark-caball: #FF8800.
+  --dark-ninos: #00FF00.
+  --dark-red: #FF0000.
+  --dark-green: #00FF00.
+  --dark-yellow: #FFFF00.
+  --dark-muted: #CCCCCC.
+  --fire-bg: #000000.
+  --fire-surface: #000000.
+  --fire-border: #FFFFFF.
+  --fire-text: #FFFFFF.
+  --fire-jovenes: #0000FF.
+  --fire-damas: #FFFF00.
+  --fire-caball: #FF8800.
+  --fire-ninos: #00FF00.
+  --fire-red: #FF0000.
+  --fire-green: #00FF00.
+  --fire-yellow: #FFFF00.
+  --fire-muted: #CCCCCC.
+  --ocean-bg: #000000.
+  --ocean-surface: #000000.
+  --ocean-border: #FFFFFF.
+  --ocean-text: #FFFFFF.
+  --ocean-jovenes: #0000FF.
+  --ocean-damas: #FFFF00.
+  --ocean-caball: #FF8800.
+  --ocean-ninos: #00FF00.
+  --ocean-red: #FF0000.
+  --ocean-green: #00FF00.
+  --ocean-yellow: #FFFF00.
+  --ocean-muted: #CCCCCC.
+
+  /* Animation enhancements - disabled for accessibility */
+  --transition-fast: 0.01ms.
+  --transition-normal: 0.01ms.
+  --transition-slow: 0.01ms.
+  --transition-smooth: 0.01ms.
+
+  /* Enhanced glow effects - none for high contrast */
+  --glow-strong-2: none.
+  --glow-3: none.
+  --glow-red: none.
+  --glow-green: none.
+  --glow-yellow: none.
+  --glow-blue: none.
+
+  /* Custom theme variables */
+  --custom-primary: #0000FF.
+  --custom-secondary: #FFFFFF.
+  --custom-accent: #FFFF00.
+  --custom-brightness: 100%.
+  --custom-saturation: 100%.
+  --custom-bg-opacity: 100%.
+  --custom-border-radius: 4px.
+  --custom-animation-speed: 0.
+
+  /* Custom theme v2 overrides */
+  --custom-font-heading: 'Space Grotesk', sans-serif.
+  --custom-font-body: 'Space Grotesk', sans-serif.
+  --custom-font-timer: 'Space Grotesk', sans-serif.
+  --custom-font-score: 'Space Grotesk', sans-serif.
+  --custom-font-size-scale: 1.
+  --custom-text-shadow: none.
+  --custom-text-glow: none.
+  --custom-timer-style: bar.
+  --custom-timer-pos-x: auto.
+  --custom-timer-pos-y: auto.
+  --custom-timer-size: 80px.
+  --custom-timer-color-bg: #FFFFFF.
+  --custom-timer-color-text: #000000.
+  --custom-timer-color-progress: #0000FF.
+  --custom-timer-color-glow: transparent.
+  --custom-timer-color-urgent: #FF0000.
+  --custom-timer-animation: none.
+  --custom-scores-position: bottom.
+  --custom-header-display: flex.
+  --custom-question-height: 1fr.
+  --custom-logo-display: block.
+  --custom-decorations-display: none.
+  --custom-scores-height: 280px.
+  --custom-shape-opacity: 0.
+  --custom-shape-speed: 0.
+  --custom-shape-count: 0.
+  --custom-shape-behavior: none.
+  --custom-surface: #000000.
+  --custom-border: #FFFFFF.
+  --custom-glow: none.
+  --custom-bg-gradient: none.
+}
+
+/* Disable all animations for high contrast mode */
+.theme-high-contrast *,
+.theme-high-contrast *::before,
+.theme-high-contrast *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Ensure all text has maximum contrast */
+.theme-high-contrast .score-card {
+  background: #000000 !important;
+  border: 3px solid #FFFFFF !important;
+  color: #FFFFFF !important;
+}
+
+.theme-high-contrast .timer-circle {
+  background: #FFFFFF !important;
+  border: 3px solid #000000 !important;
+  color: #000000 !important;
+}
+
+.theme-high-contrast .question-text {
+  color: #FFFFFF !important;
+  background: #000000 !important;
+  padding: 1rem;
+  border: 2px solid #FFFFFF;
+}
+
+/* =====================================================================
+   theme-minimal-clean.css — Minimal Clean Theme
+   Ultra-clean, distraction-free theme
+   ===================================================================== */
+
+.theme-minimal-clean {
+  --custom-primary: #3B82F6;
+  --custom-secondary: #64748B;
+  --custom-accent: #8B5CF6;
+  --custom-brightness: 90%;
+  --custom-saturation: 50%;
+  --custom-bg-opacity: 100%;
+  --custom-border-radius: 12px;
+  --custom-animation-speed: 0.6;
+
+  --bg: #FAFAFA;
+  --surface: #FFFFFF;
+  --border: #E2E8F0;
+  --text: #1E293B;
+  --jovenes: #3B82F6;
+  --damas: #8B5CF6.
+  --caball: #F59E0B.
+  --ninos: #10B981.
+  --red: #EF4444.
+  --green: #10B981.
+  --yellow: #F59E0B.
+  --muted: #94A3B8.
+  --label-angle: 0deg.
+  --label-radius: 0%.
+  --wc: #1E293B.
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1).
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05).
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1).
+  --ease: cubic-bezier(0.4, 0, 0.2, 1).
+  --ease-out: cubic-bezier(0.34, 1.56, 0.64, 1).
+  --ease-in: cubic-bezier(0.4, 0, 1, 1).
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1).
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55).
+  --accent: #3B82F6.
+  --glow: rgba(59, 130, 246, 0.1).
+  --glow-strong: rgba(59, 130, 246, 0.2).
+  --bg-gradient: none.
+  --noise-texture: none.
+  --texture-dot: none.
+
+  /* Enhanced refined theme variables */
+  --dark-bg: #FAFAFA.
+  --dark-surface: #FFFFFF.
+  --dark-border: #E2E8F0.
+  --dark-text: #1E293B.
+  --dark-jovenes: #3B82F6.
+  --dark-damas: #8B5CF6.
+  --dark-caball: #F59E0B.
+  --dark-ninos: #10B981.
+  --dark-red: #EF4444.
+  --dark-green: #10B981.
+  --dark-yellow: #F59E0B.
+  --dark-muted: #94A3B8.
+  --fire-bg: #FAFAFA.
+  --fire-surface: #FFFFFF.
+  --fire-border: #E2E8F0.
+  --fire-text: #1E293B.
+  --fire-jovenes: #3B82F6.
+  --fire-damas: #8B5CF6.
+  --fire-caball: #F59E0B.
+  --fire-ninos: #10B981.
+  --fire-red: #EF4444.
+  --fire-green: #10B981.
+  --fire-yellow: #F59E0B.
+  --fire-muted: #94A3B8.
+  --ocean-bg: #FAFAFA.
+  --ocean-surface: #FFFFFF.
+  --ocean-border: #E2E8F0.
+  --ocean-text: #1E293B.
+  --ocean-jovenes: #3B82F6.
+  --ocean-damas: #8B5CF6.
+  --ocean-caball: #F59E0B.
+  --ocean-ninos: #10B981.
+  --ocean-red: #EF4444.
+  --ocean-green: #10B981.
+  --ocean-yellow: #F59E0B.
+  --ocean-muted: #94A3B8.
+
+  /* Animation enhancements */
+  --transition-fast: 0.1s cubic-bezier(0.4, 0, 0.2, 1).
+  --transition-normal: 0.2s cubic-bezier(0.4, 0, 0.2, 1).
+  --transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1).
+  --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1).
+
+  /* Enhanced glow effects - subtle */
+  --glow-strong-2: 0 0 20px rgba(59, 130, 246, 0.2).
+  --glow-3: 0 0 15px rgba(59, 130, 246, 0.1).
+  --glow-red: 0 0 15px rgba(239, 68, 68, 0.2).
+  --glow-green: 0 0 15px rgba(16, 185, 129, 0.2).
+  --glow-yellow: 0 0 15px rgba(245, 158, 11, 0.2).
+  --glow-blue: 0 0 15px rgba(59, 130, 246, 0.2).
+
+  /* Custom theme variables */
+  --custom-primary: #3B82F6.
+  --custom-secondary: #64748B.
+  --custom-accent: #8B5CF6.
+  --custom-brightness: 90%.
+  --custom-saturation: 50%.
+  --custom-bg-opacity: 100%.
+  --custom-border-radius: 12px.
+  --custom-animation-speed: 0.6.
+
+  /* Custom theme v2 overrides */
+  --custom-font-heading: 'Space Grotesk', sans-serif.
+  --custom-font-body: 'Space Grotesk', sans-serif.
+  --custom-font-timer: 'Space Grotesk', sans-serif.
+  --custom-font-score: 'Space Grotesk', sans-serif.
+  --custom-font-size-scale: 1.
+  --custom-text-shadow: none.
+  --custom-text-glow: none.
+  --custom-timer-style: bar.
+  --custom-timer-pos-x: auto.
+  --custom-timer-pos-y: auto.
+  --custom-timer-size: 60px.
+  --custom-timer-color-bg: rgba(59, 130, 246, 0.1).
+  --custom-timer-color-text: #1E293B.
+  --custom-timer-color-progress: #3B82F6.
+  --custom-timer-color-glow: rgba(59, 130, 246, 0.15).
+  --custom-timer-color-urgent: #EF4444.
+  --custom-timer-animation: none.
+  --custom-scores-position: bottom.
+  --custom-header-display: flex.
+  --custom-question-height: 1fr.
+  --custom-logo-display: block.
+  --custom-decorations-display: none.
+  --custom-scores-height: 250px.
+  --custom-shape-opacity: 0.
+  --custom-shape-speed: 0.
+  --custom-shape-count: 0.
+  --custom-shape-behavior: none.
+  --custom-surface: #FFFFFF.
+  --custom-border: #E2E8F0.
+  --custom-glow: rgba(59, 130, 246, 0.1).
+  --custom-bg-gradient: none.
+}

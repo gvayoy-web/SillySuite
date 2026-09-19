@@ -1,0 +1,72 @@
+{
+  "id": "pastel-dream",
+  "name": "Pastel Dream",
+  "category": "soft",
+  "description": "Tema suave y relajante con tonos pastel",
+  "colors": {
+    "primary": "#A8D5E2",
+    "primaryLight": "#C8E5F2",
+    "primaryDark": "#88C5D2",
+    "secondary": "#F8E8F0",
+    "accent": "#F5D6A9",
+    "accentLight": "#F8E6C8",
+    "accentDark": "#E2C689",
+    "success": "#A8E6A8",
+    "successLight": "#C8F6C8",
+    "warning": "#F5D6A9",
+    "warningLight": "#F8E6C8",
+    "danger": "#F5A9A9",
+    "dangerLight": "#F8C8C8",
+    "info": "#A8D5E2",
+    "bgPrimary": "#FDFBF7",
+    "bgSecondary": "#F5F0EB",
+    "bgTertiary": "#EDE5DD",
+    "bgHover": "#E5DCCF",
+    "bgActive": "#DCD3C5",
+    "textPrimary": "#4A4540",
+    "textSecondary": "#6A6560",
+    "textMuted": "#8A8580",
+    "textInverse": "#FFFFFF",
+    "borderColor": "#D5CDC5",
+    "borderLight": "#E5DDD5",
+    "borderLighter": "#F0E8E0"
+  },
+  "fonts": {
+    "heading": "'Space Grotesk', sans-serif",
+    "body": "'Space Grotesk', sans-serif",
+    "mono": "'Space Mono', monospace",
+    "timer": "'Space Grotesk', sans-serif",
+    "score": "'Space Grotesk', sans-serif"
+  },
+  "animations": {
+    "enabled": true,
+    "speed": 0.8,
+    "ease": "cubic-bezier(0.4, 0, 0.2, 1)"
+  },
+  "shapes": {
+    "count": 12,
+    "opacity": 0.3,
+    "speed": 0.5,
+    "behavior": "float"
+  },
+  "timer": {
+    "style": "circle",
+    "size": 90,
+    "position": "top-right",
+    "bgColor": "rgba(168, 213, 226, 0.3)",
+    "textColor": "#4A4540",
+    "progressColor": "#A8D5E2",
+    "glowColor": "rgba(168, 213, 226, 0.4)",
+    "urgentColor": "#F5A9A9",
+    "animation": "pulse"
+  },
+  "scores": {
+    "position": "bottom",
+    "height": 300
+  },
+  "decorations": {
+    "showLogo": true,
+    "showShapes": true,
+    "showParticles": true
+  }
+}

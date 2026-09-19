@@ -84,7 +84,7 @@
         if (isBrowser()) {
           this._runInWorker(code, globals, memoryLimit, safeResolve, safeReject);
         } else if (isNode()) {
-          this._runInVm(code, globals, memoryLimit, safeResolve, safeReject);
+          this._runInVm(code, globals, memoryLimit, safeResolve, safeReject, timeout);
         } else {
           safeReject(new Error('Entorno no soportado para sandbox'));
         }
@@ -137,12 +137,12 @@
       };
     },
 
-    _runInVm(code, globals, memoryLimit, resolve, reject) {
+    _runInVm(code, globals, memoryLimit, resolve, reject, timeout) {
       try {
         const vm = require('vm');
         const context = vm.createContext(globals);
         const script = new vm.Script(code, {
-          timeout: 2000,
+          timeout: timeout || 2000,
           displayErrors: true
         });
         const result = script.runInContext(context);

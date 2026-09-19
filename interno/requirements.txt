@@ -6,3 +6,4 @@ waitress
 websockets
 jsonschema
 argon2-cffi
+pystray

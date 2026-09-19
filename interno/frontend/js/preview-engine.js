@@ -12,9 +12,10 @@ class PreviewEngine {
         this.time = 0;
         this.particles = [];
         this.themeColors = this.getThemeColors();
+        this._resizeHandler = () => this.resize();
         
         this.resize();
-        window.addEventListener('resize', () => this.resize());
+        window.addEventListener('resize', this._resizeHandler);
     }
     
     resize() {
@@ -26,20 +27,20 @@ class PreviewEngine {
     }
     
     getThemeColors() {
-        // Leer variables CSS del ThemeEngine actual
         const styles = getComputedStyle(document.documentElement);
+        const v = (name, fallback) => styles.getPropertyValue(name).trim() || fallback;
         return {
-            primary: styles.getPropertyValue('--primary') || '#0038ff',
-            secondary: styles.getPropertyValue('--secondary') || '#ffffff',
-            accent: styles.getPropertyValue('--accent') || '#7c3aed',
-            background: styles.getPropertyValue('--bg') || '#07070e',
-            surface: styles.getPropertyValue('--surface') || '#0e0e1a',
-            border: styles.getPropertyValue('--border') || '#1e1e3a',
-            text: styles.getPropertyValue('--text') || '#ffffff',
-            muted: styles.getPropertyValue('--muted') || '#888',
-            green: styles.getPropertyValue('--green') || '#4ade80',
-            red: styles.getPropertyValue('--red') || '#f87171',
-            yellow: styles.getPropertyValue('--yellow') || '#fbbf24'
+            primary: v('--sq-primary', '#0038ff'),
+            secondary: v('--sq-secondary', '#ffffff'),
+            accent: v('--sq-accent', '#7c3aed'),
+            background: v('--sq-bg-primary', '#07070e'),
+            surface: v('--sq-bg-secondary', '#0e0e1a'),
+            border: v('--sq-border', '#1e1e3a'),
+            text: v('--sq-text-primary', '#ffffff'),
+            muted: v('--sq-text-muted', '#888'),
+            green: v('--sq-success', '#4ade80'),
+            red: v('--sq-danger', '#f87171'),
+            yellow: v('--sq-warning', '#fbbf24')
         };
     }
     
@@ -354,6 +355,10 @@ class PreviewEngine {
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
             this.animationId = null;
+        }
+        if (this._resizeHandler) {
+            window.removeEventListener('resize', this._resizeHandler);
+            this._resizeHandler = null;
         }
     }
     

@@ -79,6 +79,13 @@ def displaysilly_alias():
     return resp
 
 
+@static_bp.route("/canva")
+def canva():
+    resp = send_from_directory(os.path.join(FRONTEND_DIR, "html"), "canva.html")
+    resp.headers["Cache-Control"] = "no-cache"
+    return resp
+
+
 @static_bp.route("/")
 def index():
     import os

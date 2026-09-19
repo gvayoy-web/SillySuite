@@ -26,9 +26,13 @@ class ThemeRotationManager:
         self._last_rotation_time = None
 
     def configure(self, interval_seconds: int, seed: int = None, exclude_slugs: List[str] = None):
-        """Configure rotation settings."""
+        """Configure rotation settings.
+
+        El intervalo es libre: puede ser tan corto como 1s (rotación rapida en
+        displays vivos) o tan largo como varias horas. Sin tope artificial.
+        """
         with self._lock:
-            self._rotation_interval = max(60, min(3600, interval_seconds))  # 1-60 minutes
+            self._rotation_interval = max(1, int(interval_seconds))
             if seed is not None:
                 self._seed = seed
             self._current_theme_index = 0
@@ -56,7 +60,7 @@ class ThemeRotationManager:
         """Restore rotation state from dict."""
         with self._lock:
             if "interval_seconds" in data:
-                self._rotation_interval = max(60, min(3600, int(data["interval_seconds"])))
+                self._rotation_interval = max(1, int(data["interval_seconds"]))
             if "seed" in data:
                 self._seed = data["seed"]
             if "excluded_themes" in data:
@@ -279,11 +283,24 @@ class MultiScreenThemeManager:
             return base_color
 
     def _hex_to_rgb(self, hex_color: str) -> Tuple[int, int, int]:
-        """Convert hex color to RGB tuple."""
-        hex_color = hex_color.lstrip("#")
-        if len(hex_color) == 6:
+        """Convert hex color to RGB tuple.
+
+        Acepta #rgb, #rrggbb, #rgba y #rrggbbaa (ignorando alpha).
+        Ante cualquier formato inválido devuelve negro en vez de romper.
+        """
+        if not hex_color:
+            return 0, 0, 0
+        hex_color = hex_color.lstrip("#").lower()
+        try:
+            if len(hex_color) in (3, 4):
+                hex_color = "".join(c * 2 for c in hex_color[:3])
+            elif len(hex_color) in (6, 8):
+                hex_color = hex_color[:6]
+            else:
+                return 0, 0, 0
             return int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
-        return 0, 0, 0
+        except ValueError:
+            return 0, 0, 0
 
     def _parse_rgba(self, rgba_color: str) -> Tuple[int, int, int, int]:
         """Parse RGBA color string."""
@@ -426,7 +443,7 @@ class CompleteThemeEngine:
                     "heart", "lamp", "wings", "key", "fish", "sword"
                 ],
                 "spawn_rate": 2500,
-                "max_count": 15,
+                "max_count": 60,
                 "color_source": "team",
                 "behavior": "float",
                 "size": "medium",

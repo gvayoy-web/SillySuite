@@ -173,14 +173,6 @@ class GameStateManager:
             """)
             conn.execute("CREATE INDEX IF NOT EXISTS idx_rate_limits_key_ts ON rate_limits(key, ts)")
 
-            # Configuración SQLite para rendimiento
-            conn.execute("PRAGMA journal_mode=WAL")
-            conn.execute("PRAGMA synchronous=NORMAL")
-            conn.execute("PRAGMA busy_timeout=5000")
-            conn.execute("PRAGMA foreign_keys=ON")
-            conn.execute("PRAGMA temp_store=MEMORY")
-            conn.execute("PRAGMA cache_size=-32768")
-
             conn.commit()
 
     @contextmanager
@@ -325,7 +317,21 @@ class GameStateManager:
             return False
 
         session.players[player_id] = player_data
-        return self.update_session_state(session_id, {'players': session.players})
+        now = time.time()
+
+        with self._get_connection() as conn:
+            conn.execute(
+                "UPDATE game_sessions SET players = ?, state = ?, updated_at = ? WHERE session_id = ?",
+                (json.dumps(session.players), json.dumps(session.state), now, session_id)
+            )
+            conn.commit()
+
+        self._emit_event(session_id, 'state_updated', {
+            'session_id': session_id,
+            'state': session.state,
+            'players': session.players
+        })
+        return True
 
     def remove_player(self, session_id: str, player_id: str) -> bool:
         """Remueve jugador de sesión"""
@@ -334,7 +340,21 @@ class GameStateManager:
             return False
 
         session.players.pop(player_id, None)
-        return self.update_session_state(session_id, {'players': session.players})
+        now = time.time()
+
+        with self._get_connection() as conn:
+            conn.execute(
+                "UPDATE game_sessions SET players = ?, state = ?, updated_at = ? WHERE session_id = ?",
+                (json.dumps(session.players), json.dumps(session.state), now, session_id)
+            )
+            conn.commit()
+
+        self._emit_event(session_id, 'state_updated', {
+            'session_id': session_id,
+            'state': session.state,
+            'players': session.players
+        })
+        return True
 
     def list_sessions(self, status: str = None, mode_id: str = None, 
                       limit: int = 100) -> List[GameSession]:

@@ -1,6 +1,6 @@
 class ShapeEngine {
     constructor(opts = {}) {
-        this.maxShapes = opts.maxShapes || 18;
+        this.maxShapes = opts.maxShapes || 100;
         this.active = [];
         this.mode = "idle";
         this._phLoop = null;

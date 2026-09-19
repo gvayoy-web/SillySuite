@@ -1,5 +1,6 @@
 import threading
 import logging
+import os
 import time
 from contextlib import contextmanager
 
@@ -16,7 +17,7 @@ class ModeManager:
         self._secondary_mode = None
         self._secondary_name = None
         self._start_timeouts = {}  # mode_name -> deadline for start timeout
-        self._max_start_time = 5.0  # seconds
+        self._max_start_time = float(os.environ.get("SILLY_MODE_START_TIMEOUT", "30.0"))  # seconds
 
     def register(self, mode_instance):
         with self._lock:
@@ -67,19 +68,17 @@ class ModeManager:
                 self._active_mode = mode
                 self._active_name = name
 
-        # Start mode outside lock to avoid deadlock if start() calls back into manager
-        try:
-            result = mode.start(**kwargs)
-            if isinstance(result, dict) and "error" in result:
-                with self._lock:
+            # Start mode while still holding the lock
+            try:
+                result = mode.start(**kwargs)
+                if isinstance(result, dict) and "error" in result:
                     self._rollback_mode(slot, name)
-                return False, result["error"]
-            return True, None
-        except Exception as e:
-            log.error("Error al iniciar modo %s: %s", name, e, exc_info=True)
-            with self._lock:
+                    return False, result["error"]
+                return True, None
+            except Exception as e:
+                log.error("Error al iniciar modo %s: %s", name, e, exc_info=True)
                 self._rollback_mode(slot, name)
-            return False, str(e)
+                return False, str(e)
 
     def _stop_mode_locked(self, mode):
         """Stop mode while holding lock. Assumes lock is held."""

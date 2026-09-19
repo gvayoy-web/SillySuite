@@ -254,7 +254,7 @@
       document.body.appendChild(input);
       input.click();
       document.body.removeChild(input);
-    },
+    }
     
     importDynamicBlocks(data) {
       if (!DynamicBlocks) return false;
@@ -274,7 +274,7 @@
         this.ui.toast(`Error al importar: ${error.message}`, 'error');
         return false;
       }
-    },
+    }
     
     exportDynamicBlocks() {
       if (!DynamicBlocks) return;
@@ -291,7 +291,7 @@
       URL.revokeObjectURL(url);
       
       this.ui.toast('Bloques dinámicos exportados', 'success');
-    },
+    }
     
     clearDynamicBlocks() {
       if (!DynamicBlocks || !confirm('¿Estás seguro de que deseas limpiar todos los bloques dinámicos? Esta acción no se puede deshacer.')) {
@@ -302,7 +302,7 @@
       this.ui.elPalette.classList.remove('dynamic-palette-open');
       this.isDynamicPalette = false;
       this.ui.toast(`Eliminados ${cleared} bloques dinámicos`, 'info');
-    },
+    }
     
     selectAndModifyBlock(opcode) {
       // Encontrar instancia de bloque (o crear nueva)
@@ -330,11 +330,11 @@
       } else {
         this.ui.addBlockToEvent(opcode);
       }
-    },
+    }
     
     humanize(op) {
       return op.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    },
+    }
     
     getBlockTypeIcon(type) {
       const icons = {
@@ -356,7 +356,7 @@
         'procedure': '📖'
       };
       return icons[type] || '📦';
-    },
+    }
     
     registerSampleBlock() {
       if (!DynamicBlocks) return;

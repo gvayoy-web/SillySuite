@@ -53,6 +53,13 @@ Thumbs.db
 
 # --- Secrets / config local (debe existir, NO subir) ---
 .env
+interno/.flask_secret
+interno/.password_hash
+interno/.password_salt
+
+# --- Node ---
+node_modules/
+package-lock.json
 
 # --- Artefactos de build PyInstaller (se regeneran) ---
 build_tmp/

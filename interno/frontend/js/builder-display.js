@@ -192,7 +192,7 @@
       // Scores
       if (state.components?.scores && (state.scores || []).length) {
         html += '<div class="bd-scores">';
-        (state.scores || []).slice(0, 6).forEach(s => {
+        (state.scores || []).slice(0, 50).forEach(s => {
           html += '<div class="bd-score-row"><span class="bd-score-name">' + esc(s.name) + '</span>' +
             '<span class="bd-score-pts">' + esc(s.pts) + '</span></div>';
         });

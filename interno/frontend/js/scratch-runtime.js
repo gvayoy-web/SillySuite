@@ -26,7 +26,6 @@
   const SandboxedJS = global.SandboxedJS
     || (typeof require !== 'undefined' ? require('./scratch-sandbox.js').SandboxedJS : null);
 
-  const MAX_STEPS = 2000000;
   const PERF_LOG_THRESHOLD_MS = 50;
 
   class BlockError extends Error {
@@ -423,6 +422,11 @@
             if (ctx.runtime.killed) return;
             if (frame.next) queue.unshift({ node: frame.next, next: frame.next.next || null, scope: frame.scope });
             return drain();
+          })
+          .catch(e => {
+            if (e instanceof BreakSignal || e instanceof ContinueSignal) throw e;
+            this._totalErrors++;
+            return drain();
           });
       };
       return drain();
@@ -470,11 +474,9 @@
       }
       if (def.hasBody) {
         this._pushScope(ctx);
-        try {
-          this.executeChain(node.body, ctx);
-        } finally {
+        this.executeChain(node.body, ctx).finally(() => {
           this._popScope(ctx);
-        }
+        });
         return null;
       }
       return null;
@@ -498,9 +500,9 @@
 
       // Presupuesto de ejecución (anti-hang): frena el show si se agota.
       ctx.runtime.steps = (ctx.runtime.steps || 0) + 1;
-      if (ctx.runtime.steps > MAX_STEPS) {
+      if (ctx.runtime.steps > this.maxSteps) {
         this.panic();
-        this.stepper('error', node, ctx, 'presupuesto de ejecución agotado (' + MAX_STEPS + ')');
+        this.stepper('error', node, ctx, 'presupuesto de ejecución agotado (' + this.maxSteps + ')');
         return Promise.resolve();
       }
 
@@ -552,11 +554,17 @@
         this._perfMetrics.totalTime += elapsed;
         if (elapsed > PERF_LOG_THRESHOLD_MS) {
           this._perfMetrics.slowBlocks.push({ opcode: node.opcode, ms: elapsed });
-          if (this._perfMetrics.slowBlocks.length > 50) this._perfMetrics.slowBlocks.shift();
+          if (this._perfMetrics.slowBlocks.length > 500) this._perfMetrics.slowBlocks.shift();
         }
         this.stepper('end', node, ctx);
         // Avanzar simulación física después de cada bloque (si está activa)
-        if (this.state.__physics) this.stepPhysics(1/60);
+        if (this.state.__physics) {
+          this.state.__physics._stepAccum = (this.state.__physics._stepAccum || 0) + 1;
+          if (this.state.__physics._stepAccum >= 10) {
+            this.stepPhysics(1/60);
+            this.state.__physics._stepAccum = 0;
+          }
+        }
       }
     }
 
@@ -606,7 +614,7 @@
             this._pushScope(ctx);
             const step = () => {
               // Check killed flag and step limit
-              if (ctx.runtime.killed || ctx.runtime.steps > MAX_STEPS) return Promise.resolve();
+              if (ctx.runtime.killed || ctx.runtime.steps > this.maxSteps) return Promise.resolve();
               const condVal = condNode ? this.evalNode(condNode, ctx) : a.COND;
               if (truthy(condVal)) return Promise.resolve();
               return this.executeChain(body, ctx).then(() => step());
@@ -673,11 +681,12 @@
             const condNode = node.args && node.args.COND;
             const cond = () => truthy(condNode ? this.evalNode(condNode, ctx) : a.COND);
             const step = () => {
-              if (!cond() || ctx.runtime.killed || ctx.runtime.steps > MAX_STEPS) return Promise.resolve();
+              if (!cond() || ctx.runtime.killed || ctx.runtime.steps > this.maxSteps) return Promise.resolve();
               this._pushScope(ctx);
               const body = Array.isArray(node.body) ? node.body : (node.body ? [node.body] : []);
-              return this.executeChain(body, ctx).then(() => {
+              return this.executeChain(body, ctx).finally(() => {
                 this._popScope(ctx);
+              }).then(() => {
                 return step();
               });
             };

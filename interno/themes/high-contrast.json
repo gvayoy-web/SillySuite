@@ -1,0 +1,72 @@
+{
+  "id": "high-contrast",
+  "name": "Alto Contraste (Accesibilidad)",
+  "category": "accessibility",
+  "description": "Tema de alto contraste para accesibilidad visual - WCAG AA",
+  "colors": {
+    "primary": "#0000FF",
+    "primaryLight": "#4444FF",
+    "primaryDark": "#0000CC",
+    "secondary": "#FFFFFF",
+    "accent": "#FFFF00",
+    "accentLight": "#FFFF44",
+    "accentDark": "#CCCC00",
+    "success": "#00FF00",
+    "successLight": "#44FF44",
+    "warning": "#FFFF00",
+    "warningLight": "#FFFF44",
+    "danger": "#FF0000",
+    "dangerLight": "#FF4444",
+    "info": "#00FFFF",
+    "bgPrimary": "#000000",
+    "bgSecondary": "#000000",
+    "bgTertiary": "#1A1A1A",
+    "bgHover": "#333333",
+    "bgActive": "#4A4A4A",
+    "textPrimary": "#FFFFFF",
+    "textSecondary": "#CCCCCC",
+    "textMuted": "#AAAAAA",
+    "textInverse": "#000000",
+    "borderColor": "#FFFFFF",
+    "borderLight": "#CCCCCC",
+    "borderLighter": "#AAAAAA"
+  },
+  "fonts": {
+    "heading": "'Space Grotesk', sans-serif",
+    "body": "'Space Grotesk', sans-serif",
+    "mono": "'Space Mono', monospace",
+    "timer": "'Space Grotesk', sans-serif",
+    "score": "'Space Grotesk', sans-serif"
+  },
+  "animations": {
+    "enabled": false,
+    "speed": 0,
+    "ease": "linear"
+  },
+  "shapes": {
+    "count": 0,
+    "opacity": 0,
+    "speed": 0,
+    "behavior": "none"
+  },
+  "timer": {
+    "style": "bar",
+    "size": 80,
+    "position": "top-center",
+    "bgColor": "#FFFFFF",
+    "textColor": "#000000",
+    "progressColor": "#0000FF",
+    "glowColor": "transparent",
+    "urgentColor": "#FF0000",
+    "animation": "none"
+  },
+  "scores": {
+    "position": "bottom",
+    "height": 280
+  },
+  "decorations": {
+    "showLogo": true,
+    "showShapes": false,
+    "showParticles": false
+  }
+}

@@ -3,327 +3,369 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; font-src https://fonts.gstatic.com; connect-src 'self' ws://*:8081 wss://*:8081; worker-src blob:; img-src 'self' data: https:; media-src 'self' data: https:;">
-  <title>SillyQuiz · BuildSilly — SILLY PACK</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <title>SillyBuilder — SillyQuiz Builder</title>
   <link rel="stylesheet" href="../css/sillybuild.css">
   <link rel="stylesheet" href="../css/scratch-blocks.css">
-  <link rel="stylesheet" href="../css/scratch-palette.css">
-  <link rel="stylesheet" href="../css/scratch-canvas.css">
-  <link rel="stylesheet" href="../css/scratch-inspector.css">
-  <link rel="stylesheet" href="../css/scratch-stage.css">
-  <link rel="stylesheet" href="../css/stage-shapes.css">
-  <link rel="stylesheet" href="../css/ndi-panel.css">
-  <link rel="stylesheet" href="../css/modo-builder.css">
+  <link rel="stylesheet" href="../css/scratch-ui.css">
+  <link rel="stylesheet" href="../css/scratch-runtime.css">
 </head>
 <body>
-  <!-- Pantalla de bienvenida / onboarding -->
-  <div id="silly-splash" class="silly-splash" role="dialog" aria-modal="true" aria-labelledby="splash-title">
-    <div class="splash-content">
-      <div class="splash-logo" aria-hidden="true">
-        <svg viewBox="0 0 80 80" width="80" height="80" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="80" height="80" fill="#FF5E3A"/>
-          <rect x="4" y="4" width="72" height="72" fill="#0B0B0B"/>
-          <text x="40" y="52" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="900" font-size="32" fill="#FF5E3A">SQ</text>
-          <rect x="8" y="8" width="12" height="4" fill="#FFB000"/>
-          <rect x="60" y="68" width="12" height="4" fill="#9B6BFF"/>
+  <div id="sqApp" class="sq-app">
+    <header class="sq-header">
+      <div class="sq-header-left">
+        <button class="sq-hamburger" id="sqHamburger" aria-label="Menú principal" aria-expanded="false">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <h1 class="sq-title">SillyBuilder</h1>
+      </div>
+      <div class="sq-header-center">
+        <div class="sq-mode-tabs" role="tablist" aria-label="Modos de edición">
+          <button role="tab" class="sq-mode-tab active" data-mode="builder" aria-selected="true">Builder</button>
+          <button role="tab" class="sq-modo-tab" data-mode="preview" aria-selected="false">Preview</button>
+          <button role="tab" class="sq-modo-tab" data-mode="code" aria-selected="false">Código</button>
+        </div>
+      </div>
+      <div class="sq-header-right">
+        <div class="sq-conn-status" id="sqConnStatus" aria-live="polite">
+          <span class="sq-conn-dot" id="sqConnDot"></span>
+          <span id="sqConnText">Conectando…</span>
+        </div>
+        <button class="sq-btn sq-btn-primary" id="sqSaveBtn" aria-label="Guardar proyecto">💾 Guardar</button>
+        <button class="sq-btn sq-btn-primary" id="sqRunBtn" aria-label="Ejecutar proyecto">▶ Ejecutar</button>
+      </div>
+    </header>
+
+    <div class="sq-body">
+      <aside class="sq-sidebar sq-sidebar-left" id="sqSidebarLeft" aria-label="Paleta de bloques">
+        <div class="sq-cat-tabs" role="tablist" aria-label="Categorías de bloques">
+          <button role="tab" class="sq-cat-tab active" data-cat="motion" aria-selected="true">🏃 Movimiento</button>
+          <button role="tab" class="sq-cat-tab" data-cat="looks" aria-selected="false">👁 Apariencia</button>
+          <button role="tab" class="sq-cat-tab" data-cat="sound" aria-selected="false">🔊 Sonido</button>
+          <button role="tab" class="sq-cat-tab" data-cat="events" aria-selected="false">⚡ Eventos</button>
+          <button role="tab" class="sq-cat-tab" data-cat="control" aria-selected="false">🔁 Control</button>
+          <button role="tab" class="sq-cat-tab" data-cat="sensing" aria-selected="false">🎯 Sensores</button>
+          <button role="tab" class="sq-cat-tab" data-cat="operators" aria-selected="false">🔢 Operadores</button>
+          <button role="tab" class="sq-cat-tab" data-cat="variables" aria-selected="false">📦 Variables</button>
+          <button role="tab" class="sq-cat-tab" data-cat="lists" aria-selected="false">📋 Listas</button>
+          <button role="tab" class="sq-cat-tab" data-cat="myblocks" aria-selected="false">🧩 Mis Bloques</button>
+          <button role="tab" class="sq-cat-tab" data-cat="powerpack" aria-selected="false">⚡ Power Pack</button>
+          <button role="tab" class="sq-cat-tab" data-cat="sprites" aria-selected="false">🎭 Sprites</button>
+          <button role="tab" class="sq-cat-tab" data-cat="physics" aria-selected="false">⚙ Física</button>
+          <button role="tab" class="sq-cat-tab" data-cat="network" aria-selected="false">🌐 Red</button>
+          <button role="tab" class="sq-cat-tab" data-cat="storage" aria-selected="false">💾 Almacen.</button>
+          <button role="tab" class="sq-cat-tab" data-cat="ui" aria-selected="false">🖼 UI</button>
+          <button role="tab" class="sq-cat-tab" data-cat="media" aria-selected="false">🎬 Media</button>
+        </div>
+        <div class="sq-block-palette" id="sqBlockPalette" role="tabpanel" aria-label="Bloques disponibles">
+        </div>
+      </aside>
+
+      <main class="sq-main" id="sqMain">
+        <div class="sq-canvas-wrap" id="sqCanvasWrap">
+          <div class="sq-stage" id="sqStage" role="region" aria-label="Escenario">
+            <div class="sq-stage-bg" id="sqStageBg"></div>
+            <div class="sq-sprites-layer" id="sqSpritesLayer"></div>
+          </div>
+          <div class="sq-sprite-list" id="sqSpriteList" role="list" aria-label="Lista de sprites">
+            <div class="sq-sprite-item sq-sprite-stage" data-sprite="stage" role="listitem" aria-selected="true">
+              <span class="sq-sprite-thumb" style="background:#ddd"></span>
+              <span class="sq-sprite-name">Escenario</span>
+            </div>
+          </div>
+        </div>
+        <div class="sq-script-area" id="sqScriptArea" role="region" aria-label="Área de scripts">
+          <div class="sq-tabs" role="tablist" aria-label="Pestañas de scripts">
+            <button role="tab" class="sq-script-tab active" data-target="scripts" aria-selected="true">📜 Scripts</button>
+            <button role="tab" class="sq-script-tab" data-target="costumes" aria-selected="false">👕 Disfraces</button>
+            <button role="tab" class="sq-script-tab" data-target="sounds" aria-selected="false">🔊 Sonidos</button>
+          </div>
+          <div class="sq-tab-panel active" id="sqScriptsPanel" role="tabpanel" aria-label="Scripts">
+            <div class="sq-script-canvas" id="sqScriptCanvas" role="application" aria-label="Lienzo de bloques"></div>
+          </div>
+          <div class="sq-tab-panel" id="sqCostumesPanel" role="tabpanel" aria-label="Editor de disfraces">
+            <div class="sq-costume-editor" id="sqCostumeEditor"></div>
+          </div>
+          <div class="sq-tab-panel" id="sqSoundsPanel" role="tabpanel" aria-label="Editor de sonidos">
+            <div class="sq-sound-editor" id="sqSoundEditor"></div>
+          </div>
+        </div>
+      </main>
+
+      <aside class="sq-sidebar sq-sidebar-right" id="sqSidebarRight" aria-label="Panel de propiedades">
+        <div class="sq-panel-tabs" role="tablist" aria-label="Paneles laterales">
+          <button role="tab" class="sq-panel-tab active" data-panel="sprite" aria-selected="true">🎭 Sprite</button>
+          <button role="tab" class="sq-panel-tab" data-panel="variables" aria-selected="false">📦 Variables</button>
+          <button role="tab" class="sq-panel-tab" data-panel="lists" aria-selected="false">📋 Listas</button>
+          <button role="tab" class="sq-panel-tab" data-panel="blocks" aria-selected="false">🧩 Bloques</button>
+          <button role="tab" class="sq-panel-tab" data-panel="settings" aria-selected="false">⚙ Ajustes</button>
+        </div>
+        <div class="sq-panel-content" id="sqPanelContent">
+          <div class="sq-panel-pane active" id="sqSpritePane" role="tabpanel" aria-label="Propiedades del sprite">
+            <div class="sq-field-row">
+              <label for="sqSpriteName">Nombre</label>
+              <input type="text" id="sqSpriteName" placeholder="Sprite1">
+            </div>
+            <div class="sq-field-row">
+              <label>Posición</label>
+              <div class="sq-pos-inputs">
+                <input type="number" id="sqSpriteX" value="0" step="1">
+                <input type="number" id="sqSpriteY" value="0" step="1">
+              </div>
+            </div>
+            <div class="sq-field-row">
+              <label>Dirección</label>
+              <input type="number" id="sqSpriteDir" value="90" step="1">
+            </div>
+            <div class="sq-field-row">
+              <label>Tamaño %</label>
+              <input type="number" id="sqSpriteSize" value="100" step="1">
+            </div>
+            <div class="sq-field-row">
+              <label>Visible</label>
+              <label class="sq-toggle"><input type="checkbox" id="sqSpriteVis" checked><span></span></label>
+            </div>
+            <div class="sq-field-row">
+              <label>Arrastrable</label>
+              <label class="sq-toggle"><input type="checkbox" id="sqSpriteDrag"><span></span></label>
+            </div>
+            <div class="sq-field-row">
+              <label>Rotación</label>
+              <select id="sqSpriteRot">
+                <option value="all">Todos</option>
+                <option value="lr">Izq/Der</option>
+                <option value="none">Ninguno</option>
+              </select>
+            </div>
+          </div>
+          <div class="sq-panel-pane" id="sqVariablesPane" role="tabpanel" aria-label="Variables">
+            <button class="sq-btn sq-btn-sm" id="sqAddVarBtn">+ Variable</button>
+            <ul class="sq-var-list" id="sqVarList"></ul>
+          </div>
+          <div class="sq-panel-pane" id="sqListsPane" role="tabpanel" aria-label="Listas">
+            <button class="sq-btn sq-btn-sm" id="sqAddListBtn">+ Lista</button>
+            <ul class="sq-list-list" id="sqListList"></ul>
+          </div>
+          <div class="sq-panel-pane" id="sqBlocksPane" role="tabpanel" aria-label="Mis bloques">
+            <button class="sq-btn sq-btn-sm" id="sqAddBlockBtn">+ Bloque personalizado</button>
+            <ul class="sq-block-def-list" id="sqBlockDefList"></ul>
+          </div>
+          <div class="sq-panel-pane" id="sqSettingsPane" role="tabpanel" aria-label="Ajustes del proyecto">
+            <div class="sq-field-row">
+              <label for="sqProjectName">Nombre del proyecto</label>
+              <input type="text" id="sqProjectName" placeholder="Mi Proyecto Silly">
+            </div>
+            <div class="sq-field-row">
+              <label for="sqProjectTheme">Tema</label>
+              <select id="sqProjectTheme">
+                <option value="default">Predeterminado</option>
+              </select>
+            </div>
+            <div class="sq-field-row">
+              <label for="sqProjectMode">Modo</label>
+              <select id="sqProjectMode">
+                <option value="quiz">Quiz</option>
+                <option value="display">Display</option>
+                <option value="game">Juego</option>
+                <option value="interactive">Interactivo</option>
+              </select>
+            </div>
+            <div class="sq-field-row">
+              <label>Compartir sprites</label>
+              <label class="sq-toggle"><input type="checkbox" id="sqShareSprites"><span></span></label>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="sq-fab" id="sqFab">
+      <button class="sq-fab-main" id="sqFabMain" aria-label="Menú de acciones" aria-expanded="false" aria-controls="sqFabMenu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
-      </div>
-      <h1 id="splash-title">BuildSilly</h1>
-      <p class="splash-tagline">Crea tus locuras sin programar</p>
-      <div class="splash-progress" role="progressbar" aria-label="Progreso de carga" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="splashProgress">
-        <div class="splash-bar" id="splashBar"></div>
-      </div>
-      <p class="splash-status" id="splashStatus">Cargando motor de bloques...</p>
-      <div class="splash-hints" id="splashHints"></div>
-    </div>
-  </div>
-
-  <!-- El editor (ScratchUI) se construye aquí mismo al cargar. -->
-  <div id="scratchBuilder" style="display:none;" role="application" aria-label="Editor visual de bloques BuildSilly"></div>
-
-  <!-- Menú flotante de esquina (accesos rápidos) -->
-  <div id="sq-float-toolbar" class="sq-float-toolbar" role="toolbar" aria-label="Acciones rápidas" style="display:none;">
-    <div class="sq-fab-menu" id="sqFabMenu" role="menu" aria-label="Menú de proyecto" hidden>
-      <button class="sq-fab-item" data-act="new" role="menuitem"><span class="sq-fab-ico">📄</span> Nuevo proyecto</button>
-      <button class="sq-fab-item" data-act="save" role="menuitem"><span class="sq-fab-ico">💾</span> Guardar borrador</button>
-      <button class="sq-fab-item" data-act="load" role="menuitem"><span class="sq-fab-ico">📂</span> Cargar borrador</button>
-      <button class="sq-fab-item" data-act="theme" role="menuitem"><span class="sq-fab-ico">🌓</span> Alternar tema</button>
-      <button class="sq-fab-item" data-act="visualizer" role="menuitem"><span class="sq-fab-ico">📡</span> Visualizador en vivo</button>
-      <button class="sq-fab-item" data-act="shortcuts" role="menuitem"><span class="sq-fab-ico">⌨</span> Atajos de teclado</button>
-    </div>
-    <button class="sq-fab-btn" id="sqFabBtn" aria-label="Abrir menú de proyecto" aria-expanded="false" aria-controls="sqFabMenu" title="Menú de proyecto">
-      <span class="sq-fab-glyph">☰</span>
-    </button>
-  </div>
-
-  <!-- Panel de atajos de teclado -->
-  <div id="sq-shortcuts-modal" class="sq-modal" role="dialog" aria-modal="true" aria-labelledby="shortcuts-title" style="display:none;">
-    <div class="sq-modal-backdrop"></div>
-    <div class="sq-modal-panel">
-      <div class="sq-modal-header">
-        <h2 id="shortcuts-title">⌨ Atajos de Teclado</h2>
-        <button class="sq-modal-close" aria-label="Cerrar">✕</button>
-      </div>
-      <div class="sq-modal-body">
-        <table class="sq-shortcuts-table">
-          <thead><tr><th>Atajo</th><th>Acción</th></tr></thead>
-          <tbody>
-            <tr><td><kbd>Ctrl</kbd>+<kbd>N</kbd></td><td>Nuevo proyecto</td></tr>
-            <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Guardar borrador local</td></tr>
-            <tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Cargar borrador local</td></tr>
-            <tr><td><kbd>Ctrl</kbd>+<kbd>E</kbd></td><td>Exportar proyecto (.json)</td></tr>
-            <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Deshacer</td></tr>
-            <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>Rehacer</td></tr>
-            <tr><td><kbd>Delete</kbd></td><td>Eliminar bloque seleccionado</td></tr>
-            <tr><td><kbd>Espacio</kbd> + <kbd>Arrastrar</kbd></td><td>Pan del lienzo</td></tr>
-            <tr><td><kbd>Ctrl</kbd>+<kbd>Rueda</kbd></td><td>Zoom del lienzo</td></tr>
-            <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd></td><td>Alternar tema claro/oscuro</td></tr>
-            <tr><td><kbd>F1</kbd></td><td>Mostrar esta ayuda</td></tr>
-            <tr><td><kbd>Ctrl</kbd>+<kbd>Enter</kbd></td><td>Ejecutar / Vista previa</td></tr>
-            <tr><td><kbd>Escape</kbd></td><td>Cerrar menús / Cancelar</td></tr>
-            <tr><td>Click derecho</td><td>Menú rápido + búsqueda</td></tr>
-          </tbody>
-        </table>
+      </button>
+      <div class="sq-fab-menu" id="sqFabMenu" role="menu" aria-label="Acciones rápidas">
+        <button class="sq-fab-item" data-act="new" role="menuitem"><span class="sq-fab-ico">📄</span> Nuevo</button>
+        <button class="sq-fab-item" data-act="open" role="menuitem"><span class="sq-fab-ico">📂</span> Abrir</button>
+        <button class="sq-fab-item" data-act="save" role="menuitem"><span class="sq-fab-ico">💾</span> Guardar</button>
+        <button class="sq-fab-item" data-act="saveas" role="menuitem"><span class="sq-fab-ico">💾</span> Guardar como…</button>
+        <button class="sq-fab-item" data-act="template" role="menuitem"><span class="sq-fab-ico">📋</span> Plantillas</button>
+        <button class="sq-fab-item" data-act="canva" role="menuitem"><span class="sq-fab-ico">🎨</span> Paint (Canva)</button>
+        <button class="sq-fab-item" data-act="export" role="menuitem"><span class="sq-fab-ico">📦</span> Exportar</button>
+        <button class="sq-fab-item" data-act="import" role="menuitem"><span class="sq-fab-ico">📥</span> Importar</button>
+        <button class="sq-fab-item" data-act="theme" role="menuitem"><span class="sq-fab-ico">🎨</span> Temas</button>
+        <button class="sq-fab-item" data-act="settings" role="menuitem"><span class="sq-fab-ico">⚙</span> Ajustes</button>
+        <button class="sq-fab-item" data-act="help" role="menuitem"><span class="sq-fab-ico">❓</span> Ayuda</button>
+        <button class="sq-fab-item" data-act="about" role="menuitem"><span class="sq-fab-ico">ℹ</span> Acerca de</button>
       </div>
     </div>
   </div>
 
-  <!-- Toast container -->
-  <div id="sq-toast-container" class="sq-toast-container" aria-live="polite" aria-atomic="true"></div>
+  <div class="sq-modal" id="sqModal" role="dialog" aria-modal="true" aria-labelledby="sqModalTitle" hidden>
+    <div class="sq-modal-backdrop" id="sqModalBackdrop"></div>
+    <div class="sq-modal-content" role="document">
+      <header class="sq-modal-header">
+        <h2 id="sqModalTitle">Título</h2>
+        <button class="sq-modal-close" id="sqModalClose" aria-label="Cerrar">✕</button>
+      </header>
+      <div class="sq-modal-body" id="sqModalBody"></div>
+      <footer class="sq-modal-footer" id="sqModalFooter"></footer>
+    </div>
+  </div>
 
-  <!-- Bootstrap de entorno -->
-  <script src="../js/sillybuild-bootstrap.js"></script>
+  <div class="sq-toast" id="sqToast" role="alert" aria-live="polite" hidden></div>
 
-  <!-- Núcleo -->
-  <script src="../js/i18n.js"></script>
-  <script src="../js/scratch-blocks.js"></script>
-  <script src="../js/scratch-aot.js"></script>
-  <script src="../js/scratch-sandbox.js"></script>
-  <script src="../js/template-migration.js"></script>
-  <script src="../js/scratch-collab.js"></script>
-  <script src="../js/scratch-codegen.js"></script>
-  <script src="../js/scratch-runtime.js"></script>
+  <script type="module">
+    import { BlockRegistry } from '../js/scratch-blocks.js';
+    import { ScratchUI } from '../js/scratch-ui.js';
+    import { ScratchRuntime } from '../js/scratch-runtime.js';
 
-  <!-- Managers (Fase 3) -->
-  <script src="../js/display-manager.js"></script>
-  <script src="../js/ndi-manager.js"></script>
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
 
-  <!-- Proveedores por categoría -->
-  <script src="../js/ndi-blocks.js"></script>
-  <script src="../js/display-blocks.js"></script>
-  <script src="../js/quiz-blocks.js"></script>
+    let ui, runtime, ws, canvaWin = null, canvaChannel = null;
 
-  <!-- Modelo de display en vivo + render fiel -->
-  <script src="../js/builder-display.js"></script>
-  <script src="../js/preview-engine.js"></script>
-  <script src="../js/display-shapes2.js"></script>
+    async function init() {
+      ui = new ScratchUI();
+      runtime = new ScratchRuntime();
+      await ui.init();
+      await runtime.init();
 
-  <!-- Empaquetado de proyectos .silly (ZIP: blocks.json + assets) -->
-  <script src="../js/silly-package.js"></script>
-  <script src="../js/asset-sanitize.js"></script>
+      connectWS();
+      setupFAB();
+      setupModals();
+      setupKeyboard();
+      setupCanva();
+    }
 
-  <!-- Módulos extraídos del Builder (Fase 2c) — DEBEN cargarse antes de scratch-ui.js -->
-  <script src="../js/builder/util.js"></script>
-  <script src="../js/builder/palette.js"></script>
+    function connectWS() {
+      ws = new WebSocket('ws://' + location.hostname + ':8081');
+      ws.onopen = () => { $('#sqConnDot').classList.add('on'); $('#sqConnText').textContent = 'Conectado'; };
+      ws.onclose = () => { $('#sqConnDot').classList.remove('on'); $('#sqConnText').textContent = 'Desconectado'; setTimeout(connectWS, 3000); };
+      ws.onmessage = (e) => { try { const msg = JSON.parse(e.data); handleWS(msg); } catch(e) {} };
+    }
 
-  <!-- Editor + orquestador -->
-  <script src="../js/scratch-ui.js"></script>
-  <script src="../js/scratch-ui-control-definition.js"></script>
-  <script src="../js/template-gallery.js"></script>
-  <script src="../js/scratch-stage.js"></script>
-  <script src="../js/buildsilly-v2.js"></script>
-  <script src="../js/buildsilly.js"></script>
-
-  <!-- Fallback defensivo: asegura que el editor sea visible -->
-  <script src="../js/sillybuild-fallback.js"></script>
-
-  <!-- Inicialización de UI flagship -->
-  <script>
-    (function() {
-      'use strict';
-      
-      // Splash screen con progreso
-      const splash = document.getElementById('silly-splash');
-      const splashBar = document.getElementById('splashBar');
-      const splashStatus = document.getElementById('splashStatus');
-      const splashHints = document.getElementById('splashHints');
-      const builder = document.getElementById('scratchBuilder');
-      const floatToolbar = document.getElementById('sq-float-toolbar');
-      
-      const hints = [
-        '💡 Arrastra bloques desde la paleta izquierda',
-        '💡 Click derecho en el lienzo para menú rápido',
-        '💡 Espacio + arrastrar = mover lienzo',
-        '💡 Ctrl + rueda = zoom',
-        '💡 F1 = atajos de teclado',
-        '💡 Los bloques se conectan como piezas de puzzle'
-      ];
-      
-      let hintIndex = 0;
-      function rotateHints() {
-        splashHints.textContent = hints[hintIndex];
-        hintIndex = (hintIndex + 1) % hints.length;
+    function handleWS(msg) {
+      switch (msg.type) {
+        case 'project': ui.loadProject(msg.data); break;
+        case 'theme': ui.applyTheme(msg.data); break;
+        case 'template': ui.loadTemplate(msg.data); break;
+        case 'sprite': ui.addSprite(msg.data); break;
+        case 'sprite_update': ui.updateSprite(msg.data); break;
+        case 'sprite_delete': ui.deleteSprite(msg.data.id); break;
+        case 'variable': ui.addVariable(msg.data); break;
+        case 'list': ui.addList(msg.data); break;
+        case 'block_def': ui.addBlockDef(msg.data); break;
+        case 'theme_list': ui.populateThemes(msg.data); break;
+        case 'project_list': ui.showProjectList(msg.data); break;
+        case 'template_list': ui.showTemplateList(msg.data); break;
+        case 'save_ok': ui.showToast('Proyecto guardado'); break;
+        case 'save_as': ui.promptSaveAs(msg.data); break;
+        case 'error': ui.showToast('Error: ' + msg.msg, 'error'); break;
       }
-      setInterval(rotateHints, 3000);
-      rotateHints();
-      
-      // Simular progreso de carga
-      let progress = 0;
-      const loadSteps = [
-        { p: 15, msg: 'Cargando registros de bloques...' },
-        { p: 30, msg: 'Inicializando runtime AOT...' },
-        { p: 50, msg: 'Conectando managers NDI/Display...' },
-        { p: 70, msg: 'Compilando plantillas...' },
-        { p: 85, msg: 'Montando editor visual...' },
-        { p: 100, msg: '¡Listo para crear!' }
-      ];
-      
-      let step = 0;
-      function nextStep() {
-        if (step >= loadSteps.length) {
-          hideSplash();
-          return;
-        }
-        const s = loadSteps[step];
-        progress = s.p;
-        splashBar.style.width = progress + '%';
-        const sp = document.getElementById('splashProgress');
-        if (sp) sp.setAttribute('aria-valuenow', progress);
-        splashStatus.textContent = s.msg;
-        step++;
-        setTimeout(nextStep, 300 + Math.random() * 200);
-      }
-      
-      function hideSplash() {
-        splash.style.opacity = '0';
-        splash.style.pointerEvents = 'none';
-        setTimeout(() => {
-          splash.style.display = 'none';
-          builder.style.display = 'flex';
-          floatToolbar.style.display = 'flex';
-          // Disparar evento personalizado para que el editor sepa que está listo
-          window.dispatchEvent(new CustomEvent('sillybuilder:ready'));
-        }, 400);
-      }
-      
-      // Esperar a que el DOM esté listo y luego iniciar
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', nextStep);
-      } else {
-        nextStep();
-      }
-      
-      // Tema persistente
-      const THEME_KEY = 'sillyquiz-builder-theme';
-      function applyTheme(theme) {
-        document.documentElement.classList.toggle('light', theme === 'light');
-        localStorage.setItem(THEME_KEY, theme);
-        updateThemeButton();
-      }
-      
-      function updateThemeButton() {
-        const glyph = document.querySelector('#sqFabBtn .sq-fab-glyph');
-        if (glyph) glyph.textContent = document.documentElement.classList.contains('light') ? '☀️' : '🌙';
-      }
-      
-      // Inicializar tema guardado
-      const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
-      applyTheme(savedTheme);
-      
-      // Menú flotante de esquina (FAB)
-      const fabBtn = document.getElementById('sqFabBtn');
-      const fabMenu = document.getElementById('sqFabMenu');
-      function openFabMenu() { fabMenu.hidden = false; fabBtn.setAttribute('aria-expanded', 'true'); }
-      function closeFabMenu() { fabMenu.hidden = true; fabBtn.setAttribute('aria-expanded', 'false'); }
-      fabBtn.addEventListener('click', (e) => { e.stopPropagation(); fabMenu.hidden ? openFabMenu() : closeFabMenu(); });
-      fabMenu.addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-act]');
+    }
+
+    function sendWS(type, data) { if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify({type, data})); }
+
+    function setupFAB() {
+      const fab = $('#sqFab'), main = $('#sqFabMain'), menu = $('#sqFabMenu');
+      main.onclick = () => { const open = fab.classList.toggle('open'); main.setAttribute('aria-expanded', open); };
+      menu.onclick = (e) => {
+        const btn = e.target.closest('.sq-fab-item');
         if (!btn) return;
-        const act = btn.dataset.act;
-        const ui = window.scratchUI;
-        closeFabMenu();
-        switch (act) {
-          case 'new':
-            if (confirm('¿Crear nuevo proyecto? Se perderán los cambios no guardados.')) {
-              ui.clearCanvas(true);
-              ui.toast('Nuevo proyecto creado', 'info');
-            }
-            break;
-          case 'save':
-            ui.saveToLocalStorage();
-            break;
-          case 'load':
-            ui.loadFromLocalStorage();
-            break;
-          case 'theme':
-            applyTheme(document.documentElement.classList.contains('light') ? 'dark' : 'light');
-            ui.toast(document.documentElement.classList.contains('light') ? 'Modo claro activado' : 'Modo oscuro activado', 'info');
-            break;
-          case 'visualizer':
-            if (window.scratchUI) window.scratchUI.publishLiveState();
-            window.open('/html/SillyVisualizer.html', '_blank');
-            break;
-          case 'shortcuts':
-            showModal('sq-shortcuts-modal');
-            break;
+        fab.classList.remove('open'); main.setAttribute('aria-expanded', 'false');
+        handleFAB(btn.dataset.act);
+      };
+      document.addEventListener('click', (e) => { if (!fab.contains(e.target)) { fab.classList.remove('open'); main.setAttribute('aria-expanded', 'false'); }});
+    }
+
+    function handleFAB(act) {
+      switch (act) {
+        case 'new': ui.newProject(); break;
+        case 'open': ui.openProject(); break;
+        case 'save': sendWS('save', ui.serializeProject()); break;
+        case 'saveas': ui.saveAsProject(); break;
+        case 'template': ui.showTemplates(); break;
+        case 'canva': openCanva(); break;
+        case 'export': ui.exportProject(); break;
+        case 'import': ui.importProject(); break;
+        case 'theme': ui.showThemes(); break;
+        case 'settings': ui.showSettings(); break;
+        case 'help': ui.showHelp(); break;
+        case 'about': ui.showAbout(); break;
+      }
+    }
+
+    function setupCanva() {
+      window.addEventListener('message', (e) => {
+        if (e.origin !== location.origin) return;
+        if (e.data?.type === 'canva_ready') {
+          canvaChannel = e.ports[0];
+          canvaChannel.onmessage = (e) => handleCanvaMessage(e.data);
+          sendProjectToCanva();
+        } else if (e.data?.type === 'canva_sprite') {
+          ui.addSpriteFromCanva(e.data);
+        } else if (e.data?.type === 'canva_backdrop') {
+          ui.setStageBackdrop(e.data);
         }
       });
-      document.addEventListener('click', (e) => {
-        if (fabMenu.hidden) return;
-        if (!floatToolbar.contains(e.target)) closeFabMenu();
-      });
-      
-      // Modal de atajos
-      const shortcutsModal = document.getElementById('sq-shortcuts-modal');
-      function showModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) {
-          modal.style.display = 'flex';
-          modal.querySelector('.sq-modal-close')?.focus();
-        }
+    }
+
+    function openCanva() {
+      if (canvaWin && !canvaWin.closed) { canvaWin.focus(); return; }
+      canvaWin = window.open('/html/canva.html', '_blank', 'width=1200,height=800');
+    }
+
+    function sendProjectToCanva() {
+      if (!canvaChannel) return;
+      const project = ui.serializeProject();
+      canvaChannel.postMessage({ type: 'project_load', project });
+    }
+
+    function handleCanvaMessage(msg) {
+      switch (msg.type) {
+        case 'sprite_export': ui.addSpriteFromCanva(msg.sprite); break;
+        case 'backdrop_export': ui.setStageBackdrop(msg.backdrop); break;
+        case 'request_project': sendProjectToCanva(); break;
       }
-      function hideModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) modal.style.display = 'none';
-      }
-      shortcutsModal.querySelector('.sq-modal-close').addEventListener('click', () => hideModal('sq-shortcuts-modal'));
-      shortcutsModal.querySelector('.sq-modal-backdrop').addEventListener('click', () => hideModal('sq-shortcuts-modal'));
-      
-      // Teclas globales
+    }
+
+    function setupModals() {
+      $('#sqModalClose').onclick = () => closeModal();
+      $('#sqModalBackdrop').onclick = () => closeModal();
+      $('#sqModalClose').onclick = () => closeModal();
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+    }
+
+    function closeModal() { $('#sqModal').hidden = true; $('#sqModalBody').innerHTML = ''; $('#sqModalFooter').innerHTML = ''; }
+
+    function setupKeyboard() {
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'F1') {
-          e.preventDefault();
-          showModal('sq-shortcuts-modal');
+        if (e.ctrlKey || e.metaKey) {
+          switch (e.key.toLowerCase()) {
+            case 's': e.preventDefault(); sendWS('save', ui.serializeProject()); break;
+            case 'o': e.preventDefault(); ui.openProject(); break;
+            case 'n': e.preventDefault(); ui.newProject(); break;
+          }
         }
-        if (e.key === 'Escape') {
-          hideModal('sq-shortcuts-modal');
-        }
+        if (e.key === 'Delete' || e.key === 'Backspace') { ui.deleteSelectedBlocks(); }
       });
-      
-      // Toast system
-      window.showToast = function(message, type = 'info', duration = 3000) {
-        const container = document.getElementById('sq-toast-container');
-        const toast = document.createElement('div');
-        toast.className = 'sq-toast sq-toast-' + type;
-        toast.textContent = message;
-        container.appendChild(toast);
-        requestAnimationFrame(() => toast.classList.add('show'));
-        setTimeout(() => {
-          toast.classList.remove('show');
-          setTimeout(() => toast.remove(), 300);
-        }, duration);
-      };
-      
-      // Exponer para uso desde el editor
-      window.SillyBuilder = {
-        showToast: window.showToast,
-        applyTheme: applyTheme,
-        getTheme: () => document.documentElement.classList.contains('light') ? 'light' : 'dark'
-      };
-    })();
+    }
+
+    function handleCanvaMessage(msg) {
+      switch (msg.type) {
+        case 'sprite_export': ui.addSpriteFromCanva(msg.sprite); break;
+        case 'backdrop_export': ui.setStageBackdrop(msg.backdrop); break;
+        case 'request_project': sendProjectToCanva(); break;
+      }
+    }
+
+    init();
   </script>
 </body>
 </html>

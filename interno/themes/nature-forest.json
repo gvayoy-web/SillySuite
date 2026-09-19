@@ -1,0 +1,72 @@
+{
+  "id": "nature-forest",
+  "name": "Bosque Encantado",
+  "category": "nature",
+  "description": "Verdes profundos y dorados cálidos inspirados en bosques mágicos",
+  "colors": {
+    "primary": "#2E7D32",
+    "primaryLight": "#4CAF50",
+    "primaryDark": "#1B5E20",
+    "secondary": "#8D6E63",
+    "accent": "#FFB300",
+    "accentLight": "#FFD54F",
+    "accentDark": "#FFA000",
+    "success": "#66BB6A",
+    "successLight": "#81C784",
+    "warning": "#FFB300",
+    "warningLight": "#FFD54F",
+    "danger": "#EF5350",
+    "dangerLight": "#E57373",
+    "info": "#42A5F5",
+    "bgPrimary": "#0D1B0D",
+    "bgSecondary": "#1A2E1A",
+    "bgTertiary": "#253D25",
+    "bgHover": "#1E321E",
+    "bgActive": "#2D4A2D",
+    "textPrimary": "#E8F5E9",
+    "textSecondary": "#A5D6A7",
+    "textMuted": "#66BB6A",
+    "textInverse": "#0D1B0D",
+    "borderColor": "#2E4A2E",
+    "borderLight": "#3D5A3D",
+    "borderLighter": "#4D6A4D"
+  },
+  "fonts": {
+    "heading": "'Merriweather', 'Georgia', serif",
+    "body": "'Space Grotesk', sans-serif",
+    "mono": "'Space Mono', monospace",
+    "timer": "'Merriweather', serif",
+    "score": "'Space Grotesk', sans-serif"
+  },
+  "animations": {
+    "enabled": true,
+    "speed": 0.8,
+    "ease": "cubic-bezier(0.4, 0, 0.2, 1)"
+  },
+  "shapes": {
+    "count": 15,
+    "opacity": 0.06,
+    "speed": 0.5,
+    "behavior": "float"
+  },
+  "timer": {
+    "style": "circle",
+    "size": 100,
+    "position": "top-right",
+    "bgColor": "rgba(13, 27, 13, 0.8)",
+    "textColor": "#FFB300",
+    "progressColor": "#4CAF50",
+    "glowColor": "rgba(76, 175, 80, 0.3)",
+    "urgentColor": "#EF5350",
+    "animation": "breath"
+  },
+  "scores": {
+    "position": "bottom",
+    "height": 280
+  },
+  "decorations": {
+    "showLogo": true,
+    "showShapes": true,
+    "showParticles": true
+  }
+}

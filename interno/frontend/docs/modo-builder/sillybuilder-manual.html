@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SILLYBUILDER // MANUAL COMPLETO DEL MODO BUILDER</title>
+<style>
+  :root{
+    --bg:#0B0B0B;
+    --bg2:#141414;
+    --fg:#F2EBDD;
+    --accent:#FF5E3A;
+    --purple:#9B6BFF;
+    --gold:#FFB000;
+    --green:#2E7D32;
+    --cyan:#00D9FF;
+    --pink:#FF6B6B;
+    --border:#F2EBDD;
+    --shadow:8px 8px 0 var(--accent);
+    --shadow-soft:6px 6px 0 var(--purple);
+    --mono:'Space Mono','Courier New',monospace;
+    --display:'Space Grotesk','Arial Black',sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:
+      linear-gradient(rgba(242,235,221,.04) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(242,235,221,.04) 1px,transparent 1px),
+      var(--bg);
+    background-size:40px 40px,40px 40px,auto;
+    color:var(--fg);
+    font-family:var(--mono);
+    line-height:1.7;
+    font-size:16px;
+  }
+  a{color:var(--cyan);text-decoration:none;border-bottom:2px solid var(--cyan)}
+  a:hover{background:var(--cyan);color:var(--bg)}
+  h1,h2,h3,h4{font-family:var(--display);text-transform:uppercase;letter-spacing:1px;line-height:1.1}
+  code{
+    background:var(--bg2);
+    border:2px solid var(--border);
+    padding:1px 6px;
+    border-radius:0;
+    font-family:var(--mono);
+    color:var(--gold);
+  }
+  pre{
+    background:var(--bg2);
+    border:4px solid var(--border);
+    box-shadow:var(--shadow);
+    padding:18px;
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:14px;
+    color:var(--fg);
+  }
+  pre .k{color:var(--accent)}
+  pre .s{color:var(--green)}
+  pre .c{color:var(--purple);opacity:.8}
+  pre .n{color:var(--cyan)}
+
+  /* ===== HERO ===== */
+  .hero{
+    border-bottom:8px solid var(--accent);
+    padding:60px 24px 50px;
+    background:repeating-linear-gradient(45deg,var(--bg2) 0 20px,var(--bg) 20px 40px);
+  }
+  .hero-inner{max-width:1100px;margin:0 auto}
+  .badge{
+    display:inline-block;background:var(--accent);color:var(--bg);
+    font-family:var(--display);font-weight:900;font-size:13px;
+    padding:6px 14px;border:3px solid var(--bg);box-shadow:4px 4px 0 var(--bg);
+    letter-spacing:2px;margin-bottom:24px;
+  }
+  .hero h1{
+    font-size:clamp(40px,8vw,92px);
+    margin:0 0 10px;
+    color:var(--fg);
+    text-shadow:6px 6px 0 var(--accent),12px 12px 0 var(--purple);
+  }
+  .hero .sub{
+    font-size:20px;color:var(--gold);max-width:760px;
+    border-left:6px solid var(--gold);padding-left:18px;margin-top:18px;
+  }
+  .hero .meta{margin-top:26px;display:flex;gap:14px;flex-wrap:wrap}
+  .chip{
+    border:3px solid var(--border);padding:8px 14px;font-size:13px;
+    background:var(--bg);box-shadow:var(--shadow-soft);
+  }
+
+  /* ===== LAYOUT ===== */
+  .wrap{max-width:1100px;margin:0 auto;padding:0 24px 100px}
+  .toc{
+    position:sticky;top:0;z-index:50;
+    background:var(--bg);border-bottom:6px solid var(--accent);
+    padding:14px 24px;margin-bottom:40px;
+    box-shadow:0 6px 0 rgba(0,0,0,.4);
+  }
+  .toc-inner{max-width:1100px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .toc b{font-family:var(--display);color:var(--gold);margin-right:8px}
+  .toc a{
+    border:2px solid var(--border);padding:4px 10px;color:var(--fg);
+    font-size:13px;background:var(--bg2);
+  }
+  .toc a:hover{background:var(--accent);color:var(--bg);border-color:var(--bg)}
+
+  section{
+    margin:60px 0;padding-top:20px;
+    border-top:4px dashed var(--border);
+  }
+  section:first-of-type{border-top:none}
+  h2{
+    font-size:clamp(28px,5vw,44px);margin:0 0 8px;
+    background:var(--accent);color:var(--bg);display:inline-block;
+    padding:8px 16px;box-shadow:var(--shadow);border:4px solid var(--bg);
+  }
+  h3{font-size:24px;color:var(--gold);margin:36px 0 12px;border-bottom:3px solid var(--purple);padding-bottom:6px}
+  h4{font-size:19px;color:var(--cyan);margin:26px 0 8px}
+  p{margin:12px 0}
+  ul,ol{margin:12px 0;padding-left:26px}
+  li{margin:7px 0}
+  strong{color:var(--accent)}
+  .lead{font-size:18px;color:var(--fg);border-left:6px solid var(--accent);padding-left:16px}
+
+  .card{
+    border:4px solid var(--border);background:var(--bg2);
+    box-shadow:var(--shadow);padding:22px;margin:22px 0;
+  }
+  .card.cyan{box-shadow:var(--shadow-soft);border-color:var(--purple)}
+  .note{
+    border:4px solid var(--gold);background:rgba(255,176,0,.08);
+    padding:16px 18px;margin:20px 0;
+  }
+  .note b{color:var(--gold)}
+  .danger{
+    border:4px solid var(--pink);background:rgba(255,107,107,.1);
+    padding:16px 18px;margin:20px 0;
+  }
+  .danger b{color:var(--pink)}
+
+  table{border-collapse:collapse;width:100%;margin:18px 0;font-size:14px}
+  th,td{border:2px solid var(--border);padding:8px 10px;text-align:left}
+  th{background:var(--accent);color:var(--bg);font-family:var(--display);text-transform:uppercase}
+  tr:nth-child(even){background:rgba(242,235,221,.04)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:20px 0}
+  .cat-box{
+    border:4px solid var(--border);padding:14px;background:var(--bg2);
+    box-shadow:var(--shadow-soft);
+  }
+  .cat-box .ico{font-size:30px}
+  .cat-box h4{margin:6px 0;color:var(--fg)}
+  .cat-box .col{height:8px;border:2px solid var(--bg);margin:8px 0}
+
+  .block-demo{
+    display:flex;flex-wrap:wrap;gap:0;align-items:stretch;margin:14px 0;
+    font-size:14px;
+  }
+  .blk{
+    border:3px solid var(--bg);padding:8px 12px;color:var(--bg);font-weight:700;
+    font-family:var(--mono);display:inline-flex;align-items:center;gap:6px;
+  }
+  .blk.in{background:var(--bg2);color:var(--fg);border:2px dashed var(--gold);font-weight:400}
+  .blk.hat{background:var(--gold)}
+  .blk.cmd{background:var(--cyan)}
+  .blk.c{background:var(--purple);border-radius:0}
+  .blk.rep{background:#607D8B}
+  .blk.bool{background:var(--pink)}
+
+  .pill{display:inline-block;border:2px solid var(--border);padding:2px 9px;font-size:12px;margin:2px;background:var(--bg)}
+  .pill.hat{background:var(--gold);color:var(--bg);border-color:var(--bg)}
+  .pill.cmd{background:var(--cyan);color:var(--bg);border-color:var(--bg)}
+  .pill.c{background:var(--purple);color:var(--bg);border-color:var(--bg)}
+  .pill.rep{background:#607D8B;color:var(--fg)}
+  .pill.bool{background:var(--pink);color:var(--bg);border-color:var(--bg)}
+
+  footer{
+    border-top:8px solid var(--accent);padding:40px 24px;
+    text-align:center;background:var(--bg2);
+  }
+  footer .big{font-family:var(--display);font-size:30px;color:var(--gold)}
+  .kbd{border:2px solid var(--border);padding:1px 8px;background:var(--bg);font-size:13px;box-shadow:3px 3px 0 var(--border)}
+</style>
+</head>
+<body>
+
+<!-- ===================== HERO ===================== -->
+<header class="hero">
+  <div class="hero-inner">
+    <span class="badge">SILLYQUIZ // MODO BUILDER</span>
+    <h1>SILLYBUILDER</h1>
+    <div class="sub">El editor visual de bloques estilo Scratch para construir quizzes, juegos en vivo y experiencias interactivas. Manual técnico y estético 100% neo-brutalista. Sin un solo cabo suelto.</div>
+    <div class="meta">
+      <span class="chip">⚡ 17 CATEGORÍAS</span>
+      <span class="chip">🧩 279 OPCODES</span>
+      <span class="chip">🔄 COMPILADOR AOT</span>
+      <span class="chip">📡 WS :8081</span>
+      <span class="chip">🎨 35+ TEMAS</span>
+      <span class="chip">🧱 ESTÉTICA BRUTALISTA</span>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== TOC ===================== -->
+<nav class="toc">
+  <div class="toc-inner">
+    <b>ÍNDICE</b>
+    <a href="#quees">01 Qué es</a>
+    <a href="#arquitectura">02 Arquitectura</a>
+    <a href="#html">03 HTML</a>
+    <a href="#js">04 Archivos JS</a>
+    <a href="#bloques">05 Bloques</a>
+    <a href="#categorias">06 Categorías</a>
+    <a href="#runtime">07 Runtime</a>
+    <a href="#aot">08 AOT</a>
+    <a href="#persistencia">09 Persistencia</a>
+    <a href="#backend">10 Backend WS</a>
+    <a href="#estetica">11 Estética</a>
+    <a href="#powerpack">12 Power Pack</a>
+    <a href="#tutorial">13 Mini Programa</a>
+    <a href="#cabos">14 Cabos Sueltos</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- ===================== 01 ===================== -->
+<section id="quees">
+  <h2>01 · QUÉ ES SILLYBUILDER</h2>
+  <p class="lead">SillyBuilder es un <strong>editor visual de bloques</strong> (estilo Scratch) que vive dentro de SillyQuiz. Permite crear "modos": quizzes, juegos de concursantes, pantallas multi-display y experiencias interactivas, sin escribir una línea de código.</p>
+
+  <p>En lugar de programar a mano, arrastras bloques desde una paleta, los encajas como LEGO y defines <em>qué pasa cuándo</em>. El resultado no se interpreta en caliente: se <strong>compila a una máquina de estados JSON pura</strong> (AOT = Ahead-Of-Time) que el backend de Python valida de un golpe y ejecuta de forma determinista durante el show.</p>
+
+  <div class="note">
+    <b>IDEA CENTRAL —</b> El builder es un <em>compilador visual</em>. Tú dibujas el árbol de bloques; el compilador AOT lo convierte en JSON; el runtime (en el navegador o en el backend) lo ejecuta como una máquina de estados. Cero interpretación perezosa en medio del directo.
+  </div>
+
+  <h3>¿Para qué sirve?</h3>
+  <ul>
+    <li><strong>Quizzes en vivo:</strong> preguntas, temporizadores, respuestas de concursantes, puntuaciones.</li>
+    <li><strong>Juegos de concursantes:</strong> strikes, rankings, avatares, bonus, eliminaciones.</li>
+    <li><strong>Multi-display:</strong> enviar payloads a pantallas NDI o displays sincronizados.</li>
+    <li><strong>Mini-juegos 2D:</strong> sprites, físicas, animaciones, colisiones.</li>
+    <li><strong>Experiencias interactivas:</strong> eventos de hardware, broadcasts, persistencia SQLite.</li>
+  </ul>
+</section>
+
+<!-- ===================== 02 ===================== -->
+<section id="arquitectura">
+  <h2>02 · ARQUITECTURA GENERAL</h2>
+  <p>El sistema se divide en tres capas que hablan entre sí mediante JSON y WebSockets.</p>
+
+  <div class="card">
+    <h4>FLUJO COMPLETO</h4>
+    <pre><span class="c">// El viaje de un "modo" desde tu cerebro hasta la pantalla del show</span>
+
+<span class="n">[ TÚ ]</span>  arrastras bloques en el lienzo infinito
+   │
+   ▼
+<span class="n">[ SCRATCH-UI ]</span>  editor visual (scratch-ui.js)
+   │  árbol de instancias de bloques en memoria
+   ▼
+<span class="n">[ SCRATCH-AOT ]</span>  compilador (scratch-aot.js)
+   │  { version, events, blockCount, ... }  ← máquina JSON
+   ▼
+<span class="n">[ VALIDACIÓN ]</span>  revisa opcodes, tipos, sideEffects
+   │
+   ▼
+<span class="n">[ SCRATCH-RUNTIME ]</span>  ejecutor (scratch-runtime.js)
+   │  cola explícita, iterativa, con presupuesto de pasos
+   ▼
+<span class="n">[ PROVIDERS / BACKEND ]</span>  side-effects reales (NDI, DB, displays)
+   │
+   ▼
+<span class="n">[ STAGE / PANTALLA ]</span>  confeti, timer, preguntas, FX</pre>
+  </div>
+
+  <h3>Las tres piezas maestras</h3>
+  <table>
+    <tr><th>Capa</th><th>Archivo</th><th>Rol</th></tr>
+    <tr><td>Registro</td><td><code>scratch-blocks.js</code></td><td>Define TODOS los bloques (opcodes, categorías, puertos, tipos).</td></tr>
+    <tr><td>Editor</td><td><code>scratch-ui.js</code></td><td>Lienzo, paleta, drag&amp;drop, autosave, temas, plantillas.</td></tr>
+    <tr><td>Compilador</td><td><code>scratch-aot.js</code></td><td>Convierte el árbol en máquina JSON validada.</td></tr>
+    <tr><td>Ejecutor</td><td><code>scratch-runtime.js</code></td><td>Corre la máquina JSON de forma determinista.</td></tr>
+  </table>
+
+  <div class="note"><b>PUERTO FIJO —</b> El WebSocket del builder siempre escucha en <code>:8081</code>. El Flask/SSE va por <code>:8080</code>. No los confundas: 8081 = builder en vivo, 8080 = API/stream.</div>
+</section>
+
+<!-- ===================== 03 ===================== -->
+<section id="html">
+  <h2>03 · EL HTML DE ENTRADA</h2>
+  <p>El archivo <code>interno/frontend/html/SillyBuild.html</code> (371 líneas) es una <strong>single-page ES-module</strong>. No hay build step: los módulos se sirven directamente.</p>
+
+  <h3>Estructura del DOM</h3>
+  <table>
+    <tr><th>Zona</th><th>Selector</th><th>Qué contiene</th></tr>
+    <tr><td>Header</td><td><code>.sq-header</code></td><td>Hamburguesa, título, pestañas Builder/Preview/Código, indicador de conexión <code>#sqConnDot</code>, botones Guardar/Correr.</td></tr>
+    <tr><td>Sidebar izq.</td><td><code>.sq-sidebar-left</code></td><td>18 pestañas de categoría + paleta de bloques <code>#sqBlockPalette</code>.</td></tr>
+    <tr><td>Main</td><td><code>.sq-main</code></td><td>Escenario <code>#sqStage</code>, lista de sprites <code>#sqSpriteList</code>, área de scripts <code>#sqScriptCanvas</code>.</td></tr>
+    <tr><td>Sidebar der.</td><td><code>.sq-sidebar-right</code></td><td>Paneles Sprite/Variables/Listas/Bloques/Ajustes. Propiedades de sprite, gestor de variables, tema y modo (quiz/display/game/interactive).</td></tr>
+    <tr><td>FAB</td><td><code>#sqFab</code></td><td>Menú flotante: nuevo/abrir/guardar/plantilla/canva/exportar/importar/tema/ajustes/ayuda.</td></tr>
+    <tr><td>Modal / Toast</td><td><code>#sqModal</code> / <code>#sqToast</code></td><td>Diálogos y notificaciones efímeras.</td></tr>
+  </table>
+
+  <h3>El script embebido (módulo)</h3>
+  <p>Al final del HTML hay un <code>&lt;script type="module"&gt;</code> que:</p>
+  <ul>
+    <li>Importa <code>ScratchUI</code>, <code>ScratchRuntime</code> y el registro (importado como <code>BlockRegistry</code> pero exportado realmente como <code>window.ScratchBlocks</code>).</li>
+    <li><code>init()</code> crea la UI y el runtime, conecta el WS y monta el FAB/modales/teclado/Canva.</li>
+    <li><code>connectWS()</code> abre <code>ws://&lt;host&gt;:8081</code>, pinta el punto de estado y <strong>reintenta cada 3s</strong> si se cae.</li>
+    <li><code>handleWS()</code> enruta los mensajes entrantes: <code>project, theme, template, sprite, variable, list, block_def, save_ok, error…</code></li>
+  </ul>
+
+  <div class="danger"><b>CABO A VIGILAR —</b> El HTML importa el registro como <code>BlockRegistry</code> (línea 224) pero el objeto real se exporta como <code>window.ScratchBlocks</code>. Es un nombre engañoso: lo que se usa es <code>ScratchBlocks</code>, no <code>BlockRegistry</code>.</div>
+</section>
+
+<!-- ===================== 04 ===================== -->
+<section id="js">
+  <h2>04 · ARCHIVOS JAVASCRIPT CORE</h2>
+  <p>Toda la lógica vive en <code>interno/frontend/js/</code>. Aquí los actores principales:</p>
+
+  <div class="grid">
+    <div class="cat-box"><div class="ico">🧩</div><h4>scratch-blocks.js</h4><div class="col" style="background:var(--gold)"></div>Registro maestro de opcodes + CATEGORIES + PORT. ~901 líneas. Expone <code>window.ScratchBlocks</code>.</div>
+    <div class="cat-box"><div class="ico">🎨</div><h4>scratch-ui.js</h4><div class="col" style="background:var(--cyan)"></div>El editor visual. ~3653 líneas. Paleta, drag&amp;drop, canvas, undo, autosave, temas, plantillas.</div>
+    <div class="cat-box"><div class="ico">⚙️</div><h4>scratch-aot.js</h4><div class="col" style="background:var(--purple)"></div>Compilador AOT. ~218 líneas. Árbol → máquina JSON validada.</div>
+    <div class="cat-box"><div class="ico">🔄</div><h4>scratch-runtime.js</h4><div class="col" style="background:var(--green)"></div>Ejecutor. ~1658 líneas. Cola iterativa, control de flujo, física, debug.</div>
+    <div class="cat-box"><div class="ico">📤</div><h4>scratch-codegen.js</h4><div class="col" style="background:var(--pink)"></div>Genera código Python/TS/C#/Rust/Go/GDScript desde la máquina.</div>
+    <div class="cat-box"><div class="ico">👥</div><h4>scratch-collab.js</h4><div class="col" style="background:var(--gold)"></div>Colaboración en tiempo real (CRDT + WebRTC/WS relay).</div>
+    <div class="cat-box"><div class="ico">✏️</div><h4>scratch-drawing.js</h4><div class="col" style="background:var(--cyan)"></div>Dibujo vectorial en el lienzo infinito (capas, splines, brochas).</div>
+    <div class="cat-box"><div class="ico">📖</div><h4>scratch-dynamic-editor.js</h4><div class="col" style="background:var(--purple)"></div>Editor de bloques dinámicos: crea/modifica/borra bloques en runtime.</div>
+    <div class="cat-box"><div class="ico">🛡️</div><h4>scratch-sandbox.js</h4><div class="col" style="background:var(--green)"></div>Ejecución de JS sandboxeado (Web Worker) con límites de tiempo/memoria.</div>
+    <div class="cat-box"><div class="ico">🖥️</div><h4>scratch-stage.js</h4><div class="col" style="background:var(--pink)"></div>Escenario de previsualización en vivo: scoreboard, timer, confeti, FX.</div>
+    <div class="cat-box"><div class="ico">🎛️</div><h4>scratch-ui-control-definition.js</h4><div class="col" style="background:var(--gold)"></div>Auto-genera controles HTML/props/estado para componentes scratch.</div>
+  </div>
+
+  <div class="note"><b>SIN DEPENDENCIAS EXTERNAS —</b> <code>scratch-blocks.js</code> y <code>scratch-aot.js</code> no usan librerías de terceros. El runtime sí delega los side-effects reales a <em>providers</em> que inyecta el backend.</div>
+</section>
+
+<!-- ===================== 05 ===================== -->
+<section id="bloques">
+  <h2>05 · EL SISTEMA DE BLOQUES</h2>
+  <p>Cada bloque se define con la fábrica <code>def(opcode, category, type, text, args, meta)</code> en <code>scratch-blocks.js:61</code>. Un bloque es una unidad atómica con forma, color, entradas y comportamiento.</p>
+
+  <h3>Los 5 tipos de bloque</h3>
+  <div class="block-demo">
+    <span class="blk hat">⚡ AL INICIAR MODO</span>
+    <span class="blk cmd">▶ DECIR "HOLA"</span>
+    <span class="blk c">🔁 REPETIR 10 ▸ cuerpo</span>
+    <span class="blk rep">&lt; azar 1..10 &gt;</span>
+    <span class="blk bool">&lt; 5 &gt; 3 ? &gt;</span>
+  </div>
+  <table>
+    <tr><th>Tipo</th><th>Forma</th><th>Rol</th><th>Ejemplo</th></tr>
+    <tr><td><span class="pill hat">hat</span></td><td>Sombrero (arriba redondeado)</td><td>Disparador de evento. Inicia una cadena. No tiene bloque superior.</td><td><code>on_mode_init</code></td></tr>
+    <tr><td><span class="pill cmd">stack</span></td><td>Ladrillo (comando)</td><td>Acción/secuencia. Encaja arriba y abajo.</td><td><code>wait_seconds</code></td></tr>
+    <tr><td><span class="pill c">c</span></td><td>Forma-C contenedora</td><td>Agrupa cuerpos (<code>body</code> o <code>body</code>+<code>elseBody</code>).</td><td><code>if_then_else</code></td></tr>
+    <tr><td><span class="pill rep">reporter</span></td><td>Ovalo (devuelve valor)</td><td>Retorna number/string/json/any/boolean. Encaja en huecos.</td><td><code>math</code></td></tr>
+    <tr><td><span class="pill bool">boolean</span></td><td>Hexágono</td><td>Predicado (true/false). Encaja en condiciones.</td><td><code>compare</code></td></tr>
+  </table>
+
+  <h3>Argumentos, campos y sombras</h3>
+  <p>Cada token <code>[TOKEN]</code> en el texto del bloque mapea a una entrada en <code>args</code>. Los tipos de entrada definen cómo se edita y qué acepta:</p>
+  <div class="grid">
+    <div class="cat-box"><h4>Tipos de entrada</h4><div class="col" style="background:var(--cyan)"></div><code>number, slider, boolean, dropdown, textarea, string, input, id, display_id, output_id, source_id, player_id, audio_file, image_file, reporter, matrix</code></div>
+    <div class="cat-box"><h4>Meta del bloque</h4><div class="col" style="background:var(--purple)"></div><code>returns, exec(event|sync|async), sideEffects[], bodies[], scope, disabledInProd</code></div>
+    <div class="cat-box"><h4>Puertos (PORT)</h4><div class="col" style="background:var(--gold)"></div><code>number, string, boolean, color, ndi, display, any</code> — colorean el enchufe y validan compatibilidad.</div>
+  </div>
+
+  <div class="note"><b>COMPATIBILIDAD DE PUERTOS —</b> <code>portsCompatible(src, dst)</code> permite conectar si <strong>cualquiera de los dos lados es <code>any</code></strong>. Es decir: un reporter <code>any</code> entra en cualquier hueco.</div>
+
+  <h3>El objeto de definición (anatomía)</h3>
+  <pre><span class="k">def</span>(<span class="s">'repeat_times'</span>, <span class="s">'control'</span>, <span class="s">'c'</span>,
+  <span class="s">'repetir [TIMES] veces'</span>,
+  { TIMES: { type:<span class="s">'number'</span>, port:<span class="s">'number'</span>, default:<span class="n">10</span> } },
+  { exec:<span class="s">'sync'</span>, sideEffects:[<span class="s">'control'</span>], bodies:[<span class="s">'body'</span>] });</pre>
+</section>
+
+<!-- ===================== 06 ===================== -->
+<section id="categorias">
+  <h2>06 · LAS 17 CATEGORÍAS</h2>
+  <p>El registro define <strong>17 categorías</strong> en <code>scratch-blocks.js:21</code>. Cada una tiene color propio (vía CSS var <code>--sq-cat-*</code>) e icono.</p>
+
+  <div class="grid">
+    <div class="cat-box"><div class="ico">⚡</div><h4>events</h4>Eventos<div class="col" style="background:var(--gold)"></div>Disparadores y mensajes.</div>
+    <div class="cat-box"><div class="ico">🔧</div><h4>control</h4>Control<div class="col" style="background:var(--cyan)"></div>Bucles, condicionales, flujo.</div>
+    <div class="cat-box"><div class="ico">🎨</div><h4>looks</h4>Looks/Visual<div class="col" style="background:var(--pink)"></div>Apariencia, animación, FX.</div>
+    <div class="cat-box"><div class="ico">🔊</div><h4>audio</h4>Audio<div class="col" style="background:var(--purple)"></div>Música, SFX, volumen.</div>
+    <div class="cat-box"><div class="ico">📡</div><h4>ndi</h4>NDI/Broadcast<div class="col" style="background:var(--green)"></div>Video NDI, streaming.</div>
+    <div class="cat-box"><div class="ico">🖥️</div><h4>displays</h4>Multi-Display<div class="col" style="background:var(--cyan)"></div>Pantallas, layers, sync.</div>
+    <div class="cat-box"><div class="ico">🧠</div><h4>quiz</h4>Quiz/Juego<div class="col" style="background:var(--gold)"></div>Motor de preguntas.</div>
+    <div class="cat-box"><div class="ico">📦</div><h4>state</h4>Estado/Variables<div class="col" style="background:var(--purple)"></div>RAM, SQLite, persistencia.</div>
+    <div class="cat-box"><div class="ico">⚙️</div><h4>operators</h4>Operadores<div class="col" style="background:#607D8B"></div>Matemáticas, lógica, JSON.</div>
+    <div class="cat-box"><div class="ico">📋</div><h4>custom</h4>Listas/Custom<div class="col" style="background:var(--pink)"></div>Arrays, iteración.</div>
+    <div class="cat-box"><div class="ico">👥</div><h4>players</h4>Concursantes<div class="col" style="background:var(--cyan)"></div>Slots, strikes, ranking.</div>
+    <div class="cat-box"><div class="ico">🗄️</div><h4>db</h4>Query Engine<div class="col" style="background:var(--green)"></div>Filtrado, metadatos BD.</div>
+    <div class="cat-box"><div class="ico">🔄</div><h4>runtime</h4>Runtime/Sistema<div class="col" style="background:var(--gold)"></div>Snapshots, hot-reload.</div>
+    <div class="cat-box"><div class="ico">🎮</div><h4>engine</h4>Engine/Game<div class="col" style="background:var(--purple)"></div>Mini-juegos, clientes.</div>
+    <div class="cat-box"><div class="ico">🎭</div><h4>sprites</h4>Engine Sprites<div class="col" style="background:var(--pink)"></div>Sprites 2D, animación.</div>
+    <div class="cat-box"><div class="ico">⚖️</div><h4>physics</h4>Física<div class="col" style="background:var(--cyan)"></div>Cuerpos, fuerzas, joints.</div>
+    <div class="cat-box"><div class="ico">📖</div><h4>procedures</h4>Mis Bloques<div class="col" style="background:var(--gold)"></div>Procedimientos propios.</div>
+  </div>
+
+  <div class="danger"><b>DISCREPANCIA DOCUMENTADA —</b> El sidebar del HTML tiene <strong>18 pestañas</strong> (<code>motion, sound, sensing, network, storage, ui, media</code> extra) pero el registro solo tiene 17. Esas 7 pestañas extra <strong>no tienen categoría en el registro</strong>: son legacy/placeholder. No esperes bloques ahí.</div>
+
+  <h3>Muestra de opcodes por categoría</h3>
+  <table>
+    <tr><th>Cat</th><th>Opcodes representativos</th></tr>
+    <tr><td>events</td><td><code>on_mode_init, on_question_load, on_player_buzz, on_player_answer, on_timer_expire, broadcast, when_i_receive, emit_event</code></td></tr>
+    <tr><td>control</td><td><code>wait_seconds, if_then, if_then_else, repeat_times, repeat_until, while_loop, break_stack, try_catch_fallback</code></td></tr>
+    <tr><td>looks</td><td><code>set_theme, show_ui_component, play_css_animation, set_background_image, say, think, screen_flash, create_tween</code></td></tr>
+    <tr><td>audio</td><td><code>play_bg_music, stop_bg_music_fade, play_sfx, play_sfx_by_name, set_master_volume</code></td></tr>
+    <tr><td>ndi</td><td><code>ndi_start_discovery_worker, connect_source, ndi_send_canvas_scene, is_ndi_source_online</code></td></tr>
+    <tr><td>displays</td><td><code>display_register_setup, display_broadcast_payload, display_sync_clocks, set_layer_z_index</code></td></tr>
+    <tr><td>quiz</td><td><code>init, next_question, verify_answer, add_score, question_text, reveal_answer, timer_set, shuffle_options</code></td></tr>
+    <tr><td>state</td><td><code>state_init_memory_key, state_set_memory, variable_set, variable_get, state_set_persistent, state_load_persistent</code></td></tr>
+    <tr><td>operators</td><td><code>math, compare, and, or, not, random, join, length, case, replace, slice, json_parse, json_stringify</code></td></tr>
+    <tr><td>custom</td><td><code>list_create, list_add_item, for_each_in_list, list_index_of, list_sort, pop, reverse, unique, split</code></td></tr>
+    <tr><td>players</td><td><code>max_players, strike, fastest_buzzer, points, rank, eliminate, revive, top_n, award_bonus</code></td></tr>
+    <tr><td>db</td><td><code>db_query_filter_difficulty, db_query_get_unanswered_count, db_query_mark_as_burned, db_query_shuffle_answers</code></td></tr>
+    <tr><td>runtime</td><td><code>runtime_snapshot_take, runtime_hot_reload, system_replicate_state_to_node, get_timestamp, get_current_time</code></td></tr>
+    <tr><td>engine</td><td><code>engine_create_player_client, engine_load_game_template, engine_on_client_event, engine_get_leaderboard_data, anim_confetti</code></td></tr>
+    <tr><td>sprites</td><td><code>sprite_spawn, sprite_destroy, sprite_set_animation, sprite_move_to, sprite_on_collision, sprite_is_touching</code></td></tr>
+    <tr><td>physics</td><td><code>physics_enable, physics_create_body, physics_set_velocity, physics_apply_force, physics_raycast, physics_create_revolute_joint</code></td></tr>
+    <tr><td>procedures</td><td><code>proc_def, proc_param, proc_call, proc_call_reporter, proc_call_boolean, proc_return</code></td></tr>
+  </table>
+  <p><strong>Total: 279 opcodes</strong> registrados. (Hay uno comentado, <code>inject_css_raw</code>, bloqueado por seguridad: permite inyección arbitraria de CSS.)</p>
+</section>
+
+<!-- ===================== 07 ===================== -->
+<section id="runtime">
+  <h2>07 · EL RUNTIME (EJECUTOR)</h2>
+  <p><code>scratch-runtime.js</code> toma la máquina JSON compilada y la ejecuta. Diseño clave: <strong>iterativo y con cola explícita</strong> (no recursivo) para nunca volar el stack, más un <strong>presupuesto de pasos</strong> anti-cuelgue.</p>
+
+  <h3>Cómo arranca</h3>
+  <pre><span class="c">// scratch-runtime.js:388</span>
+<span class="k">start</span>(eventOpcode, scripts, eventCtx) {
+  <span class="c">// toma la cadena del hat, arma un ctx con state/eventCtx/runtime</span>
+  <span class="c">// y llama a executeChain</span>
+}</pre>
+
+  <h3>executeChain — la cola</h3>
+  <p>Cada "frame" es <code>{node, next, scope}</code>. Se drena secuencialmente. Si un bloque es asíncrono (<code>wait_seconds</code>), devuelve una promesa <code>setTimeout</code> y el bucle espera. Los errores que no sean break/continue se capturan y se continúa (fronteras de error).</p>
+
+  <h3>Control de flujo</h3>
+  <p><code>runContainer</code> maneja los bloques tipo <code>c</code>: <code>if_then, if_then_else, repeat_times, repeat_until, for_each_in_list, repeat_for_range, for_each_with_index, while_loop, try_catch_fallback</code>. Los scopes se apilan/desapilan con <code>_pushScope/_popScope</code>; las variables locales se buscan de adentro hacia afuera y caen al global <code>ctx.state</code>.</p>
+
+  <h3>Señales y eventos</h3>
+  <ul>
+    <li><code>BreakSignal</code> / <code>ContinueSignal</code> — los lanzan <code>break_stack, exit_loop, continue_loop</code>.</li>
+    <li><code>emit_event</code> → reinicia la cadena <code>on_custom_event</code>.</li>
+    <li><code>broadcast</code> / <code>broadcast_and_wait</code> — side-effects (devuelven <code>{ok:true}</code>).</li>
+    <li>Engine events: <code>attachEngineEventSource</code> escucha <code>'engine_event'</code> y arranca <code>engine_on_client_event</code>.</li>
+  </ul>
+
+  <h3>Variables, listas y estado</h3>
+  <p>Se guardan en <code>ctx.state</code> con prefijos semánticos:</p>
+  <div class="grid">
+    <div class="cat-box"><code>var_&lt;NAME&gt;</code><div class="col" style="background:var(--gold)"></div>Variables globales.</div>
+    <div class="cat-box"><code>score_&lt;PLAYER&gt;</code><div class="col" style="background:var(--cyan)"></div>Puntos por concursante.</div>
+    <div class="cat-box"><code>list_&lt;NAME&gt;</code><div class="col" style="background:var(--pink)"></div>Listas/arrays.</div>
+    <div class="cat-box"><code>persist_&lt;KEY&gt;</code><div class="col" style="background:var(--green)"></div>Persistencia SQLite.</div>
+    <div class="cat-box"><code>alive_&lt;PLAYER&gt;</code><div class="col" style="background:var(--purple)"></div>Estado vivo/muerto.</div>
+  </div>
+
+  <h3>Física integrada</h3>
+  <p><code>stepPhysics(dt)</code> integra gravedad y resuelve colisiones AABB (<code>_resolveCollisions</code>). Se ejecuta cada 10 bloques cuando <code>state.__physics</code> está activo.</p>
+
+  <h3>Providers — el puente con el backend</h3>
+  <p><code>ScratchRuntime.defaultProviders()</code> son <strong>stubs seguros en navegador</strong> (math, listas, scores, reporters de quiz, side-effects que devuelven <code>{ok:true}</code>). En producción, el backend sobreescribe <code>reporter / boolean / sideEffect</code> con la lógica real (NDI, displays, estado persistente).</p>
+
+  <h3>Debugging</h3>
+  <ul>
+    <li>Breakpoints: <code>setBreakpoint</code>.</li>
+    <li>Step into/over/out.</li>
+    <li>Watch expressions: <code>_evalWatchExpr</code> (evaluador simple de <code>state.</code>).</li>
+    <li>Hooks <code>onBlockStart/onBlockEnd/onError</code> alimentan el Visual Stepper del editor.</li>
+  </ul>
+</section>
+
+<!-- ===================== 08 ===================== -->
+<section id="aot">
+  <h2>08 · EL COMPILADOR AOT</h2>
+  <p><code>scratch-aot.js</code> convierte el árbol de instancias de bloques en una <strong>máquina de estados JSON pura</strong>. Sin límites artificiales: se eliminaron <code>MAX_CHAIN</code> y <code>MAX_NESTING</code> — bloques y anidación ilimitados.</p>
+
+  <h3>compile()</h3>
+  <pre><span class="c">// scratch-aot.js:117</span>
+<span class="k">compile</span>(scripts, opts) {
+  <span class="c">// scripts = { "&lt;hatOpcode&gt;": [cadena de instancias] }</span>
+  <span class="c">// valida que cada clave sea un bloque 'hat'</span>
+  <span class="c">// serializa cada cadena → events[hatOpcode]</span>
+  <span class="k">return</span> {
+    version: <span class="n">2</span>, compiledAt, engine:<span class="s">'scratch-aot'</span>,
+    blockCount, events, hotReload, preserveState, snapshotRef
+  };
+}</pre>
+
+  <h3>_serialize — el corazón</h3>
+  <p>Recorre recursivamente: coerce los args (<code>_coerce</code>), serializa los <code>bodies</code> de los contenedores, sigue <code>next</code>. Cada nodo queda como <code>{opcode, args, [bodies], next, _id}</code>.</p>
+
+  <h3>validate()</h3>
+  <p>Camina el árbol y chequea: opcodes desconocidos, bloques <code>disabledInProd</code>, y compatibilidad de tipos reporter/boolean. En producción es estricto.</p>
+
+  <h3>hotReload()</h3>
+  <p><code>hotReload(prevMachine, scripts, opts)</code> recompila preservando snapshot y estado. Permite editar un modo <em>mientras corre</em> sin perder la puntuación en vivo.</p>
+
+  <div class="note"><b>COERCIÓN —</b> Los números vacíos caen al default (0); los booleanos aceptan <code>true/'true'/1/'1'</code>; los dropdowns invalidos vuelven al primero; strings vacíos al default o <code>''</code>.</div>
+</section>
+
+<!-- ===================== 09 ===================== -->
+<section id="persistencia">
+  <h2>09 · PERSISTENCIA (GUARDAR Y CARGAR)</h2>
+  <p>Un "modo" se serializa a JSON con este formato (<code>exportTemplate()</code> / <code>_serializeHeads</code>):</p>
+
+  <pre>{
+  version: <span class="n">3</span>, type: <span class="s">'scratch-mode'</span>,
+  heads: { <span class="s">"&lt;hatOpcode&gt;"</span>: [ &lt;instancia-stack&gt;, ... ] },
+  assets: { &lt;id&gt;: { id, name, mime, size, blob, url, dataUrl } }
+}</pre>
+
+  <p>Cada instancia de bloque: <code>{opcode, args, next, _id, &lt;bodies&gt;:[...]}</code>. <code>rehydrate()</code> reconstruye con <code>_id</code> frescos al cargar.</p>
+
+  <h3>Las 5 capas de persistencia</h3>
+  <table>
+    <tr><th>Capa</th><th>Clave localStorage / archivo</th><th>Para qué</th></tr>
+    <tr><td>Autosave</td><td><code>sillyquiz-builder-autosave</code></td><td>Cada 30s. Ofrece restaurar (Ctrl+Shift+L).</td></tr>
+    <tr><td>Borrador</td><td><code>sillyquiz-builder-draft</code></td><td>Guardado manual de borrador.</td></tr>
+    <tr><td>Exportar</td><td><code>.silly</code> o <code>.json</code></td><td>Paquete completo o JSON plano (<code>sillyquiz-modo-*.json</code>).</td></tr>
+    <tr><td>Tema/ajustes</td><td><code>sillyquiz-builder-dark, -snap-grid, -animations, -custom-config</code></td><td>Preferencias de UI.</td></tr>
+    <tr><td>Recientes/favs</td><td><code>sillyquiz-recent-blocks, -favorite-blocks</code></td><td>Paleta inteligente.</td></tr>
+  </table>
+
+  <h3>Plantillas</h3>
+  <p><code>interno/modo_templates/scratch/</code> trae <strong>13 plantillas</strong>: <code>battle_1v1, bienvenida_color, encuesta_satisfaccion, neon_cyber_quiz, on-mode-init, physics_playground, quiz_capitales, quiz_show, quiz_show_glam, rapid_fire, survival_mode, trivia_si_no</code>. <code>loadTemplate()</code> aplica <code>TemplateMigration.migrateToCurrent</code> si hace falta.</p>
+
+  <div class="note"><b>IMPORTAR/EXPORTAR —</b> <code>exportToFile()</code> usa <code>SillyPackage.exportSilly</code> para <code>.silly</code> (incluye assets) o JSON plano. <code>importFromFile()</code> lee <code>.silly / .json / .zip</code>.</div>
+</section>
+
+<!-- ===================== 10 ===================== -->
+<section id="backend">
+  <h2>10 · INTEGRACIÓN CON EL BACKEND (WS :8081)</h2>
+  <p>El editor abre <code>ws://&lt;host&gt;:8081</code>. Hay <strong>dos conexiones WS en paralelo</strong>:</p>
+  <ul>
+    <li><strong>Live-sync</strong> (<code>_initLiveSync</code>): manda el estado del editor a displays/SillyVisualizer.</li>
+    <li><strong>Engine WS</strong> (<code>_attachEngineEventSource</code>): gated por token <code>localStorage['sillyquiz-engine-token']</code>.</li>
+  </ul>
+
+  <h3>Mensajes que el builder RECIBE (handleWS)</h3>
+  <p><code>project, theme, template, sprite, sprite_update, sprite_delete, variable, list, block_def, theme_list, project_list, template_list, save_ok, save_as, error</code>.</p>
+
+  <h3>Qué hace el backend (websocket_server.py)</h3>
+  <p>asyncio + websockets, 200 conexiones máx, 64KB msg, JWT auth, heartbeat 25s, rate-limit por token-bucket. El <code>handler</code> conmuta por <code>mtype</code>:</p>
+  <table>
+    <tr><th>mtype</th><th>Acción</th></tr>
+    <tr><td><code>builder_state</code></td><td>Hace broadcast del estado serializado a todos los displays conectados.</td></tr>
+    <tr><td><code>register / payload / sync_clock</code></td><td>Registro de displays y relojes.</td></tr>
+    <tr><td><code>hardware_event</code></td><td>Cola FIFO con stamps de microsegundos para buzz/respuesta.</td></tr>
+    <tr><td><code>play_*</code></td><td>Local Game Engine (register/load_template/connect/event/leaderboard).</td></tr>
+    <tr><td><code>ping/pong/health_check/stats</code></td><td>Keepalive y telemetría.</td></tr>
+  </table>
+
+  <h3>SSE (Server-Sent Events)</h3>
+  <p><code>interno/silly/services/sse.py</code> expone un <code>EventBus</code> en <code>/api/stream</code> con eventos tipados: <code>timer:tick, puntos:change, modo:start/stop, display:update, question:change, state:persist, state:snapshot</code>. Flask en :8080 (Waitress), WS en :8081; ambos en hilos daemon del launcher.</p>
+
+  <div class="note"><b>FLUJO DE GUARDADO —</b> FAB "save" / Ctrl+S → <code>ui.serializeProject()</code> → <code>sendWS('save', ...)</code> → backend responde <code>save_as / save_ok</code>.</div>
+</section>
+
+<!-- ===================== 11 ===================== -->
+<section id="estetica">
+  <h2>11 · ESTÉTICA NEO-BRUTALISTA</h2>
+  <p>SillyBuilder viste la sangre del proyecto: <strong>neo-brutalismo carismático</strong>. Bordes gruesos, sombras duras sin blur, tipografía monoespaciada y alto contraste.</p>
+
+  <h3>Variables CSS (sistema de diseño)</h3>
+  <p><code>design-tokens.css</code> define la base:</p>
+  <pre>--sq-color-bg-primary:   <span class="s">#0B0B0B</span>;
+--sq-color-fg-primary:   <span class="s">#F2EBDD</span>;
+--sq-color-accent-primary: <span class="s">#FF5E3A</span>;  <span class="c">/* Silly Orange */</span>
+--sq-color-accent-purple:  <span class="s">#9B6BFF</span>;
+--sq-color-accent-gold:    <span class="s">#FFB000</span>;
+--sq-cat-events:  <span class="s">#FFB000</span>;  <span class="c">/* oro */</span>
+--sq-cat-control: <span class="s">#00D9FF</span>;  <span class="c">/* cian */</span>
+--sq-cat-looks:   <span class="s">#FF6B6B</span>;  <span class="c">/* rosa */</span>
+--sq-cat-operators: <span class="s">#607D8B</span>; <span class="c">/* azul-gris */</span>
+--sq-cat-sprites: <span class="s">#FF9800</span>;
+--sq-cat-physics: <span class="s">#2196F3</span>;</pre>
+
+  <h3>Firma visual</h3>
+  <div class="grid">
+    <div class="cat-box"><h4>Sombras duras</h4><div class="col" style="background:var(--accent)"></div><code>box-shadow: 8px 8px 0 var(--sq-primary)</code> — cero blur.</div>
+    <div class="cat-box"><h4>Bordes gruesos</h4><div class="col" style="background:var(--purple)"></div><code>border: 4px solid var(--sq-accent)</code>.</div>
+    <div class="cat-box"><h4>Mono + Bold</h4><div class="col" style="background:var(--gold)"></div><code>Space Mono</code> / <code>Space Grotesk</code>.</div>
+    <div class="cat-box"><h4>Rejilla</h4><div class="col" style="background:var(--cyan)"></div>Fondo de 40px tipo papel cuadriculado.</div>
+  </div>
+
+  <h3>Los bloques como objetos brutales</h3>
+  <p>Cada categoría pinta su bloque con <code>--block-fill</code> mapeado a su color. Hover = glow de drop-shadow. Los conectores usan borde izquierdo de color de categoría. Los indicadores de tipo (hat/cmd/c/reporter/boolean) tienen forma y color propios.</p>
+
+  <h3>Temas (35+)</h3>
+  <p><code>interno/themes/</code> trae presets: <code>neon, fantasy-*, festive-*, nature-*, oceano, oscuro, pastel-dream, silly-quiz, test-theme…</code>. Se aplican vía <code>ui.applyTheme</code> (WS <code>theme/theme_list</code>) y el customizer (<code>openCustomizer</code>) con grilla por-categoría, fuentes y tamaños.</p>
+</section>
+
+<!-- ===================== 12 ===================== -->
+<section id="powerpack">
+  <h2>12 · EL POWER PACK (BLOQUES AVANZADOS)</h2>
+  <p>El Power Pack reparte bloques pro por todas las categorías. Aquí lo esencial:</p>
+
+  <h3>Matemáticas y strings pro</h3>
+  <p><code>unary</code> (sqrt/abs/round/sin/cos/tan/ln/log10), <code>binary</code> (pow/mod/min/max), <code>length, case, replace, slice, starts_with, ends_with, xor, between</code>, <code>math_clamp, math_lerp, math_const (PI/E/TAU/PHI), math_round_to, type_of</code>.</p>
+
+  <h3>Listas pro</h3>
+  <p><code>for_each_in_list, list_index_of, list_get_random_item, list_set_item, list_shuffle, list_sort, list_join, list_count, pop, reverse, unique, to_json, split, to_number, trim, repeat, matches</code>.</p>
+
+  <h3>Control avanzado</h3>
+  <p><code>repeat_for_range, exit_loop, continue_loop, while_loop, for_each_with_index, try_catch_fallback</code>.</p>
+
+  <h3>Quiz / Players pro</h3>
+  <p><code>set_question, reveal_answer, score, player_rank, reset_scores, option_count, shuffle_options, timer_remaining/set/pause/resume, correct_option, question_image, difficulty, total_questions, sort_scores, top_n, award_bonus, points, count, all_names, eliminate, revive, rank, show_effect, set_var/get_var (por jugador)</code>.</p>
+
+  <h3>Estado persistente</h3>
+  <p><code>state_set_persistent, state_get_persistent, state_load_persistent</code> — respaldados en SQLite.</p>
+
+  <h3>FX / Audio / Runtime pro</h3>
+  <p><code>screen_flash, screen_shake, announce, display_set_timer, play_sfx_by_name, set_master_volume, runtime_debug_log, runtime_export_json, get_timestamp, get_current_time, random_choice, create_tween, quiz_is_paused, quiz_get_round, players_get_score_of, timer_is_paused</code>.</p>
+
+  <h3>Física completa (2D)</h3>
+  <p><code>physics_enable/disable, physics_create_body (dynamic/static/kinematic), physics_set/get_velocity, physics_apply_force/impulse, physics_set_gravity_scale, physics_on_collision, physics_get_position/velocity, physics_create_distance_joint, physics_raycast, physics_query_aabb, physics_query_point, physics_add_fixture, physics_create_revolute_joint, physics_create_prismatic_joint, physics_destroy_joint</code>.</p>
+
+  <h3>Sprites</h3>
+  <p><code>sprite_spawn, sprite_destroy, sprite_set_animation, sprite_move_to (con easing GSAP-style), sprite_set_velocity, sprite_on_collision, sprite_is_touching</code>.</p>
+
+  <h3>Mis Bloques (procedimientos)</h3>
+  <p><code>proc_def, proc_param, proc_call, proc_call_reporter, proc_call_boolean, proc_return</code> — define tus propios bloques parametrizados.</p>
+</section>
+
+<!-- ===================== 13 ===================== -->
+<section id="tutorial">
+  <h2>13 · MINI PROGRAMA: "QUIZ RELÁMPAGO"</h2>
+  <p class="lead">Vamos a construir un mini programa completo que: al iniciar el modo saluda, carga la primera pregunta, y cuando un concursante pulsa el buzzer, suma puntos si acierta y muestra confeti. Sin dejar nada en el aire.</p>
+
+  <h3>Paso 1 — El disparador (hat)</h3>
+  <div class="block-demo">
+    <span class="blk hat">⚡ AL INICIAR MODO</span>
+  </div>
+  <p>El hat <code>on_mode_init</code> arranca la cadena. Todo modo empieza aquí.</p>
+
+  <h3>Paso 2 — Preparar el escenario</h3>
+  <div class="block-demo">
+    <span class="blk hat">⚡ AL INICIAR MODO</span>
+    <span class="blk cmd">🎨 PON TEMA "silly-quiz"</span>
+    <span class="blk cmd">🔊 TOCA MÚSICA DE FONDO</span>
+    <span class="blk cmd">🧠 INICIAR QUIZ</span>
+  </div>
+  <p><code>set_theme</code> (looks), <code>play_bg_music</code> (audio) y <code>init</code> (quiz) preparan el estado base. <code>init</code> carga el primer set de preguntas.</p>
+
+  <h3>Paso 3 — Cargar pregunta y temporizador</h3>
+  <div class="block-demo">
+    <span class="blk hat">⚡ AL CARGAR PREGUNTA</span>
+    <span class="blk cmd">🧠 TEXTO PREGUNTA → ESCENARIO</span>
+    <span class="blk cmd">⏱ TEMPORIZADOR 15s</span>
+  </div>
+  <p>El hat <code>on_question_load</code> reacciona cada vez que se carga una pregunta. Mostramos el texto y armamos un timer de 15s.</p>
+
+  <h3>Paso 4 — Reaccionar al buzzer</h3>
+  <div class="block-demo">
+    <span class="blk hat">⚡ AL PULSAR BUZZER</span>
+    <span class="blk c">🔧 SI &lt; respuesta correcta? &gt; ▸</span>
+    <span class="blk cmd">👥 +10 PUNTOS AL JUGADOR</span>
+    <span class="blk cmd">🎮 CONFETI</span>
+    <span class="blk c">🔧 SINO ▸</span>
+    <span class="blk cmd">👥 STRIKE AL JUGADOR</span>
+  </div>
+  <p><code>on_player_buzz</code> captura el evento de hardware (vía cola FIFO del backend). El <code>if_then_else</code> (tipo <code>c</code>) evalúa el reporter booleano <code>verify_answer</code>. Si acierta: <code>add_score</code> + <code>anim_confetti</code>; si no: <code>strike</code>.</p>
+
+  <h3>Paso 5 — Tiempo agotado</h3>
+  <div class="block-demo">
+    <span class="blk hat">⚡ AL EXPIRAR TEMPORIZADOR</span>
+    <span class="blk cmd">🧠 REVELAR RESPUESTA</span>
+    <span class="blk cmd">🧠 SIGUIENTE PREGUNTA</span>
+  </div>
+  <p><code>on_timer_expire</code> revela la respuesta correcta y pasa a la siguiente. El bucle del quiz se auto-alimenta.</p>
+
+  <h3>El programa completo (máquina AOT resultante)</h3>
+  <pre>{
+  version: <span class="n">2</span>, engine:<span class="s">'scratch-aot'</span>, blockCount: <span class="n">12</span>,
+  events: {
+    <span class="s">"on_mode_init"</span>: [
+      { opcode:<span class="s">"set_theme"</span>, args:{ theme:<span class="s">"silly-quiz"</span> } },
+      { opcode:<span class="s">"play_bg_music"</span>, args:{} },
+      { opcode:<span class="s">"init"</span>, args:{} }
+    ],
+    <span class="s">"on_question_load"</span>: [
+      { opcode:<span class="s">"question_text"</span>, args:{} },
+      { opcode:<span class="s">"timer_set"</span>, args:{ seconds:<span class="n">15</span> } }
+    ],
+    <span class="s">"on_player_buzz"</span>: [
+      { opcode:<span class="s">"if_then_else"</span>,
+        args:{}, bodies:{
+          body:[ { opcode:<span class="s">"add_score"</span>, args:{ points:<span class="n">10</span> } },
+                 { opcode:<span class="s">"anim_confetti"</span>, args:{} } ],
+          elseBody:[ { opcode:<span class="s">"strike"</span>, args:{} } ]
+        },
+        next: <span class="k">null</span> }
+    ],
+    <span class="s">"on_timer_expire"</span>: [
+      { opcode:<span class="s">"reveal_answer"</span>, args:{} },
+      { opcode:<span class="s">"next_question"</span>, args:{} }
+    ]
+  }
+}</pre>
+
+  <h3>¿Cómo funciona en ejecución?</h3>
+  <ol>
+    <li>El runtime arranca <code>on_mode_init</code> → pinta tema, música, init.</li>
+    <li><code>init</code> dispara internamente <code>on_question_load</code> → texto + timer 15s.</li>
+    <li>Un concursante pulsa buzzer → backend encola <code>hardware_event</code> → runtime ejecuta <code>on_player_buzz</code>.</li>
+    <li>El <code>if_then_else</code> evalúa <code>verify_answer</code>: si true → +10 y confeti; si false → strike.</li>
+    <li>A los 15s, <code>on_timer_expire</code> revela y pasa a la siguiente pregunta → vuelve al paso 2. Bucle infinito controlado.</li>
+    <li>En cualquier momento, <code>builder_state</code> emite el estado a las pantallas NDI conectadas vía WS :8081.</li>
+  </ol>
+  <div class="note"><b>DETERMINISMO —</b> Todo esto corre sobre la máquina JSON validada por AOT. No hay interpretación en caliente: lo que ves al editar es exactamente lo que corre en el show.</div>
+</section>
+
+<!-- ===================== 14 ===================== -->
+<section id="cabos">
+  <h2>14 · CABOS SUELTOS (Y SUS RESPUESTAS)</h2>
+  <p>Para no dejar nada colgando, aquí están las irregularidades conocidas y dónde viven:</p>
+
+  <div class="danger">
+    <b>1. Categorías HTML vs Registro —</b> El sidebar tiene 18 pestañas; el registro 17. Las 7 extra (<code>motion, sound, sensing, network, storage, ui, media</code>) son legacy/placeholder sin bloques.
+  </div>
+
+  <div class="danger">
+    <b>2. inject_css_raw —</b> Está comentado y bloqueado por seguridad (inyección arbitraria de CSS). No está activo pese a aparecer en grep de <code>def(</code>.
+  </div>
+
+  <div class="note">
+    <b>3. Dos WS en paralelo —</b> Live-sync (:8081) y Engine WS (token-gated). No son lo mismo.
+  </div>
+
+  <div class="note">
+    <b>4. Providers por defecto —</b> Los stubs del runtime son seguros; la lógica real (NDI, displays, persistencia) la inyecta el backend vía <code>providers</code>.
+  </div>
+
+  <div class="note">
+    <b>5. BlockRegistry vs ScratchBlocks —</b> El HTML importa <code>BlockRegistry</code> pero el objeto real es <code>window.ScratchBlocks</code>. Usa <code>ScratchBlocks</code>.
+  </div>
+
+  <div class="note">
+    <b>6. Globals externos —</b> <code>TemplateMigration, SillyPackage, SillyAssetSanitizer</code> viven en archivos JS no-<code>scratch-*</code> del mismo directorio. Se encargan de migración de plantillas, empaquetado <code>.silly</code> y saneamiento de assets respectivamente.
+  </div>
+
+  <h3>Atajos de teclado</h3>
+  <table>
+    <tr><th>Combo</th><th>Acción</th></tr>
+    <tr><td><span class="kbd">Ctrl</span>+<span class="kbd">S</span></td><td>Guardar (sendWS 'save').</td></tr>
+    <tr><td><span class="kbd">Ctrl</span>+<span class="kbd">O</span></td><td>Abrir.</td></tr>
+    <tr><td><span class="kbd">Ctrl</span>+<span class="kbd">N</span></td><td>Nuevo.</td></tr>
+    <tr><td><span class="kbd">Ctrl</span>+<span class="kbd">Shift</span>+<span class="kbd">L</span></td><td>Restaurar autosave.</td></tr>
+    <tr><td><span class="kbd">Supr</span></td><td>Borrar bloques seleccionados.</td></tr>
+  </table>
+
+  <h3>Archivos de referencia absoluta</h3>
+  <ul>
+    <li><code>interno/frontend/html/SillyBuild.html</code> — entrada.</li>
+    <li><code>interno/frontend/js/scratch-blocks.js</code> — registro (líneas 21-900).</li>
+    <li><code>interno/frontend/js/scratch-aot.js</code> — compilador (líneas 86-211).</li>
+    <li><code>interno/frontend/js/scratch-runtime.js</code> — ejecutor (líneas 388-712).</li>
+    <li><code>interno/frontend/css/sillybuild.css</code> — tokens (líneas 7-77).</li>
+    <li><code>interno/websocket_server.py</code> — dispatch WS (líneas 239-355).</li>
+    <li><code>interno/modo_templates/scratch/</code> — 13 plantillas.</li>
+  </ul>
+</section>
+
+</div><!-- /wrap -->
+
+<footer>
+  <div class="big">SILLYBUILDER // FIN DEL MANUAL</div>
+  <p style="margin-top:14px;color:var(--gold)">Neo-brutalismo carismático · 17 categorías · 279 opcodes · AOT puro · WS :8081</p>
+  <p style="font-size:13px;opacity:.7">Generado para la documentación del Modo Builder de SillyQuiz. Sin un solo cabo suelto.</p>
+</footer>
+
+</body>
+</html>

@@ -33,6 +33,8 @@
       this.assetMap = {};          // id -> { id, name, mime, size, blob, url, dataUrl }
       this._assetSeq = 0;
       this._liveBuffer = null;     // último estado para envíos diferidos
+      this._autoSaveTimeout = null;
+      this._pendingAutoSave = null;
       this.init();
     }
 
@@ -49,6 +51,7 @@
       const firstHat = Object.keys(this.heads)[0];
       if (firstHat) this.selectEvent(firstHat);
       this.ensureDefaultState();
+      this.loadAutoSave();
       // Referencia global para CTA boot
       window.scratchUI = this;
       // Sincronización en vivo con SillyVisualizer (requiere backend WS)
@@ -60,31 +63,44 @@
     /* ---- Estructura DOM Simplificada ---- */
     buildSkeleton() {
       this.root.innerHTML = `
+        <style>
+          .block-enter { animation: blockFadeIn 0.15s ease-out; }
+          @keyframes blockFadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+          .canvas-flash { outline: 2px solid var(--cat-control,#FF5E3A) !important; outline-offset: 2px; transition: outline 0.3s ease-out; }
+          .block-breakpoint-glow { box-shadow: 0 0 8px 2px rgba(255,60,60,0.6), var(--hard,4px 4px 0 var(--ink)) !important; }
+          .debug-mode-active > .scratch-body > .scratch-canvas-wrap { border: 1px solid rgba(255,94,58,0.3); }
+          .palette-search-wrap { padding: 6px 8px; border-bottom: 1px solid var(--border-secondary,#484f58); }
+          .palette-search { width: 100%; padding: 4px 8px; font-size: 0.75rem; font-weight: 600; border: 2px solid var(--border-secondary,#484f58); background: var(--paper,#1a1a2e); color: var(--ink,#e8e8e8); outline: none; }
+          .palette-search:focus { border-color: var(--cat-control,#FF5E3A); }
+        </style>
         <div class="scratch-app" role="application" aria-label="SillyQuiz Builder">
           <div class="scratch-toolbar" role="toolbar" aria-label="Herramientas">
             <span class="sb-brand"><span class="sb-logo" aria-hidden="true"><svg viewBox="0 0 22 22" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="22" height="22" fill="#FF5E3A"/><rect x="1" y="1" width="20" height="20" fill="#0B0B0B"/><text x="11" y="15" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="9" fill="#FF5E3A">SQ</text></svg></span> Modo&nbsp;Builder</span>
             <span class="sb-divider" aria-hidden="true"></span>
-            <button class="toolbar-btn primary" data-act="run" aria-label="Ejecutar programa">▶ Ejecutar</button>
-            <button class="toolbar-btn danger" data-act="panic" aria-label="Detener todo">⏹ Pánico</button>
+            <button class="toolbar-btn primary" data-act="run" aria-label="Ejecutar programa" aria-describedby="tip-run" title="Ejecutar programa (Ctrl+E)">▶ Ejecutar</button>
+            <button class="toolbar-btn danger" data-act="panic" aria-label="Detener todo" aria-describedby="tip-panic" title="Detener todo (Pánico)">⏹ Pánico</button>
             <span class="sb-divider" aria-hidden="true"></span>
-            <button class="toolbar-btn" data-act="debug-mode" aria-label="Modo depuración" title="Alternar modo depuración (F8)">🐞 Depurar</button>
-            <button class="toolbar-btn" data-act="breakpoint" aria-label="Toggle breakpoint (F9)" title="Toggle breakpoint en bloque seleccionado (F9)">⬤</button>
-            <button class="toolbar-btn" data-act="step-into" aria-label="Step into (F11)" title="Step into (F11)" disabled>↷ Into</button>
-            <button class="toolbar-btn" data-act="step-over" aria-label="Step over (F10)" title="Step over (F10)" disabled>↷ Over</button>
-            <button class="toolbar-btn" data-act="step-out" aria-label="Step out (Shift+F11)" title="Step out (Shift+F11)" disabled>↷ Out</button>
-            <button class="toolbar-btn" data-act="pause" aria-label="Pausar (Ctrl+P)" title="Pausar ejecución (Ctrl+P)" disabled>⏸ Pausar</button>
-            <button class="toolbar-btn" data-act="resume" aria-label="Reanudar (Ctrl+R)" title="Reanudar ejecución (Ctrl+R)" disabled>▶ Reanudar</button>
+            <button class="toolbar-btn" data-act="debug-mode" aria-label="Modo depuración" aria-describedby="tip-debug" title="Alternar modo depuración (F8)">🐞</button>
             <span class="sb-divider" aria-hidden="true"></span>
-            <button class="toolbar-btn" data-act="undo" title="Deshacer (Ctrl+Z)" aria-label="Deshacer">↶</button>
-            <button class="toolbar-btn" data-act="redo" title="Rehacer (Ctrl+Shift+Z)" aria-label="Rehacer">↷</button>
-            <button class="toolbar-btn" data-act="clear" aria-label="Limpiar lienzo">🗑 Limpiar</button>
-            <button class="toolbar-btn" data-act="stage" aria-label="Visualizador en vivo">🎬 Visualizador</button>
+            <button class="toolbar-btn" data-act="undo" title="Deshacer (Ctrl+Z)" aria-label="Deshacer" aria-describedby="tip-undo">↶</button>
+            <button class="toolbar-btn" data-act="redo" title="Rehacer (Ctrl+Shift+Z)" aria-label="Rehacer" aria-describedby="tip-redo">↷</button>
+            <button class="toolbar-btn" data-act="reset-view" title="Ajustar a pantalla" aria-label="Ajustar a pantalla">⊡</button>
+            <span class="sb-divider" aria-hidden="true"></span>
+            <button class="toolbar-btn" data-act="undo" title="Deshacer (Ctrl+Z)" aria-label="Deshacer" aria-describedby="tip-undo">↶</button>
+            <button class="toolbar-btn" data-act="redo" title="Rehacer (Ctrl+Shift+Z)" aria-label="Rehacer" aria-describedby="tip-redo">↷</button>
+            <button class="toolbar-btn" data-act="reset-view" title="Ajustar a pantalla" aria-label="Ajustar a pantalla">⊡</button>
+            <button class="toolbar-btn" data-act="clear" aria-label="Limpiar lienzo" aria-describedby="tip-clear">🗑 Limpiar</button>
+            <button class="toolbar-btn" data-act="stage" aria-label="Visualizador en vivo" aria-describedby="tip-stage">🎬 Visualizador</button>
             <span class="spacer"></span>
             <span class="sb-status" id="sbStatus"><span class="sb-status-dot"></span> Listo</span>
             <button class="toolbar-btn" data-act="context" aria-label="Menú">⋮</button>
           </div>
           <div class="scratch-body">
-            <aside class="scratch-palette" id="sbPalette" role="region" aria-label="Paleta de bloques"></aside>
+            <aside class="scratch-palette" id="sbPalette" role="region" aria-label="Paleta de bloques">
+              <div class="palette-search-wrap">
+                <input type="text" class="palette-search" id="sbPaletteSearch" placeholder="🔍 Buscar bloques..." aria-label="Buscar bloques en la paleta" />
+              </div>
+            </aside>
             <div class="scratch-canvas-wrap">
               <div class="event-tabs" id="sbTabs" role="tablist" aria-label="Eventos"></div>
               <div class="scratch-canvas" id="sbCanvas" role="region" aria-label="Lienzo de bloques" tabindex="0"></div>
@@ -142,10 +158,15 @@
       this.elDebugStack = this.root.querySelector('#debugStackList');
       this.elDebugBreakpoints = this.root.querySelector('#debugBreakpointList');
       this._previewTimer = null;
+      this._paletteSearchInput = this.root.querySelector('#sbPaletteSearch');
+      if (this._paletteSearchInput) {
+        this._paletteSearchInput.addEventListener('input', () => this._filterPalette(this._paletteSearchInput.value));
+      }
       // Cualquier edición inline en el lienzo actualiza la vista previa en vivo.
       this.elCanvas.addEventListener('input', () => this.schedulePreview());
       this.elCanvas.addEventListener('change', () => this.schedulePreview());
       if (global.ScratchStage) global.ScratchStage.mount(document.getElementById('sbStageWrap'));
+      this._initDebugPanel();
     }
 
     /* ---- Paleta, búsqueda y helpers delegados a módulos de builder/ (builder/util.js, builder/palette.js) ---- */
@@ -177,6 +198,7 @@
 
     /* ---- Añadir bloque (al final del stack principal del evento activo) ---- */
     addBlock(opcode) {
+      if (!opcode) return;
       const def = ScratchBlocks.get(opcode);
       if (!def) return;
       if (def.type === 'hat') { this.selectEvent(opcode); return; }
@@ -261,6 +283,7 @@
         status.textContent = connected ? '▶ conectado' : '⚠ suelto';
         wrap.appendChild(status);
         this.renderChain(stack, wrap, 0, connected);
+        wrap.querySelectorAll('.scratch-block').forEach(b => b.classList.add('block-enter'));
         inner.appendChild(wrap);
       });
       this.elCanvas.appendChild(inner);
@@ -335,6 +358,9 @@
       el.setAttribute('tabindex', '0');
       el.setAttribute('aria-label', this.humanize(inst.opcode));
       el.setAttribute('aria-roledescription', def.type + ' block');
+      if (this.runtime && this.runtime._hasBreakpoint && this.runtime._hasBreakpoint(inst._id)) {
+        el.classList.add('block-breakpoint-glow');
+      }
       el.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -630,6 +656,7 @@
 
     /* ---- Inspector + selección ---- */
     selectBlock(inst) {
+      if (!inst || !inst.opcode) return;
       this.selected = inst;
       const def = ScratchBlocks.get(inst.opcode);
       const fields = Object.keys(def.args).map(tok => {
@@ -697,7 +724,18 @@
 
       this.elCanvas.querySelectorAll('.scratch-block').forEach(e => e.style.outline = '');
       const el = this.domMap[inst._id];
-      if (el) el.style.outline = '2px solid var(--cat-control,#ff6b4a)';
+      if (el) {
+        el.style.outline = '2px solid var(--cat-control,#ff6b4a)';
+        if (!this._isElementInViewport(el)) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
+    }
+
+    _isElementInViewport(el) {
+      const rect = el.getBoundingClientRect();
+      const canvasRect = this.elCanvas ? this.elCanvas.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
+      return rect.top >= canvasRect.top - 50 && rect.bottom <= canvasRect.bottom + 50;
     }
 
     deleteSelected() {
@@ -771,6 +809,7 @@
     }
 
     _findInstance(id) {
+      if (id == null) return null;
       const stacks = this.heads[this.activeEvent] || [];
       for (const stack of stacks) {
         const found = this._searchChain(stack, id);
@@ -835,40 +874,141 @@
         else if (act === 'undo') this.undo();
         else if (act === 'redo') this.redo();
         else if (act === 'clear') this.clearCanvas();
+        else if (act === 'reset-view') this.resetView();
         else if (act === 'preview') this.togglePreview();
         else if (act === 'stage') this.toggleStage();
         else if (act === 'context') { e.stopPropagation(); this.toggleContextMenu(); }
-        else if (act === 'debug-mode') this.toggleDebugMode();
+        else if (act === 'debug-mode') {
+          if (this._debugMode) {
+            this.closeDebugger();
+          } else {
+            this.openDebugger();
+          }
+        }
         else if (act === 'breakpoint') this.toggleBreakpointOnSelected();
-        else if (act === 'step-into') this.debugStepInto();
-        else if (act === 'step-over') this.debugStepOver();
-        else if (act === 'step-out') this.debugStepOut();
-        else if (act === 'pause') this.debugPause();
-        else if (act === 'resume') this.debugResume();
       });
+    }
+
+    openDebugger() {
+      this._debugMode = true;
+      this.runtime = this.runtime || new global.ScratchRuntime({ state: {} });
+      this.runtime.setDebugMode(this._debugMode);
+      this.elCanvas.classList.add('debug-mode');
+      this.root.querySelector('.scratch-app').classList.add('debug-mode-active');
+      this.root.querySelector('[data-act="debug-mode"]').classList.add('active');
+      this.root.querySelector('[data-act="breakpoint"]').disabled = false;
+      this.root.querySelector('[data-act="step-into"]').disabled = false;
+      this.root.querySelector('[data-act="step-over"]').disabled = false;
+      this.root.querySelector('[data-act="step-out"]').disabled = false;
+      this.root.querySelector('[data-act="pause"]').disabled = false;
+      this.root.querySelector('[data-act="resume"]').disabled = false;
+      this.elDebug.classList.remove('debug-panel-hidden');
+      this.elDebug.removeAttribute('data-hidden');
+      this.elDebug.setAttribute('data-open', '1');
+      this.toast('🐞 Depuración activada', 'info');
+      this._updateDebugPanels();
+      this._resizeDebugPanel();
+    }
+
+    closeDebugger() {
+      this._debugMode = false;
+      if (this.runtime) {
+        this.runtime.setDebugMode(this._debugMode);
+      }
+      this.elCanvas.classList.remove('debug-mode');
+      this.root.querySelector('.scratch-app').classList.remove('debug-mode-active');
+      this.root.querySelector('[data-act="debug-mode"]').classList.remove('active');
+      this.root.querySelector('[data-act="breakpoint"]').disabled = true;
+      this.root.querySelector('[data-act="step-into"]').disabled = true;
+      this.root.querySelector('[data-act="step-over"]').disabled = true;
+      this.root.querySelector('[data-act="step-out"]').disabled = true;
+      this.root.querySelector('[data-act="pause"]').disabled = true;
+      this.root.querySelector('[data-act="resume"]').disabled = true;
+      this.elDebug.classList.add('debug-panel-hidden');
+      this.elDebug.setAttribute('data-hidden', 'true');
+      this.elDebug.removeAttribute('data-open');
+      this.toast('🐞 Depuración desactivada', 'info');
+    }
+
+    _initDebugPanel() {
+      const resizeHandler = document.getElementById('debugResizer');
+      if (!resizeHandler) return;
+
+      let isResizing = false;
+      let startX = 0;
+      let startWidth = 0;
+
+      resizeHandler.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        startX = e.clientX;
+        startWidth = this.elDebug.offsetWidth;
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+        e.preventDefault();
+      });
+
+      function onMouseMove(e) {
+        if (!isResizing) return;
+        const deltaX = e.clientX - startX;
+        const newWidth = startWidth + deltaX;
+        if (newWidth >= 300 && newWidth <= 600) {
+          this.elDebug.style.width = newWidth + 'px';
+          this._resizeDebugPanel();
+        }
+      }
+
+      function onMouseUp() {
+        isResizing = false;
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      }
+
+      // Guardar el handler en el contexto
+      this._debugResizeHandler = {
+        onMouseMove: onMouseMove.bind(this),
+        onMouseUp: onMouseUp.bind(this)
+      };
+    }
+
+    _resizeDebugPanel() {
+      if (this.elDebug && this.elDebug.dataset.open === '1') {
+        const rect = this.elDebug.getBoundingClientRect();
+        const minWidth = 300;
+        const currentWidth = rect.width;
+        if (currentWidth < minWidth) {
+          this.elDebug.style.width = minWidth + 'px';
+        }
+      }
     }
 
     bindKeys() {
       this._boundKeydown = (e => {
-        if (e.code === 'Space') { window.__sbSpaceDown = true; }
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); this.undo(); }
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && e.shiftKey) { e.preventDefault(); this.redo(); }
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); this.redo(); }
-        if (e.key === 'Delete' && this.selected) this.deleteSelected();
-        if (e.key === 'Escape') {
-          this._hideContextMenu();
-        }
-        // Debug keybindings
-        if (e.key === 'F8') { e.preventDefault(); this.toggleDebugMode(); }
-        if (e.key === 'F9') { e.preventDefault(); this.toggleBreakpointOnSelected(); }
-        if (e.key === 'F11') { e.preventDefault(); this.debugStepInto(); }
-        if (e.key === 'F10') { e.preventDefault(); this.debugStepOver(); }
-        if (e.key === 'F11' && e.shiftKey) { e.preventDefault(); this.debugStepOut(); }
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') { e.preventDefault(); this.debugPause(); }
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r') { e.preventDefault(); this.debugResume(); }
+        try {
+          if (e.code === 'Space') { window.__sbSpaceDown = true; }
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); this.undo(); }
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && e.shiftKey) { e.preventDefault(); this.redo(); }
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); this.redo(); }
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); this.exportToFile(); }
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd' && !e.shiftKey) { e.preventDefault(); this.duplicateSelected(); }
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l' && e.shiftKey) { e.preventDefault(); this._restoreAutoSave(); }
+          if (e.key === 'Delete' && this.selected) this.deleteSelected();
+          if (e.key === 'Escape') {
+            this._hideContextMenu();
+          }
+          // Debug keybindings
+          if (e.key === 'F8') { e.preventDefault(); this.toggleDebugMode(); }
+          if (e.key === 'F9') { e.preventDefault(); this.toggleBreakpointOnSelected(); }
+          if (e.key === 'F10') { e.preventDefault(); this.debugStepOver(); }
+          if (e.key === 'F11' && e.shiftKey) { e.preventDefault(); this.debugStepOut(); }
+          else if (e.key === 'F11') { e.preventDefault(); this.debugStepInto(); }
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') { e.preventDefault(); this.debugPause(); }
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r') { e.preventDefault(); this.debugResume(); }
+        } catch (_) { /* ignore key handler errors */ }
       });
       this._boundKeyup = (e => {
-        if (e.code === 'Space') { window.__sbSpaceDown = false; }
+        try {
+          if (e.code === 'Space') { window.__sbSpaceDown = false; }
+        } catch (_) { /* ignore key handler errors */ }
       });
       document.addEventListener('keydown', this._boundKeydown);
       document.addEventListener('keyup', this._boundKeyup);
@@ -1013,7 +1153,7 @@
       let recent = this._getRecentBlocks();
       recent = recent.filter(r => r !== op);
       recent.unshift(op);
-      if (recent.length > 8) recent = recent.slice(0, 8);
+      if (recent.length > 25) recent = recent.slice(0, 25);
       localStorage.setItem('sillyquiz-recent-blocks', JSON.stringify(recent));
     }
 
@@ -1023,15 +1163,21 @@
       } catch (e) { return []; }
     }
 
-    toggleFavorite(op) {
-      let favs = this._getFavoriteBlocks();
-      if (favs.includes(op)) {
-        favs = favs.filter(f => f !== op);
-      } else {
-        favs.push(op);
-      }
-      localStorage.setItem('sillyquiz-favorite-blocks', JSON.stringify(favs));
-      this.toast(favs.includes(op) ? '⭐ Añadido a favoritos' : '☆ Eliminado de favoritos', 'info');
+    _filterPalette(query) {
+      if (!this.elPalette) return;
+      const q = (query || '').toLowerCase().trim();
+      const blocks = this.elPalette.querySelectorAll('.palette-block');
+      blocks.forEach(b => {
+        if (!q) { b.style.display = ''; return; }
+        const op = (b.dataset.op || '').toLowerCase();
+        const label = (b.textContent || '').toLowerCase();
+        b.style.display = (op.indexOf(q) >= 0 || label.indexOf(q) >= 0) ? '' : 'none';
+      });
+      const sections = this.elPalette.querySelectorAll('.palette-section');
+      sections.forEach(sec => {
+        const visible = sec.querySelectorAll('.palette-block:not([style*="display: none"])');
+        sec.style.display = (!q || visible.length > 0) ? '' : 'none';
+      });
     }
 
     toggleFavorite(op) {
@@ -1055,6 +1201,7 @@
       this.runtime = this.runtime || new global.ScratchRuntime({ state: {} });
       this.runtime.setDebugMode(this._debugMode);
       this.elCanvas.classList.toggle('debug-mode', this._debugMode);
+      this.root.querySelector('.scratch-app').classList.toggle('debug-mode-active', this._debugMode);
       this.root.querySelector('[data-act="debug-mode"]').classList.toggle('active', this._debugMode);
       this.root.querySelector('[data-act="breakpoint"]').disabled = !this._debugMode;
       this.root.querySelector('[data-act="step-into"]').disabled = !this._debugMode;
@@ -1573,6 +1720,7 @@
     }
 
     _removeInst(id) {
+      if (id == null) return null;
       const stacks = this.heads[this.activeEvent] || [];
       for (let s = 0; s < stacks.length; s++) {
         let cur = stacks[s];
@@ -1649,9 +1797,9 @@
       try {
         return ScratchAOT.compile(scripts);
       } catch (e) {
-        this.log('error', e.message);
-        this.elStatus.textContent = 'Compilación falló';
-        throw e;
+        this.toast('Error de compilación: ' + e.message, 'error');
+        this.log('error', 'Compilación fallida: ' + e.message);
+        return null;
       }
     }
 
@@ -1680,7 +1828,6 @@
           onPanic: () => this.log('panic', 'PANIC — todos los hilos detenidos')
         }
       });
-      if (global.ScratchStage) global.ScratchStage.open();
       if (global.ScratchStage) { global.ScratchStage.reset(); global.ScratchStage.open(); }
       this.runtime.setEngineScripts(machine.events);
       this._attachEngineEventSource();
@@ -1799,24 +1946,28 @@
       if (!this.trace.length) return;
       let i = 0;
       const batchSize = 5;
+      const total = this.trace.length;
       const tick = () => {
-        const end = Math.min(i + batchSize, this.trace.length);
+        const end = Math.min(i + batchSize, total);
         for (; i < end; i++) {
           const t = this.trace[i];
           const el = this.domMap[t.id];
           if (el) {
             if (t.phase === 'start') {
               el.classList.add('block-active');
-              this.log('step', '▸ ' + this.opOf(t.id));
             } else if (t.phase === 'end') {
               el.classList.remove('block-active');
             } else if (t.phase === 'error') {
               el.classList.add('block-error');
-              this.log('error', '✖ ' + this.opOf(t.id) + (t.msg ? ': ' + t.msg : ''));
             }
           }
         }
-        if (i < this.trace.length) requestAnimationFrame(tick);
+        if (i < total) {
+          this.elStatus.textContent = 'Replay: Bloque ' + i + '/' + total;
+          requestAnimationFrame(tick);
+        } else {
+          this.elStatus.textContent = 'Replay completado · ' + total + ' bloques';
+        }
       };
       requestAnimationFrame(tick);
     }
@@ -1824,7 +1975,22 @@
     opOf(id) {
       const main = this._mainStack(this.activeEvent);
       let found = null;
-      const walk = (inst) => { let c = inst; while (c) { if (c._id === id) found = c.opcode; c = c.next; } };
+      const walk = (inst) => {
+        let c = inst;
+        while (c) {
+          if (c._id === id) { found = c.opcode; return; }
+          const def = ScratchBlocks.get(c.opcode);
+          if (def && def.bodies) {
+            for (let bi = 0; bi < def.bodies.length; bi++) {
+              const arr = c[def.bodies[bi]];
+              if (Array.isArray(arr)) {
+                for (let j = 0; j < arr.length; j++) { walk(arr[j]); if (found) return; }
+              } else if (arr && arr.opcode) { walk(arr); if (found) return; }
+            }
+          }
+          c = c.next;
+        }
+      };
       walk(main);
       return found ? this.humanize(found) : '(nodo)';
     }
@@ -1841,11 +2007,14 @@
       const ss = String(t.getSeconds()).padStart(2, '0');
       const line = document.createElement('div');
       line.className = 'log-line lvl-' + (level || 'info');
+      if (level === 'panic') {
+        line.style.cssText = 'background:#dc2626;color:#fff;font-weight:800;padding:4px 8px;border-left:4px solid #fff;';
+      }
       line.innerHTML = '<span class="log-time">' + hh + ':' + mm + ':' + ss + '</span>' +
         '<span class="log-badge">' + (level || 'info') + '</span>' +
         '<span class="log-msg">' + this._esc(msg) + '</span>';
       this.elConsole.appendChild(line);
-      while (this.elConsole.childElementCount > 300) this.elConsole.removeChild(this.elConsole.firstChild);
+      while (this.elConsole.childElementCount > 2000) this.elConsole.removeChild(this.elConsole.firstChild);
       this.elConsole.scrollTop = this.elConsole.scrollHeight;
     }
 
@@ -1890,7 +2059,13 @@
     schedulePreview() {
       if (!this.elPreview || this.elPreview.dataset.open !== '1') return;
       if (this._previewTimer) clearTimeout(this._previewTimer);
-      this._previewTimer = setTimeout(() => this.renderLivePreview(), 400);
+      this._previewTimer = setTimeout(() => {
+        try {
+          this.renderLivePreview();
+        } catch (e) {
+          this.log('error', 'Vista previa falló: ' + e.message);
+        }
+      }, 400);
     }
 
     _esc(s) {
@@ -1911,15 +2086,18 @@
           overlays: []
         };
         const steps = [];
-        const MAX_BLOCKS = 50;
 
         if (head) {
           let cur = head.next;
           let safety = 0;
-          while (cur && safety < MAX_BLOCKS) {
+          while (cur && safety < 100000) {
             safety++;
             const a = cur.args || {};
-            this._interpretBlock(cur.opcode, a, state);
+            try {
+              this._interpretBlock(cur.opcode, a, state);
+            } catch (ibErr) {
+              state.effects.push('⚠ Error en ' + this.humanize(cur.opcode) + ': ' + ibErr.message);
+            }
             const label = this.humanize(cur.opcode);
             const argStr = Object.keys(a)
               .filter(k => a[k] !== '' && a[k] != null)
@@ -2207,29 +2385,6 @@
           state.effects.push('🚨 PANIC RESET');
           break;
 
-        /* ---- Control ---- */
-        case 'wait_seconds':
-          state.effects.push('⏱ Esperar ' + (a.SEC || 1) + 's');
-          break;
-        case 'if_then':
-          state.effects.push('🔀 Si... entonces');
-          break;
-        case 'if_then_else':
-          state.effects.push('🔀 Si... sino...');
-          break;
-        case 'repeat_times':
-          state.effects.push('🔁 Repetir ' + (a.N || '?') + 'x');
-          break;
-        case 'repeat_until':
-          state.effects.push('🔁 Repetir hasta que...');
-          break;
-        case 'break_stack':
-          state.effects.push('⏹ Interrumpir');
-          break;
-        case 'global_panic_reset':
-          state.effects.push('🚨 PANIC RESET');
-          break;
-
         /* ---- DB ---- */
         case 'db_query_filter_difficulty':
           state.effects.push('Filtro: ' + (a.D || ''));
@@ -2290,7 +2445,7 @@
         const last = this.snapshots[this.snapshots.length - 1];
         if (last !== snap) {
           this.snapshots.push(snap);
-          if (this.snapshots.length > 30) this.snapshots.shift();
+          if (this.snapshots.length > 200) this.snapshots.shift();
           this._redoStack = [];
           this.autoSave();
           this.publishLiveState();
@@ -2314,7 +2469,10 @@
           this.heads[ev] = Array.isArray(v) ? v.map(s => this.rehydrate(s)) : this.rehydrate(v);
         });
         this.renderCanvas();
-        this.log('info', '↶ Deshacer');
+        const pos = this.snapshots.length;
+        const total = this.snapshots.length + (this._redoStack ? this._redoStack.length : 0);
+        this.log('info', '↶ Deshacer (' + pos + '/' + total + ')');
+        this._flashCanvasBorder();
       } catch (e) { this.log('error', 'undo falló'); }
     }
 
@@ -2332,8 +2490,17 @@
           this.heads[ev] = Array.isArray(v) ? v.map(s => this.rehydrate(s)) : this.rehydrate(v);
         });
         this.renderCanvas();
-        this.log('info', '↷ Rehacer');
+        const pos = this.snapshots.length;
+        const total = this.snapshots.length + (this._redoStack ? this._redoStack.length : 0);
+        this.log('info', '↷ Rehacer (' + pos + '/' + total + ')');
+        this._flashCanvasBorder();
       } catch (e) { this.log('error', 'redo falló'); }
+    }
+
+    _flashCanvasBorder() {
+      if (!this.elCanvas) return;
+      this.elCanvas.classList.add('canvas-flash');
+      setTimeout(() => this.elCanvas.classList.remove('canvas-flash'), 300);
     }
 
     /* Carga una plantilla (heads: mapa evento -> cadena o array de stacks). */
@@ -2566,20 +2733,26 @@
     }
 
     autoSave() {
-      try {
-        const data = this.exportTemplate();
-        localStorage.setItem('sillyquiz-builder-autosave', JSON.stringify(data));
-      } catch (_) { /* ignorar errores de auto-save */ }
+      if (this._autoSaveTimeout) clearTimeout(this._autoSaveTimeout);
+      this._autoSaveTimeout = setTimeout(() => {
+        try {
+          const data = this.exportTemplate();
+          const payload = { heads: data.heads, assets: data.assets, timestamp: Date.now() };
+          localStorage.setItem('sillyquiz-builder-autosave', JSON.stringify(payload));
+        } catch (_) { /* ignorar errores de auto-save */ }
+      }, 30000);
     }
 
-    autoLoad() {
+    loadAutoSave() {
       try {
         const raw = localStorage.getItem('sillyquiz-builder-autosave');
         if (raw) {
           const data = JSON.parse(raw);
           if (data && data.heads && Object.keys(data.heads).length > 0) {
-            this.loadTemplate(data);
-            this.log('info', '🔄 Borrador anterior restaurado automáticamente');
+            const age = data.timestamp ? Math.round((Date.now() - data.timestamp) / 60000) : null;
+            const ageStr = age != null ? ' (hace ' + age + ' min)' : '';
+            this.toast('🔄 Borrador encontrado' + ageStr + ' — Ctrl+Shift+L para restaurar', 'info');
+            this._pendingAutoSave = data;
             return true;
           }
         }
@@ -3349,6 +3522,52 @@
       this.loadTemplate(tpl);
       this.toast('Plantilla cargada ⚡', 'success');
     }
+    /* ---- Duplicate selected block (Ctrl+D) ---- */
+    duplicateSelected() {
+      if (!this.selected) return;
+      const inst = this.selected;
+      const def = ScratchBlocks.get(inst.opcode);
+      if (!def || def.type === 'hat') return;
+      const clone = this.makeInst(inst.opcode);
+      clone.args = JSON.parse(JSON.stringify(inst.args || {}));
+      if (def.bodies) {
+        def.bodies.forEach(b => {
+          if (inst[b] && Array.isArray(inst[b]) && inst[b].length) {
+            clone[b] = inst[b].map(c => this.rehydrate(c));
+          }
+        });
+      }
+      const stacks = this.heads[this.activeEvent] || [];
+      for (let s = 0; s < stacks.length; s++) {
+        let cur = stacks[s];
+        while (cur) {
+          if (cur === inst) {
+            clone.next = cur.next;
+            cur.next = clone;
+            this._registerUIControl(clone);
+            this.renderCanvas();
+            this.pushSnapshot();
+            this.selectBlock(clone);
+            this.log('info', 'Duplicado: ' + this.humanize(inst.opcode));
+            return;
+          }
+          cur = cur.next;
+        }
+      }
+    }
+
+    /* ---- Restore auto-saved project (Ctrl+Shift+L) ---- */
+    _restoreAutoSave() {
+      if (!this._pendingAutoSave) {
+        this.toast('No hay borrador para restaurar', 'warn');
+        return;
+      }
+      this.loadTemplate(this._pendingAutoSave);
+      this._pendingAutoSave = null;
+      this.toast('✅ Borrador restaurado', 'success');
+      this.log('info', '🔄 Borrador auto-guardado restaurado');
+    }
+
     destroy() {
       // Cerrar WebSocket del engine
       if (this._engineWS) {
@@ -3363,6 +3582,10 @@
       if (this._previewTimer) {
         clearTimeout(this._previewTimer);
         this._previewTimer = null;
+      }
+      if (this._autoSaveTimeout) {
+        clearTimeout(this._autoSaveTimeout);
+        this._autoSaveTimeout = null;
       }
       // Remover listeners globales
       document.removeEventListener('keydown', this._boundKeydown);

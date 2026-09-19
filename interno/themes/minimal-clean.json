@@ -1,0 +1,72 @@
+{
+  "id": "minimal-clean",
+  "name": "Minimal Clean",
+  "category": "modern",
+  "description": "Diseño limpio y minimalista - máximo foco en el contenido",
+  "colors": {
+    "primary": "#1A1A2E",
+    "primaryLight": "#2A2A4E",
+    "primaryDark": "#0F0F1E",
+    "secondary": "#6B6B8A",
+    "accent": "#00D4AA",
+    "accentLight": "#33E8C4",
+    "accentDark": "#00B894",
+    "success": "#00C853",
+    "successLight": "#69F0AE",
+    "warning": "#FFD600",
+    "warningLight": "#FFEA00",
+    "danger": "#FF1744",
+    "dangerLight": "#FF5983",
+    "info": "#2979FF",
+    "bgPrimary": "#FFFFFF",
+    "bgSecondary": "#F8F8FC",
+    "bgTertiary": "#EEEEF5",
+    "bgHover": "#E0E0EB",
+    "bgActive": "#D0D0E0",
+    "textPrimary": "#1A1A2E",
+    "textSecondary": "#4A4A6A",
+    "textMuted": "#8A8A9A",
+    "textInverse": "#FFFFFF",
+    "borderColor": "#D0D0E0",
+    "borderLight": "#E0E0EB",
+    "borderLighter": "#E8E8F0"
+  },
+  "fonts": {
+    "heading": "'Inter', 'Space Grotesk', sans-serif",
+    "body": "'Inter', 'Space Grotesk', sans-serif",
+    "mono": "'JetBrains Mono', monospace",
+    "timer": "'Inter', sans-serif",
+    "score": "'Inter', sans-serif"
+  },
+  "animations": {
+    "enabled": true,
+    "speed": 0.6,
+    "ease": "cubic-bezier(0.4, 0, 0.2, 1)"
+  },
+  "shapes": {
+    "count": 0,
+    "opacity": 0,
+    "speed": 1,
+    "behavior": "none"
+  },
+  "timer": {
+    "style": "minimal",
+    "size": 60,
+    "position": "top-right",
+    "bgColor": "transparent",
+    "textColor": "#1A1A2E",
+    "progressColor": "#00D4AA",
+    "glowColor": "transparent",
+    "urgentColor": "#FF1744",
+    "animation": "none"
+  },
+  "scores": {
+    "position": "bottom",
+    "height": 200
+  },
+  "decorations": {
+    "showLogo": false,
+    "showShapes": false,
+    "showParticles": false
+  }
+}

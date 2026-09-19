@@ -1,0 +1,618 @@
+/* silly-brutalist.css — Estilo NEO BRUTALISTA para SILLY y SILLYCONTROL */
+/* Diseño brutalista neonado integrado con el modo builder */
+/* Utiliza tokens compartidos del modo builder para unidad visual */
+
+/* Base: modo oscuro brutalista alto contraste */
+:root {
+  /* Base brutalista (invierte el modo builder suave) */
+  --sq-bg-primary: #050510;
+  --sq-bg-secondary: #0a0a15;
+  --sq-bg-tertiary: #13132a;
+  --sq-bg-hover: #1a1a30;
+  --sq-bg-active: #1f1f35;
+  
+  --sq-text-primary: #fff;
+  --sq-text-secondary: #e0e0e0;
+  --sq-text-muted: #aaaaaa;
+  --sq-text-inverse: #0f172a;
+  
+  --sq-border-color: #333;
+  --sq-border-light: #555;
+  --sq-border-lighter: #777;
+  
+  --sq-primary: #FF5E3A;
+  --sq-primary-light: #ff7c58;
+  --sq-primary-dark: #d94a1f;
+  --sq-accent: #FFD600;
+  --sq-accent-light: #ffe933;
+  --sq-accent-dark: #d4ba00;
+  --sq-success: #00ff88;
+  --sq-success-light: #33ff99;
+  --sq-danger: #ff3b3b;
+  --sq-danger-light: #ff5c5c;
+  --sq-warning: #ffbf00;
+  --sq-warning-light: #ffd633;
+  --sq-info: #0099ff;
+  --sq-info-light: #33aaff;
+  
+  /* Brutalista: esquinas cuadradas, sombras gruesas */
+  --sq-radius-sm: 0;
+  --sq-radius-md: 0;
+  --sq-radius-lg: 0;
+  --sq-radius-xl: 0;
+  
+  /* Cinética brutalista (sin blur, sin glow) */
+  --sq-transition-fast: 80ms cubic-bezier(0.4, 0, 0.2, 1);
+  --sq-transition-normal: 160ms cubic-bezier(0.4, 0, 0.2, 1);
+  --sq-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reset brutalista y base */
+html, body {
+  background: linear-gradient(135deg, var(--sq-bg-primary) 0%, var(--sq-bg-secondary) 50%, var(--sq-bg-tertiary) 100%);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-attachment: fixed;
+  color: var(--sq-text-primary);
+  font-family: 'Space Mono', 'Courier New', monospace;
+  overflow-x: hidden;
+  position: relative;
+  border: 4px solid var(--sq-accent);
+  box-shadow: 8px 8px 0 var(--sq-primary), 16px 16px 0 var(--sq-success);
+  image-rendering: pixelated;
+}
+
+html.light, html.light body {
+  background: linear-gradient(135deg, #f8f8f8 0%, #e8e8e8 50%, #d8d8d8 100%);
+  background-image:
+    linear-gradient(var(--grid-line-light) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line-light) 1px, transparent 1px);
+  color: var(--sq-text-inverse);
+  border: 4px solid var(--sq-primary-dark);
+  box-shadow: 8px 8px 0 var(--sq-primary-dark), 16px 16px 0 var(--sq-success);
+}
+
+/* Barras fuera de la cuadrícula para oscurecer la distancia variable */
+.sidebar {
+  background: var(--sq-bg-secondary);
+  border-right: 4px solid var(--sq-border-color);
+  box-shadow: 4px 0 0 var(--sq-primary), inset 0 -4px 0 var(--sq-accent);
+  z-index: 50;
+  transition: all var(--sq-transition-normal);
+  backdrop-filter: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 68px;
+  height: 100vh;
+  position: relative;
+}
+
+html.light .sidebar {
+  background: var(--sq-bg-secondary-light);
+  border-right: 4px solid var(--sq-border-color-light);
+  box-shadow: 4px 0 0 var(--sq-primary-light), inset 0 -4px 0 var(--sq-accent-light);
+}
+
+/* La marca de la barra lateral: silueta brutalista */
+
+.sidebar-brand {
+  background: linear-gradient(135deg, var(--sq-primary), var(--sq-accent));
+  border: 4px solid var(--sq-border-color);
+  box-shadow: 6px 6px 0 var(--sq-success), inset 0 2px 0 rgba(255,255,255,0.3);
+  color: #0a0a0a;
+  font-weight: 900;
+  font-size: 1.4rem;
+  letter-spacing: -0.05em;
+  margin: var(--sq-spacing-md);
+  padding: var(--sq-spacing-xs) var(--sq-spacing-sm);
+  position: relative;
+  text-align: center;
+  text-transform: uppercase;
+  transform: rotate(3deg);
+  width: fit-content;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+html.light .sidebar-brand {
+  background: linear-gradient(135deg, var(--sq-primary-light), var(--sq-accent-light));
+  box-shadow: 6px 6px 0 var(--sq-success-light), inset 0 2px 0 rgba(0,0,0,0.3);
+  color: #fff;
+}
+
+.sidebar-brand::before {
+  content: '';
+  position: absolute;
+  top: -2px; left: -2px; right: 2px; bottom: 2px;
+  background: linear-gradient(45deg, var(--sq-accent), transparent);
+  border-radius: 0;
+  z-index: -1;
+}
+
+/* Botón de pestaña brutalista */
+
+.tab-btn {
+  background: transparent;
+  border: 4px solid transparent;
+  border-radius: 0;
+  color: var(--sq-text-secondary);
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 900;
+  height: 56px;
+  min-width: 56px;
+  padding: var(--sq-spacing-xs);
+  position: relative;
+  text-transform: uppercase;
+  transition: all var(--sq-transition-fast);
+  overflow: hidden;
+  letter-spacing: 0.05em;
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+}
+
+html.light .tab-btn {
+  text-shadow: 2px 2px 0 rgba(255,255,255,0.5);
+}
+
+.tab-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: all 0.6s ease;
+}
+
+.tab-btn:hover::before {
+  left: 100%;
+}
+
+.tab-btn:hover {
+  background: var(--sq-primary);
+  border-color: var(--sq-accent);
+  color: var(--sq-bg-primary);
+  transform: translate(-2px, -2px) scale(1.02);
+  box-shadow: 8px 8px 0 var(--sq-success), inset 0 -2px 0 var(--sq-accent);
+  text-shadow: none;
+}
+
+html.light .tab-btn:hover {
+  background: var(--sq-primary-light);
+  color: var(--sq-bg-tertiary);
+  box-shadow: 8px 8px 0 var(--sq-success-light), inset 0 -2px 0 var(--sq-accent-dark);
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--sq-primary), var(--sq-accent));
+  border-color: var(--sq-accent);
+  box-shadow: 12px 12px 0 var(--sq-success), inset 0 2px 0 rgba(255,255,255,0.3);
+  color: #0a0a0a;
+  font-weight: 900;
+  transform: translate(0, 0);
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+}
+
+html.light .tab-btn.active {
+  background: linear-gradient(135deg, var(--sq-primary-light), var(--sq-accent-light));
+  box-shadow: 12px 12px 0 var(--sq-success-light), inset 0 2px 0 rgba(0,0,0,0.3);
+  color: #fff;
+  text-shadow: 2px 2px 0 rgba(255,255,255,0.3);
+}
+
+.tab-btn.active::after {
+  display: none;
+}
+
+/* Componente de tarjeta brutalista */
+
+.card, .dashboard-card {
+  background: var(--sq-bg-tertiary);
+  border: 4px solid var(--sq-border-color);
+  border-radius: 0;
+  box-shadow: 8px 8px 0 var(--sq-primary), inset 0 2px 0 rgba(255,255,255,0.1);
+  padding: var(--sq-spacing-lg);
+  position: relative;
+  transition: all var(--sq-transition-normal);
+  overflow: hidden;
+}
+
+html.light .card, html.light .dashboard-card {
+  background: var(--sq-bg-secondary-light);
+  border-color: var(--sq-border-color-light);
+  box-shadow: 8px 8px 0 var(--sq-primary-light), inset 0 2px 0 rgba(0,0,0,0.1);
+}
+
+.card::after, .dashboard-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
+  transform: translateX(-100%);
+  transition: all 0.6s ease;
+}
+
+.card:hover::after, .dashboard-card:hover::after {
+  transform: translateX(100%);
+}
+
+.card:hover, .dashboard-card:hover {
+  border-color: var(--sq-accent);
+  box-shadow: 12px 12px 0 var(--sq-success), inset 0 2px 0 var(--sq-accent);
+  transform: translate(-3px, -3px) scale(1.01);
+  background: var(--sq-bg-hover);
+}
+
+html.light .card:hover, html.light .dashboard-card:hover {
+  background: var(--sq-bg-hover-light);
+}
+
+.card-title, .label {
+  color: var(--sq-text-primary);
+  font-size: 1rem;
+  font-weight: 900;
+  margin-bottom: var(--sq-spacing-md);
+  position: relative;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
+  padding-bottom: var(--sq-spacing-xs);
+}
+
+.card-title::before, .label::before {
+  content: '▦';
+  color: var(--sq-accent);
+  margin-right: var(--sq-spacing-xs);
+  font-weight: 900;
+}
+
+/* Componente HUD brutalista */
+
+.app-hud {
+  background: linear-gradient(90deg, var(--sq-bg-tertiary), var(--sq-bg-secondary));
+  border-bottom: 4px solid var(--sq-border-color);
+  border-radius: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sq-spacing-md);
+  justify-content: space-between;
+  margin-bottom: var(--sq-spacing-xl);
+  padding: var(--sq-spacing-md) var(--sq-spacing-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.app-hud::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 3px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--sq-primary), var(--sq-accent));
+}
+
+.app-hud-mark {
+  background: linear-gradient(135deg, var(--sq-primary), var(--sq-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 900;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+}
+
+.app-hud-dot {
+  border-radius: 0;
+  box-shadow: 2px 2px 0 var(--sq-border-color);
+  display: inline-block;
+  height: 10px; width: 10px;
+  transition: all var(--sq-transition-normal);
+  filter: hue-rotate(180deg) brightness(1.5);
+}
+
+.app-hud-dot.active {
+  animation: pulseBrutal 2s infinite steps(2);
+}
+
+@keyframes pulseBrutal {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 2px 2px 0 var(--sq-success); }
+  50% { opacity: 0.7; transform: scale(0.95); box-shadow: 4px 4px 0 var(--sq-accent); }
+}
+
+/* Componente de badge brutalista */
+
+.badge {
+  background: var(--sq-bg-tertiary);
+  border: 4px solid var(--sq-border-color);
+  border-radius: 0;
+  color: var(--sq-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 900;
+  padding: var(--sq-spacing-xs) var(--sq-spacing-sm);
+  position: relative;
+  text-transform: uppercase;
+  transition: all var(--sq-transition-fast);
+  letter-spacing: 0.05em;
+  transform: rotate(-1deg);
+}
+
+.badge:hover {
+  background: var(--sq-accent);
+  border-color: var(--sq-primary);
+  color: var(--sq-bg-primary);
+  transform: translate(-2px, -2px) rotate(2deg) scale(1.05);
+  box-shadow: 6px 6px 0 var(--sq-success);
+}
+
+/* Componente de botón brutalista */
+
+.btn {
+  background: var(--sq-bg-secondary);
+  border: 4px solid var(--sq-border-color);
+  border-radius: 0;
+  color: var(--sq-text-primary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 900;
+  padding: var(--sq-spacing-xs) var(--sq-spacing-md);
+  position: relative;
+  text-transform: uppercase;
+  transition: all var(--sq-transition-fast);
+  overflow: hidden;
+  letter-spacing: 0.05em;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+}
+
+html.light .btn {
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: all 0.6s ease;
+}
+
+.btn:hover::before {
+  left: 100%;
+}
+
+.btn:hover {
+  border-color: var(--sq-primary);
+  background: var(--sq-bg-tertiary);
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0 var(--sq-success), inset 0 -2px 0 var(--sq-accent);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--sq-primary), var(--sq-accent));
+  border-color: var(--sq-primary-dark);
+  color: #0a0a0a;
+  font-weight: 900;
+  box-shadow: 8px 8px 0 var(--sq-success), inset 0 2px 0 rgba(255,255,255,0.3);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--sq-primary-light), var(--sq-accent-light));
+  border-color: var(--sq-primary);
+  transform: translate(-2px, -2px) scale(1.02);
+  box-shadow: 12px 12px 0 var(--sq-success-light), inset 0 2px 0 var(--sq-accent-dark);
+}
+
+.btn-red {
+  background: linear-gradient(135deg, var(--sq-danger), #ff5c5c);
+  border-color: #991b1b;
+  color: white;
+  font-weight: 900;
+  box-shadow: 8px 8px 0 #333, inset 0 2px 0 rgba(255,255,255,0.2);
+}
+
+.btn-yellow {
+  background: linear-gradient(135deg, var(--sq-warning), #fbbf24);
+  border-color: #a16207;
+  color: #0f172a;
+  font-weight: 900;
+  box-shadow: 8px 8px 0 #000, inset 0 2px 0 rgba(0,0,0,0.2);
+}
+
+.btn-green {
+  background: linear-gradient(135deg, var(--sq-success), #10b981);
+  border-color: #166534;
+  color: white;
+  font-weight: 900;
+  box-shadow: 8px 8px 0 #000, inset 0 2px 0 rgba(255,255,255,0.2);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 4px dashed var(--sq-border-color);
+  color: var(--sq-text-muted);
+}
+
+.btn-ghost:hover {
+  background: var(--sq-bg-tertiary);
+  border-style: solid;
+  color: var(--sq-text-primary);
+}
+
+/* Componente de tablero brutalista */
+
+.mode-indicator {
+  background: var(--sq-bg-tertiary);
+  border: 4px solid var(--sq-border-color);
+  border-radius: 0;
+  padding: var(--sq-spacing-sm) var(--sq-spacing-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.mode-indicator::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 3px;
+  height: 100%;
+  background: var(--sq-cat-events, #FFB000);
+  border-radius: 0;
+}
+
+/* Componente de barra lateral brutalista */
+
+.sidebar-status {
+  border-radius: 0;
+  display: inline-block;
+  height: 8px; width: 8px;
+  transition: all var(--sq-transition-normal);
+}
+
+.sidebar-status.active {
+  background: var(--sq-success);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.sidebar-status.inactive {
+  background: var(--sq-danger);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+
+/* Componente extenso brutalista */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(1.01);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.6); }
+}
+
+/* Utilidades */
+
+.hidden { display: none !important; }
+.text-xs { font-size: 0.7rem; }
+.text-sm { font-size: 0.85rem; }
+.text-muted { color: var(--sq-text-muted); }
+.text-muted2 { color: var(--sq-text-muted); opacity: 0.7; }
+.fw-700 { font-weight: 700; }
+.fw-900 { font-weight: 900; }
+
+/* Tema brutalista brutalista */
+
+.silly-theme-brutalist .tab-panel {
+  border-style: double;
+  border-width: 6px;
+  border-color: var(--sq-accent);
+}
+
+.silly-theme-brutalist .card, .silly-theme-brutalist .dashboard-card {
+  border-style: double;
+  border-width: 4px;
+  border-color: var(--sq-accent);
+}
+
+.silly-theme-brutalist .app-hud {
+  background: linear-gradient(90deg, var(--sq-bg-tertiary), rgba(139, 92, 246, 0.1), transparent);
+}
+
+/* Comportamiento de selección */
+
+::selection {
+  background: var(--sq-primary);
+  color: var(--sq-bg-primary);
+}
+
+html.light ::selection {
+  background: var(--sq-primary-light);
+  color: var(--sq-bg-tertiary);
+}
+
+/* Media query para brutalista en móvil */
+
+@media (max-width: 768px) {
+  html, body {
+    border: 2px solid var(--sq-accent);
+    box-shadow: 4px 4px 0 var(--sq-primary), 8px 8px 0 var(--sq-success);
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    flex-direction: row;
+    border-right: none;
+    border-top: 4px solid var(--sq-border-color);
+    box-shadow: 0 -4px 0 var(--sq-accent), inset 0 2px 0 var(--sq-primary);
+    padding: var(--sq-spacing-xs) var(--sq-spacing-md);
+  }
+  
+  .tab-btn {
+    height: 48px;
+    min-width: 48px;
+    transform: none;
+  }
+  
+  .tab-btn.active::before {
+    display: none;
+  }
+  
+  .content {
+    padding-bottom: 72px;
+    margin-top: 68px;
+  }
+}
+
+/* Grid personalizado */
+
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sq-spacing-lg); }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sq-spacing-lg); }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sq-spacing-lg); }
+.flex-row { display: flex; flex-direction: row; align-items: center; gap: var(--sq-spacing-sm); }
+.flex-col { display: flex; flex-direction: column; gap: var(--sq-spacing-sm); }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.flex-1 { flex: 1; }
+.gap-4 { gap: var(--sq-spacing-lg); }
+.mt-4 { margin-top: var(--sq-spacing-lg); }
+.mb-4 { margin-bottom: var(--sq-spacing-lg); }
+
+/* Variables personalizadas para brutalista */
+
+:root {
+  --grid-line: rgba(255, 255, 255, 0.04);
+  --grid-line-light: rgba(0, 0, 0, 0.06);
+  --shadow: 4px 4px 0 var(--border);
+  --shadow-hover: 6px 6px 0 var(--accent);
+  --shadow-strong: 8px 8px 0 var(--accent);
+}

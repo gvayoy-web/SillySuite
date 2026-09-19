@@ -1,0 +1,637 @@
+/* silly-control.css — Estilo brutalista para el panel de control */
+/* Diseño integrado con el modo builder brutalista */
+
+/* Utilizamos las variables ya definidas en design-tokens.css para consistencia */
+
+html, body {
+  background: linear-gradient(135deg, var(--sq-bg-primary) 0%, var(--sq-bg-secondary) 50%, var(--sq-bg-tertiary) 100%);
+  background-image:
+    radial-gradient(circle at 10% 10%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 90% 90%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 70%);
+  background-attachment: fixed;
+  color: var(--sq-text-primary);
+  font-family: var(--sq-font-sans);
+  overflow-x: hidden;
+  position: relative;
+  border: 4px solid var(--sq-primary);
+  box-shadow: 8px 8px 0 var(--sq-accent);
+}
+
+html.light, html.light body {
+  border: 4px solid var(--sq-primary-light);
+  box-shadow: 8px 8px 0 var(--sq-accent-light);
+}
+
+/* La barra lateral y su contenido */
+.sidebar {
+  background: linear-gradient(to bottom, var(--sq-bg-secondary) 0%, var(--sq-bg-tertiary) 100%);
+  border-right: 4px solid var(--sq-border-color);
+  box-shadow: 8px 0 0 var(--sq-primary), inset 0 2px 0 var(--sq-accent);
+  z-index: 50;
+  transition: all var(--sq-transition-normal);
+  backdrop-filter: blur(10px);
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 68px;
+  height: 100vh;
+  position: fixed;
+}
+
+html.light .sidebar {
+  background: linear-gradient(to bottom, var(--sq-bg-secondary-light) 0%, var(--sq-bg-tertiary-light) 100%);
+  border-right: 4px solid var(--sq-border-color-light);
+  box-shadow: 8px 0 0 var(--sq-primary-light), inset 0 2px 0 var(--sq-accent-light);
+}
+
+/* La marca de la barra lateral: mantener silueta idéntica para imágenes ocultas (manteniendo la original) */
+
+sidebar-brand {
+  background: linear-gradient(135deg, var(--sq-primary), var(--sq-accent));
+  border-radius: var(--sq-radius-xl);
+  box-shadow: var(--sq-shadow-lg);
+  color: white;
+  font-weight: 900;
+  font-size: 1.4rem;
+  letter-spacing: -0.05em;
+  margin: var(--sq-spacing-md);
+  padding: var(--sq-spacing-sm) var(--sq-spacing-md);
+  position: relative;
+  text-align: center;
+  text-transform: uppercase;
+  transform: rotate(-1deg);
+  width: fit-content;
+}
+
+sidebar-brand::before {
+  content: '';
+  position: absolute;
+  top: -2px; left: -2px; right: 2px; bottom: 2px;
+  background: linear-gradient(45deg, var(--sq-primary-light), transparent);
+  border-radius: var(--sq-radius-xl);
+  z-index: -1;
+}
+
+/* Botón de pestaña: subdividir superficie de tabulación y crear retorno visual */
+/* BIENVENIR - obstruir categorización visual con alta definición visual */
+
+.tab-btn {
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: var(--sq-radius-md);
+  color: var(--sq-text-secondary);
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 800;
+  height: 48px;
+  min-width: 48px;
+  padding: var(--sq-spacing-xs);
+  position: relative;
+  text-transform: uppercase;
+  transition: all var(--sq-transition-fast);
+  overflow: hidden;
+}
+
+.tab-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: all 0.6s ease;
+}
+
+.tab-btn:hover::before {
+  left: 100%;
+}
+
+.tab-btn:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: var(--sq-primary);
+  color: var(--sq-text-primary);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: var(--sq-shadow-md);
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--sq-primary), var(--sq-accent));
+  border-color: var(--sq-primary-dark);
+  box-shadow: var(--sq-shadow-lg);
+  color: white;
+  font-weight: 900;
+  transform: translateY(0);
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--sq-primary-light), var(--sq-accent-light));
+  animation: activeGlow 1.5s infinite alternate;
+}
+
+@keyframes activeGlow {
+  0% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* La superficie de layout de pantalla cargada: dividir barrido de superficie y alineación visual de encuadre fino */
+/* BIENVENIR - alto rendimiento mayor y exoesqueleto bruto contra UI fino de maquillaje // pantalla negra / batidita */
+
+.screen {
+  background: rgba(10, 10, 21, 0.6);
+  border: 2px solid var(--sq-border-color);
+  border-radius: var(--sq-radius-xl);
+  box-shadow: var(--sq-shadow-2xl);
+  margin: var(--sq-spacing-md) auto;
+  max-width: 1920px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+}
+
+html.light .screen {
+  background: rgba(241, 245, 249, 0.7);
+  border-color: var(--sq-border-color-light);
+}
+
+.screen::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--sq-primary), var(--sq-accent), var(--sq-success));
+  border-radius: var(--sq-radius-xl) var(--sq-radius-xl) 0 0;
+}
+
+.screen::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--sq-danger), var(--sq-warning), var(--sq-info));
+  border-radius: 0 0 var(--sq-radius-xl) var(--sq-radius-xl);
+}
+
+/* Editor visual: subdividir superficie de barrido láser del editor de modos */
+/* BIENVENIR - Editor visual de alto nivel con relleno exquisito de superficie */
+
+.display-visual-editor {
+  background: linear-gradient(to bottom, var(--sq-bg-tertiary), var(--sq-bg-secondary));
+  border: 2px solid var(--sq-border-color);
+  border-radius: var(--sq-radius-lg);
+  padding: var(--sq-spacing-lg);
+  position: relative;
+  transition: all var(--sq-transition-normal);
+  overflow: hidden;
+  margin-bottom: var(--sq-spacing-lg);
+}
+
+.display-visual-editor::before {
+  content: 'Modo Display';
+  position: absolute;
+  top: var(--sq-spacing-sm);
+  right: var(--sq-spacing-sm);
+  color: var(--sq-text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.5;
+  letter-spacing: 0.1em;
+}
+
+.display-visual-editor:hover {
+  border-color: var(--sq-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--sq-shadow-lg);
+}
+
+/* Tecnología radares: crear barrido enfocado y filtrare para barrido de monitor de carga */
+/* BIENVENIR - La tecnología de rastros ha aumentado enormemente las capacidades de visualización de estado */
+
+#chargeMonitor {
+  background: var(--sq-bg-tertiary);
+  border-radius: var(--sq-radius-lg);
+  padding: var(--sq-spacing-md);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--sq-border-color);
+}
+
+#chargeMonitor::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 2px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--sq-primary), var(--sq-success));
+  animation: monitorActive 2s infinite ease-in-out;
+}
+
+@keyframes monitorActive {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* Barras externas: subdividir superficie y crear jerarquía de barra lateral precisa */
+/* BIENVENIR - La barra lateral robusta de alto nivel sigue siendo visible y directamente escaneable */
+
+sidebar {
+  background: linear-gradient(to bottom, var(--sq-bg-secondary) 0%, var(--sq-bg-tertiary) 100%);
+  border-right: 2px solid var(--sq-border-color);
+  box-shadow: var(--sq-shadow-xl);
+  z-index: 50;
+  transition: all var(--sq-transition-normal);
+  backdrop-filter: blur(10px);
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 68px;
+}
+
+/* La marca de la barra lateral: mantener silueta idéntica para imágenes ocultas (manteniendo la original) */
+
+.sidebar-brand {
+  background: linear-gradient(135deg, var(--sq-primary), var(--sq-accent));
+  border-radius: var(--sq-radius-xl);
+  box-shadow: var(--sq-shadow-lg);
+  color: white;
+  font-weight: 900;
+  font-size: 1.2rem;
+  letter-spacing: -0.05em;
+  margin: var(--sq-spacing-md);
+  padding: var(--sq-spacing-xs) var(--sq-spacing-sm);
+  position: relative;
+  text-align: center;
+  text-transform: uppercase;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sq-spacing-xs);
+  padding: var(--sq-spacing-sm);
+}
+
+.tab-btn {
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: var(--sq-radius-md);
+  color: var(--sq-text-secondary);
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 800;
+  height: 48px;
+  min-width: 48px;
+  padding: var(--sq-spacing-xs);
+  position: relative;
+  text-transform: uppercase;
+  transition: all var(--sq-transition-fast);
+  overflow: hidden;
+}
+
+.tab-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: all 0.6s ease;
+}
+
+.tab-btn:hover::before {
+  left: 100%;
+}
+
+.tab-btn:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: var(--sq-primary);
+  color: var(--sq-text-primary);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: var(--sq-shadow-md);
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--sq-primary), var(--sq-accent));
+  border-color: var(--sq-primary-dark);
+  box-shadow: var(--sq-shadow-lg);
+  color: white;
+  font-weight: 900;
+  transform: translateY(0);
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--sq-primary-light), var(--sq-accent-light));
+  animation: activeGlow 1.5s infinite alternate;
+}
+
+@keyframes activeGlow {
+  0% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* La superficie de layout de pantalla cargada: dividir barrido de superficie y alineación visual de encuadre fino */
+/* BIENVENIR - alto rendimiento mayor y exoesqueleto bruto contra UI fino de maquillaje // pantalla negra / batidita */
+
+.screen {
+  background: rgba(10, 10, 21, 0.6);
+  border: 2px solid var(--sq-border-color);
+  border-radius: var(--sq-radius-xl);
+  box-shadow: var(--sq-shadow-2xl);
+  margin: var(--sq-spacing-md) auto;
+  max-width: 1920px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+}
+
+html.light .screen {
+  background: rgba(241, 245, 249, 0.7);
+  border-color: var(--sq-border-color-light);
+}
+
+.screen::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--sq-primary), var(--sq-accent), var(--sq-success));
+  border-radius: var(--sq-radius-xl) var(--sq-radius-xl) 0 0;
+}
+
+.screen::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--sq-danger), var(--sq-warning), var(--sq-info));
+  border-radius: 0 0 var(--sq-radius-xl) var(--sq-radius-xl);
+}
+
+/* Editor visual: subdividir superficie de barrido láser del editor de modos */
+/* BIENVENIR - Editor visual de alto nivel con relleno exquisito de superficie */
+
+.display-visual-editor {
+  background: linear-gradient(to bottom, var(--sq-bg-tertiary), var(--sq-bg-secondary));
+  border: 2px solid var(--sq-border-color);
+  border-radius: var(--sq-radius-lg);
+  padding: var(--sq-spacing-lg);
+  position: relative;
+  transition: all var(--sq-transition-normal);
+  overflow: hidden;
+  margin-bottom: var(--sq-spacing-lg);
+}
+
+.display-visual-editor::before {
+  content: 'Modo Display';
+  position: absolute;
+  top: var(--sq-spacing-sm);
+  right: var(--sq-spacing-sm);
+  color: var(--sq-text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.5;
+  letter-spacing: 0.1em;
+}
+
+.display-visual-editor:hover {
+  border-color: var(--sq-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--sq-shadow-lg);
+}
+
+/* Tecnología radares: crear barrido enfocado y filtrare para barrido de monitor de carga */
+/* BIENVENIR - La tecnología de rastros ha aumentado enormemente las capacidades de visualización de estado */
+
+#chargeMonitor {
+  background: var(--sq-bg-tertiary);
+  border-radius: var(--sq-radius-lg);
+  padding: var(--sq-spacing-md);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--sq-border-color);
+}
+
+#chargeMonitor::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 2px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--sq-primary), var(--sq-success));
+  animation: monitorActive 2s infinite ease-in-out;
+}
+
+@keyframes monitorActive {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* Barras externas: subdividir superficie y crear jerarquía de barra lateral precisa */
+/* BIENVENIR - La barra lateral robusta de alto nivel sigue siendo visible y directamente escaneable */
+
+sidebar {
+  background: linear-gradient(to bottom, var(--sq-bg-secondary) 0%, var(--sq-bg-tertiary) 100%);
+  border-right: 2px solid var(--sq-border-color);
+  box-shadow: var(--sq-shadow-xl);
+  z-index: 50;
+  transition: all var(--sq-transition-normal);
+  backdrop-filter: blur(10px);
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 68px;
+}
+
+/* La marca de la barra lateral: mantener silueta idéntica para imágenes ocultas (manteniendo la original) */
+
+.sidebar-brand {
+  background: linear-gradient(135deg, var(--sq-primary), var(--sq-accent));
+  border-radius: var(--sq-radius-xl);
+  box-shadow: var(--sq-shadow-lg);
+  color: white;
+  font-weight: 900;
+  font-size: 1.2rem;
+  letter-spacing: -0.05em;
+  margin: var(--sq-spacing-md);
+  padding: var(--sq-spacing-xs) var(--sq-spacing-sm);
+  position: relative;
+  text-align: center;
+  text-transform: uppercase;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sq-spacing-xs);
+  padding: var(--sq-spacing-sm);
+}
+
+.tab-btn {
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: var(--sq-radius-md);
+  color: var(--sq-text-secondary);
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 800;
+  height: 48px;
+  min-width: 48px;
+  padding: var(--sq-spacing-xs);
+  position: relative;
+  text-transform: uppercase;
+  transition: all var(--sq-transition-fast);
+  overflow: hidden;
+}
+
+.tab-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: all 0.6s ease;
+}
+
+.tab-btn:hover::before {
+  left: 100%;
+}
+
+.tab-btn:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: var(--sq-primary);
+  color: var(--sq-text-primary);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: var(--sq-shadow-md);
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--sq-primary), var(--sq-accent));
+  border-color: var(--sq-primary-dark);
+  box-shadow: var(--sq-shadow-lg);
+  color: white;
+  font-weight: 900;
+  transform: translateY(0);
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--sq-primary-light), var(--sq-accent-light));
+  animation: activeGlow 1.5s infinite alternate;
+}
+
+@keyframes activeGlow {
+  0% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* La superficie de layout de pantalla cargada: dividir barrido de superficie y alineación visual de encuadre fino */
+/* BIENVENIR - alto rendimiento mayor y exoesqueleto bruto contra UI fino de maquillaje // pantalla negra / batidita */
+
+.screen {
+  background: rgba(10, 10, 21, 0.6);
+  border: 2px solid var(--sq-border-color);
+  border-radius: var(--sq-radius-xl);
+  box-shadow: var(--sq-shadow-2xl);
+  margin: var(--sq-spacing-md) auto;
+  max-width: 1920px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+}
+
+html.light .screen {
+  background: rgba(241, 245, 249, 0.7);
+  border-color: var(--sq-border-color-light);
+}
+
+.screen::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--sq-primary), var(--sq-accent), var(--sq-success));
+  border-radius: var(--sq-radius-xl) var(--sq-radius-xl) 0 0;
+}
+
+.screen::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--sq-danger), var(--sq-warning), var(--sq-info));
+  border-radius: 0 0 var(--sq-radius-xl) var(--sq-radius-xl);
+}
+
+/* Editor visual: subdividir superficie de barrido láser del editor de modos */
+/* BIENVENIR - Editor visual de alto nivel con relleno exquisito de superficie */
+
+.display-visual-editor {
+  background: linear-gradient(to bottom, var(--sq-bg-tertiary), var(--sq-bg-secondary));
+  border: 2px solid var(--sq-border-color);
+  border-radius: var(--sq-radius-lg);
+  padding: var(--sq-spacing-lg);
+  position: relative;
+  transition: all var(--sq-transition-normal);
+  overflow: hidden;
+  margin-bottom: var(--sq-spacing-lg);
+}
+
+.display-visual-editor::before {
+  content: 'Modo Display';
+  position: absolute;
+  top: var(--sq-spacing-sm);
+  right: var(--sq-spacing-sm);
+  color: var(--sq-text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.5;
+  letter-spacing: 0.1em;
+}
+
+.display-visual-editor:hover {
+  border-color: var(--sq-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--sq-shadow-lg);
+}
+
+/* Tecnología radares: crear barrido enfocado y filtrare para barrido de monitor de carga */
+/* BIENVENIR - La tecnología de rastros ha aumentado enormemente las capacidades de visualización de estado */
+
+#chargeMonitor {
+  background: var(--sq-bg-tertiary);
+  border-radius: var(--sq-radius-lg);
+  padding: var(--sq-spacing-md);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--sq-border-color);
+}
+
+#chargeMonitor::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 2px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--sq-primary), var(--sq-success));
+  animation: monitorActive 2s infinite ease-in-out;
+}
+
+@keyframes monitorActive {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}

@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; font-src https://fonts.gstatic.com; connect-src 'self' ws://*:8081 wss://*:8081;">
+  <title>SillyQuiz — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/launcher-dashboard.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Navegación principal">
+      <div class="sidebar-header">
+        <div class="logo">
+          <svg viewBox="0 0 80 80" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="80" height="80" rx="16" fill="#FF5E3A"/>
+            <rect x="4" y="4" width="72" height="72" rx="12" fill="#0B0B0B"/>
+            <text x="40" y="52" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="900" font-size="32" fill="#FF5E3A">SQ</text>
+            <rect x="8" y="8" width="12" height="4" fill="#FFB000" rx="2"/>
+            <rect x="60" y="68" width="12" height="4" fill="#9B6BFF" rx="2"/>
+          </svg>
+        </div>
+        <div class="brand">
+          <h1>SillyQuiz</h1>
+          <span class="badge">Dashboard</span>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav" role="menubar">
+        <a href="#overview" class="nav-item active" role="menuitem" data-view="overview">
+          <span class="nav-icon" aria-hidden="true">🏠</span>
+          <span class="nav-label">Resumen</span>
+        </a>
+        <a href="#server" class="nav-item" role="menuitem" data-view="server">
+          <span class="nav-icon" aria-hidden="true">🖥️</span>
+          <span class="nav-label">Servidor</span>
+          <span class="nav-status" id="serverStatus" aria-live="polite"></span>
+        </a>
+        <a href="#builder" class="nav-item" role="menuitem" data-view="builder">
+          <span class="nav-icon" aria-hidden="true">🧩</span>
+          <span class="nav-label">BuildSilly</span>
+        </a>
+        <a href="#display" class="nav-item" role="menuitem" data-view="display">
+          <span class="nav-icon" aria-hidden="true">📺</span>
+          <span class="nav-label">Display</span>
+        </a>
+        <a href="#themes" class="nav-item" role="menuitem" data-view="themes">
+          <span class="nav-icon" aria-hidden="true">🎨</span>
+          <span class="nav-label">Temas</span>
+        </a>
+        <a href="#templates" class="nav-item" role="menuitem" data-view="templates">
+          <span class="nav-icon" aria-hidden="true">📋</span>
+          <span class="nav-label">Plantillas</span>
+        </a>
+        <a href="#monitor" class="nav-item" role="menuitem" data-view="monitor">
+          <span class="nav-icon" aria-hidden="true">📊</span>
+          <span class="nav-label">Monitor</span>
+        </a>
+        <a href="#settings" class="nav-item" role="menuitem" data-view="settings">
+          <span class="nav-icon" aria-hidden="true">⚙️</span>
+          <span class="nav-label">Configuración</span>
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="version-info">
+          <span>v6.0 "SILLY PACK"</span>
+          <span id="buildInfo"></span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent" role="main">
+      <!-- View: Overview -->
+      <section class="view active" id="view-overview" aria-labelledby="overview-title">
+        <header class="view-header">
+          <h1 id="overview-title">Dashboard</h1>
+          <p class="view-subtitle">Panel de control central — SillyQuiz v6 "SILLY PACK"</p>
+        </header>
+        
+        <div class="stats-grid" role="region" aria-label="Estadísticas del servidor">
+          <article class="stat-card" data-stat="uptime">
+            <div class="stat-icon" aria-hidden="true">⏱️</div>
+            <div class="stat-content">
+              <span class="stat-value" id="statUptime">--:--:--</span>
+              <span class="stat-label">Tiempo Activo</span>
+            </div>
+            <div class="stat-trend" aria-hidden="true">
+              <svg viewBox="0 0 60 30"><polyline fill="none" stroke="#10B981" stroke-width="2" points="0,30 10,20 20,25 30,10 40,15 50,5 60,0"/></svg>
+            </div>
+          </article>
+          <article class="stat-card" data-stat="connections">
+            <div class="stat-icon" aria-hidden="true">🔗</div>
+            <div class="stat-content">
+              <span class="stat-value" id="statConnections">0</span>
+              <span class="stat-label">Conexiones WS</span>
+            </div>
+            <div class="stat-trend" aria-hidden="true">
+              <svg viewBox="0 0 60 30"><polyline fill="none" stroke="#3B82F6" stroke-width="2" points="0,15 10,15 20,10 30,12 40,8 50,10 60,8"/></svg>
+            </div>
+          </article>
+          <article class="stat-card" data-stat="sessions">
+            <div class="stat-icon" aria-hidden="true">🎮</div>
+            <div class="stat-content">
+              <span class="stat-value" id="statSessions">0</span>
+              <span class="stat-label">Sesiones Activas</span>
+            </div>
+            <div class="stat-trend" aria-hidden="true">
+              <svg viewBox="0 0 60 30"><polyline fill="none" stroke="#8B5CF6" stroke-width="2" points="0,20 10,18 20,22 30,15 40,18 50,12 60,10"/></svg>
+            </div>
+          </article>
+          <article class="stat-card" data-stat="memory">
+            <div class="stat-icon" aria-hidden="true">💾</div>
+            <div class="stat-content">
+              <span class="stat-value" id="statMemory">0 MB</span>
+              <span class="stat-label">Memoria RAM</span>
+            </div>
+            <div class="stat-trend" aria-hidden="true">
+              <svg viewBox="0 0 60 30"><polyline fill="none" stroke="#F59E0B" stroke-width="2" points="0,10 10,12 20,8 30,14 40,10 50,12 60,8"/></svg>
+            </div>
+          </article>
+        </div>
+
+        <div class="dashboard-grid">
+          <section class="card" aria-labelledby="quickActionsTitle">
+            <header class="card-header">
+              <h2 id="quickActionsTitle">Acciones Rápidas</h2>
+            </header>
+            <div class="card-body">
+              <div class="action-grid">
+                <button class="action-btn primary" data-action="startServer" aria-label="Iniciar servidor">
+                  <span class="action-icon">▶️</span>
+                  <span class="action-label">Iniciar Servidor</span>
+                  <span class="action-desc">HTTP:8080 + WS:8081</span>
+                </button>
+                <button class="action-btn danger" data-action="stopServer" aria-label="Detener servidor" disabled>
+                  <span class="action-icon">⏹️</span>
+                  <span class="action-label">Detener Servidor</span>
+                  <span class="action-desc">Apagado graceful</span>
+                </button>
+                <a href="/html/SillyBuild.html" target="_blank" class="action-btn secondary">
+                  <span class="action-icon">🧩</span>
+                  <span class="action-label">Abrir BuildSilly</span>
+                  <span class="action-desc">Editor visual de bloques</span>
+                </a>
+                <a href="/display" target="_blank" class="action-btn secondary">
+                  <span class="action-icon">📺</span>
+                  <span class="action-label">Pantalla Display</span>
+                  <span class="action-desc">Visualizador en vivo</span>
+                </a>
+                <a href="/sillycontrol" target="_blank" class="action-btn secondary">
+                  <span class="action-icon">🎮</span>
+                  <span class="action-label">Panel Control</span>
+                  <span class="action-desc">Gestión de partidas</span>
+                </a>
+                <button class="action-btn ghost" data-action="openLogs">
+                  <span class="action-icon">📋</span>
+                  <span class="action-label">Ver Logs</span>
+                  <span class="action-desc">Logs del sistema</span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="recentActivityTitle">
+            <header class="card-header">
+              <h2 id="recentActivityTitle">Actividad Reciente</h2>
+              <button class="btn-ghost sm" data-action="refreshActivity">↻</button>
+            </header>
+            <div class="card-body">
+              <div class="activity-list" id="activityList">
+                <div class="activity-item loading" aria-hidden="true">
+                  <div class="activity-skeleton"></div>
+                  <div class="activity-skeleton"></div>
+                  <div class="activity-skeleton"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card wide" aria-labelledby="systemHealthTitle">
+            <header class="card-header">
+              <h2 id="systemHealthTitle">Salud del Sistema</h2>
+            </header>
+            <div class="card-body">
+              <div class="health-grid" id="healthGrid">
+                <div class="health-item">
+                  <span class="health-label">Flask API</span>
+                  <span class="health-status unknown" id="healthFlask">Comprobando...</span>
+                </div>
+                <div class="health-item">
+                  <span class="health-label">WebSocket Sync</span>
+                  <span class="health-status unknown" id="healthWS">Comprobando...</span>
+                </div>
+                <div class="health-item">
+                  <span class="health-label">Base de Datos</span>
+                  <span class="health-status unknown" id="healthDB">Comprobando...</span>
+                </div>
+                <div class="health-item">
+                  <span class="health-label">Game Engine</span>
+                  <span class="health-status unknown" id="healthEngine">Comprobando...</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- View: Server Control -->
+      <section class="view" id="view-server" aria-labelledby="server-title">
+        <header class="view-header">
+          <h1 id="server-title">Control del Servidor</h1>
+          <p class="view-subtitle">Gestión del backend Flask + WebSocket</p>
+        </header>
+        
+        <div class="server-control-panel">
+          <div class="server-status-card">
+            <div class="status-indicator large" id="serverStatusIndicator">
+              <span class="status-dot" aria-hidden="true"></span>
+              <span class="status-text" id="serverStatusText">Detenido</span>
+            </div>
+            <div class="status-details">
+              <dl>
+                <dt>Puerto HTTP</dt><dd id="httpPort">8080</dd>
+                <dt>Puerto WS</dt><dd id="wsPort">8081</dd>
+                <dt>Modo</dt><dd id="serverMode">Producción</dd>
+                <dt>Workers</dt><dd id="workerCount">Waitress: 100</dd>
+              </dl>
+            </div>
+          </div>
+          
+          <div class="server-actions">
+            <button class="btn btn-primary btn-lg" id="btnStartServer" aria-label="Iniciar servidor">
+              <span class="btn-icon">▶️</span>
+              <span>Iniciar Servidor</span>
+            </button>
+            <button class="btn btn-danger btn-lg" id="btnStopServer" disabled aria-label="Detener servidor">
+              <span class="btn-icon">⏹️</span>
+              <span>Detener Servidor</span>
+            </button>
+            <button class="btn btn-secondary btn-lg" id="btnRestartServer" disabled aria-label="Reiniciar servidor">
+              <span class="btn-icon">🔄</span>
+              <span>Reiniciar</span>
+            </button>
+          </div>
+          
+          <div class="server-logs" aria-live="polite" aria-label="Logs del servidor">
+            <div class="logs-header">
+              <h3>Logs en Tiempo Real</h3>
+              <div class="logs-controls">
+                <label class="checkbox-wrap">
+                  <input type="checkbox" id="autoScrollLogs" checked>
+                  <span>Auto-scroll</span>
+                </label>
+                <button class="btn btn-ghost sm" id="clearLogs">Limpiar</button>
+              </div>
+            </div>
+            <div class="logs-container" id="logsContainer"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View: Builder -->
+      <section class="view" id="view-builder" aria-labelledby="builder-title">
+        <header class="view-header">
+          <h1 id="builder-title">BuildSilly — Editor Visual</h1>
+          <p class="view-subtitle">Constructor de modos de juego con bloques tipo Scratch</p>
+        </header>
+        <div class="builder-links">
+          <a href="/html/SillyBuild.html" target="_blank" class="builder-link primary">
+            <span class="link-icon">🚀</span>
+            <div>
+              <strong>Abrir Editor Completo</strong>
+              <span>Pantalla completa con todas las herramientas</span>
+            </div>
+            <span class="link-arrow">→</span>
+          </a>
+          <a href="/html/SillyVisualizer.html" target="_blank" class="builder-link secondary">
+            <span class="link-icon">📡</span>
+            <div>
+              <strong>Visualizador en Vivo</strong>
+              <span>Vista previa sincronizada por WebSocket</span>
+            </div>
+            <span class="link-arrow">→</span>
+          </a>
+        </div>
+        <div class="builder-features">
+          <article class="feature-card">
+            <span class="feature-icon">🧩</span>
+            <h3>100+ Bloques</h3>
+            <p>16 categorías: Eventos, Control, Looks, Audio, NDI, Display, Quiz, Estado, Operadores, Listas, Jugadores, DB, Runtime, Engine, Sprites, Física</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">⚡</span>
+            <h3>AOT Runtime</h3>
+            <p>Compilación Ahead-of-Time a máquina de estados JSON. Cero interpretación en caliente durante el show.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">🔧</span>
+            <h3>Depurador Visual</h3>
+            <p>Step-through, breakpoints, watch expressions, call stack, visual stepper en vivo.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">📦</span>
+            <h3>Paquetes .silly</h3>
+            <p>Exporta/importa proyectos completos (bloques + assets) como ZIP portátiles.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">🎨</span>
+            <h3>Temas en Vivo</h3>
+            <p>35+ temas predefinidos + editor de temas custom con CSS variables.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">🤝</span>
+            <h3>Colaboración</h3>
+            <p>Multi-usuario en tiempo real vía WebSocket (fase experimental).</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- View: Display -->
+      <section class="view" id="view-display" aria-labelledby="display-title">
+        <header class="view-header">
+          <h1 id="display-title">Pantallas Display</h1>
+          <p class="view-subtitle">Visualizadores para salida a pantallas físicas / NDI</p>
+        </header>
+        <div class="display-grid">
+          <a href="/display" target="_blank" class="display-card">
+            <div class="display-preview">
+              <svg viewBox="0 0 320 180" width="320" height="180" aria-hidden="true">
+                <rect width="320" height="180" fill="#0B0B0B"/>
+                <rect x="10" y="10" width="300" height="160" fill="none" stroke="#FF5E3A" stroke-width="2" rx="8"/>
+                <text x="160" y="85" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="24" fill="#FF5E3A">DISPLAY</text>
+                <text x="160" y="115" text-anchor="middle" font-family="Space Mono" font-size="10" fill="#8B949E">SillyQuiz Display</text>
+              </svg>
+            </div>
+            <div class="display-info">
+              <h3>Display Principal</h3>
+              <p>Visualizador principal para salida HDMI/NDI. Soporta múltiples modos de juego.</p>
+              <span class="display-url">/display</span>
+            </div>
+          </a>
+          <a href="/html/SillyVisualizer.html" target="_blank" class="display-card">
+            <div class="display-preview">
+              <svg viewBox="0 0 320 180" width="320" height="180" aria-hidden="true">
+                <rect width="320" height="180" fill="#0B0B0B"/>
+                <rect x="10" y="10" width="300" height="160" fill="none" stroke="#9B6BFF" stroke-width="2" rx="8"/>
+                <text x="160" y="85" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="24" fill="#9B6BFF">BUILDER</text>
+                <text x="160" y="115" text-anchor="middle" font-family="Space Mono" font-size="10" fill="#8B949E">Live Preview</text>
+              </svg>
+            </div>
+            <div class="display-info">
+              <h3>SillyVisualizer</h3>
+              <p>Reflejo en vivo del editor BuildSilly. Sincronización por WebSocket.</p>
+              <span class="display-url">/html/SillyVisualizer.html</span>
+            </div>
+          </a>
+          <a href="/canva" target="_blank" class="display-card">
+            <div class="display-preview">
+              <svg viewBox="0 0 320 180" width="320" height="180" aria-hidden="true">
+                <rect width="320" height="180" fill="#0B0B0B"/>
+                <rect x="10" y="10" width="300" height="160" fill="none" stroke="#00B894" stroke-width="2" rx="8"/>
+                <text x="160" y="85" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="24" fill="#00B894">CANVA</text>
+                <text x="160" y="115" text-anchor="middle" font-family="Space Mono" font-size="10" fill="#8B949E">Modo Canva/Stream</text>
+              </svg>
+            </div>
+            <div class="display-info">
+              <h3>Modo Canva</h3>
+              <p>Layout optimizado para streaming (OBS, StreamYard, etc.)</p>
+              <span class="display-url">/canva</span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- View: Themes -->
+      <section class="view" id="view-themes" aria-labelledby="themes-title">
+        <header class="view-header">
+          <h1 id="themes-title">Gestión de Temas</h1>
+          <p class="view-subtitle">35+ temas predefinidos + editor visual</p>
+        </header>
+        <div class="themes-toolbar">
+          <input type="search" id="themeSearch" placeholder="🔍 Buscar tema..." aria-label="Buscar tema">
+          <select id="themeCategory" aria-label="Filtrar por categoría">
+            <option value="">Todas las categorías</option>
+            <option value="modern">Modernos</option>
+            <option value="fantasy">Fantasía</option>
+            <option value="nature">Naturaleza</option>
+            <option value="festive">Festivos</option>
+            <option value="custom">Personalizados</option>
+          </select>
+          <button class="btn btn-primary" id="btnCreateTheme">➕ Crear Tema</button>
+        </div>
+        <div class="themes-grid" id="themesGrid" role="list" aria-label="Lista de temas">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- View: Templates -->
+      <section class="view" id="view-templates" aria-labelledby="templates-title">
+        <header class="view-header">
+          <h1 id="templates-title">Plantillas de Modo</h1>
+          <p class="view-subtitle">10 plantillas starter para arrancar rápido</p>
+        </header>
+        <div class="templates-grid" id="templatesGrid" role="list" aria-label="Plantillas disponibles">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- View: Monitor -->
+      <section class="view" id="view-monitor" aria-labelledby="monitor-title">
+        <header class="view-header">
+          <h1 id="monitor-title">Monitor en Tiempo Real</h1>
+          <p class="view-subtitle">Métricas de WebSocket, Game Engine y conexiones</p>
+        </header>
+        <div class="monitor-grid">
+          <section class="card" aria-labelledby="wsMetricsTitle">
+            <header class="card-header"><h2 id="wsMetricsTitle">WebSocket Sync</h2></header>
+            <div class="card-body">
+              <div class="metric-row">
+                <span class="metric-label">Displays Conectados</span>
+                <span class="metric-value" id="wsDisplays">0</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Sesiones de Juego</span>
+                <span class="metric-value" id="wsSessions">0</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Clientes Móviles</span>
+                <span class="metric-value" id="wsMobiles">0</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Eventos/s (FIFO)</span>
+                <span class="metric-value" id="wsFifoRate">0</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Latencia Promedio</span>
+                <span class="metric-value" id="wsLatency">0 ms</span>
+              </div>
+            </div>
+          </section>
+          
+          <section class="card" aria-labelledby="engineMetricsTitle">
+            <header class="card-header"><h2 id="engineMetricsTitle">Game Engine Local</h2></header>
+            <div class="card-body">
+              <div class="metric-row">
+                <span class="metric-label">Partidas Activas</span>
+                <span class="metric-value" id="engineGames">0</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Jugadores Totales</span>
+                <span class="metric-value" id="enginePlayers">0</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Leaderboards</span>
+                <span class="metric-value" id="engineLeaderboards">0</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Tokens Activos</span>
+                <span class="metric-value" id="engineTokens">0</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="card wide" aria-labelledby="liveConnectionsTitle">
+            <header class="card-header"><h2 id="liveConnectionsTitle">Conexiones en Vivo</h2></header>
+            <div class="card-body">
+              <div class="connections-table" id="connectionsTable">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Tipo</th>
+                      <th>Estado</th>
+                      <th>Última Actividad</th>
+                      <th>IP</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="connectionsBody">
+                    <tr><td colspan="6" class="empty-state">No hay conexiones activas</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- View: Settings -->
+      <section class="view" id="view-settings" aria-labelledby="settings-title">
+        <header class="view-header">
+          <h1 id="settings-title">Configuración</h1>
+          <p class="view-subtitle">Parámetros del servidor, seguridad y preferencias</p>
+        </header>
+        <div class="settings-grid">
+          <section class="card" aria-labelledby="serverSettingsTitle">
+            <header class="card-header"><h2 id="serverSettingsTitle">Servidor</h2></header>
+            <div class="card-body">
+              <div class="setting-row">
+                <label for="setHttpPort">Puerto HTTP</label>
+                <input type="number" id="setHttpPort" value="8080" min="1024" max="65535">
+              </div>
+              <div class="setting-row">
+                <label for="setWsPort">Puerto WebSocket</label>
+                <input type="number" id="setWsPort" value="8081" min="1024" max="65535">
+              </div>
+              <div class="setting-row">
+                <label for="setDebugMode">Modo Debug</label>
+                <input type="checkbox" id="setDebugMode">
+              </div>
+              <div class="setting-row">
+                <label for="setWaitress">Usar Waitress (Producción)</label>
+                <input type="checkbox" id="setWaitress" checked>
+              </div>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="securitySettingsTitle">
+            <header class="card-header"><h2 id="securitySettingsTitle">Seguridad</h2></header>
+            <div class="card-body">
+              <div class="setting-row">
+                <label for="setAuthEnabled">Autenticación PIN</label>
+                <input type="checkbox" id="setAuthEnabled" checked>
+              </div>
+              <div class="setting-row">
+                <label for="setCorsOrigins">Orígenes CORS Permitidos</label>
+                <textarea id="setCorsOrigins" rows="3" placeholder="http://localhost:8080, http://127.0.0.1:8080"></textarea>
+              </div>
+              <div class="setting-row">
+                <label for="setRateLimit">Rate Limit (req/min/IP)</label>
+                <input type="number" id="setRateLimit" value="300" min="10">
+              </div>
+              <div class="setting-row">
+                <label>Regenerar PIN de Acceso</label>
+                <button class="btn btn-danger sm" id="btnRegeneratePin">Generar Nuevo PIN</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="uiSettingsTitle">
+            <header class="card-header"><h2 id="uiSettingsTitle">Interfaz</h2></header>
+            <div class="card-body">
+              <div class="setting-row">
+                <label for="setTheme">Tema del Dashboard</label>
+                <select id="setTheme">
+                  <option value="dark">Oscuro (Flagship)</option>
+                  <option value="light">Claro</option>
+                  <option value="auto">Sistema</option>
+                </select>
+              </div>
+              <div class="setting-row">
+                <label for="setLanguage">Idioma</label>
+                <select id="setLanguage">
+                  <option value="es">Español</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+              <div class="setting-row">
+                <label for="setAnimations">Animaciones</label>
+                <input type="checkbox" id="setAnimations" checked>
+              </div>
+              <div class="setting-row">
+                <label for="setCompactMode">Modo Compacto</label>
+                <input type="checkbox" id="setCompactMode">
+              </div>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="advancedSettingsTitle">
+            <header class="card-header"><h2 id="advancedSettingsTitle">Avanzado</h2></header>
+            <div class="card-body">
+              <div class="setting-row">
+                <label for="setJwtSecret">JWT Secret</label>
+                <input type="password" id="setJwtSecret" placeholder="Dejar vacío para auto-generar">
+              </div>
+              <div class="setting-row">
+                <label for="setTokenTtl">Token TTL (horas)</label>
+                <input type="number" id="setTokenTtl" value="8" min="1" max="168">
+              </div>
+              <div class="setting-row">
+                <label for="setHeartbeatInterval">Heartbeat Interval (s)</label>
+                <input type="number" id="setHeartbeatInterval" value="30" min="5" max="300">
+              </div>
+              <div class="setting-row">
+                <label>Backup Automático</label>
+                <button class="btn btn-secondary sm" id="btnCreateBackup">Crear Backup Ahora</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Modal: Create Theme -->
+  <div class="modal" id="modalCreateTheme" role="dialog" aria-modal="true" aria-labelledby="modalThemeTitle" hidden>
+    <div class="modal-backdrop"></div>
+    <div class="modal-panel">
+      <header class="modal-header">
+        <h2 id="modalThemeTitle">Crear Nuevo Tema</h2>
+        <button class="modal-close" aria-label="Cerrar">✕</button>
+      </header>
+      <form class="modal-body" id="formCreateTheme">
+        <div class="form-group">
+          <label for="themeName">Nombre *</label>
+          <input type="text" id="themeName" required placeholder="Mi Tema Personalizado">
+        </div>
+        <div class="form-group">
+          <label for="themeCategory">Categoría</label>
+          <select id="themeCategory">
+            <option value="custom">Personalizado</option>
+            <option value="modern">Moderno</option>
+            <option value="fantasy">Fantasía</option>
+            <option value="nature">Naturaleza</option>
+            <option value="festive">Festivo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Colores Base</label>
+          <div class="color-picker-grid">
+            <div class="color-picker-item">
+              <label>Primario</label>
+              <input type="color" id="themePrimary" value="#3B82F6">
+            </div>
+            <div class="color-picker-item">
+              <label>Secundario</label>
+              <input type="color" id="themeSecondary" value="#64748B">
+            </div>
+            <div class="color-picker-item">
+              <label>Acento</label>
+              <input type="color" id="themeAccent" value="#8B5CF6">
+            </div>
+            <div class="color-picker-item">
+              <label>Fondo</label>
+              <input type="color" id="themeBg" value="#050510">
+            </div>
+            <div class="color-picker-item">
+              <label>Superficie</label>
+              <input type="color" id="themeSurface" value="#0A0A15">
+            </div>
+            <div class="color-picker-item">
+              <label>Texto</label>
+              <input type="color" id="themeText" value="#E2E8F0">
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="themeFont">Fuente</label>
+          <select id="themeFont">
+            <option value="'Space Grotesk', sans-serif">Space Grotesk (Default)</option>
+            <option value="'Inter', sans-serif">Inter</option>
+            <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+            <option value="'Georgia', serif">Georgia</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-dismiss>Cancelar</button>
+          <button type="submit" class="btn btn-primary">Crear Tema</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Logs -->
+  <div class="modal" id="modalLogs" role="dialog" aria-modal="true" aria-labelledby="modalLogsTitle" hidden>
+    <div class="modal-backdrop"></div>
+    <div class="modal-panel large">
+      <header class="modal-header">
+        <h2 id="modalLogsTitle">Logs del Sistema</h2>
+        <button class="modal-close" aria-label="Cerrar">✕</button>
+      </header>
+      <div class="modal-body">
+        <div class="logs-controls">
+          <select id="logLevelFilter">
+            <option value="">Todos los niveles</option>
+            <option value="error">Error</option>
+            <option value="warn">Advertencia</option>
+            <option value="info">Info</option>
+            <option value="debug">Debug</option>
+          </select>
+          <button class="btn btn-ghost sm" id="btnRefreshLogs">↻ Actualizar</button>
+        </div>
+        <div class="logs-container" id="modalLogsContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/launcher-dashboard.js"></script>
+</body>
+</html>

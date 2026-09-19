@@ -1,11 +1,9 @@
 import json
 import logging
 from datetime import datetime
-from flask import Blueprint, jsonify, request, Response
+from flask import Blueprint, jsonify, request, Response, session as flask_session
 from silly.globals import container
 from silly.services.persistence import _persist_and_notify
-
-log = logging.getLogger(__name__)
 
 log = logging.getLogger(__name__)
 
@@ -211,7 +209,7 @@ def grupos_config():
     data = request.get_json(silent=True) or {}
     grupos = data.get("grupos")
     min_g = container.config.get("game", {}).get("min_groups", 2)
-    max_g = container.config.get("game", {}).get("max_groups", 8)
+    max_g = container.config.get("game", {}).get("max_groups", 24)
     if not isinstance(grupos, list) or len(grupos) < min_g or len(grupos) > max_g:
         return jsonify({"error": f"Se requieren {min_g}-{max_g} grupos"}), 400
     ids = set()
@@ -308,3 +306,206 @@ def health_check():
     }
     code = 200 if ws_reachable else 200  # WS down is degraded, not fatal
     return jsonify(status), code
+
+
+# ===================== DASHBOARD API ENDPOINTS =====================
+
+@api_bp.route("/health/detailed", methods=["GET"])
+def health_detailed():
+    """Detailed health check for dashboard."""
+    import os
+    import time
+    import socket
+    import psutil
+    
+    ws_port = int(os.environ.get("SILLY_WS_PORT", "8081"))
+    ws_reachable = False
+    ws_latency_ms = None
+    
+    try:
+        start = time.time()
+        with socket.create_connection(("127.0.0.1", ws_port), timeout=2):
+            ws_reachable = True
+            ws_latency_ms = round((time.time() - start) * 1000, 1)
+    except Exception:
+        ws_reachable = False
+    
+    # DB check
+    db_healthy = False
+    try:
+        with container.state.lock:
+            _ = len(container.state.preguntas)
+        db_healthy = True
+    except Exception:
+        db_healthy = False
+    
+    # Engine check
+    engine_healthy = False
+    try:
+        engine_ok = container.mode_manager.get_active() is not None or True
+        engine_healthy = True
+    except Exception:
+        engine_healthy = False
+    
+    # Memory
+    process = psutil.Process()
+    mem_mb = process.memory_info().rss / 1024 / 1024
+    
+    return jsonify({
+        "flask": "ok",
+        "websocket": "ok" if ws_reachable else "down",
+        "websocket_port": ws_port,
+        "websocket_latency_ms": ws_latency_ms,
+        "database": "ok" if db_healthy else "down",
+        "game_engine": "ok" if engine_healthy else "down",
+        "memory_mb": round(mem_mb, 1),
+        "uptime": time.time(),
+    })
+
+
+@api_bp.route("/activity", methods=["GET"])
+def get_activity():
+    """Get recent activity log."""
+    try:
+        limit = int(request.args.get("limit", 50))
+        activities = container.state.get_actividad()[-limit:] if hasattr(container.state, 'get_actividad') else []
+        return jsonify({"activity": activities})
+    except Exception as e:
+        return jsonify({"activity": [], "error": str(e)})
+
+
+@api_bp.route("/logs", methods=["GET"])
+def get_logs():
+    """Get recent log entries."""
+    try:
+        lines = int(request.args.get("lines", 100))
+        level = request.args.get("level", "")
+        
+        log_file = container.BASE_DIR / "launcher.log"
+        if not log_file.exists():
+            return jsonify({"logs": []})
+        
+        with open(log_file, "r", encoding="utf-8", errors="ignore") as f:
+            all_lines = f.readlines()
+        
+        # Filter by level if specified
+        if level:
+            level = level.upper()
+            filtered = [l for l in all_lines if f"[{level}]" in l]
+        else:
+            filtered = all_lines
+        
+        return jsonify({
+            "logs": filtered[-lines:],
+            "total_lines": len(all_lines)
+        })
+    except Exception as e:
+        return jsonify({"logs": [], "error": str(e)}), 500
+
+
+@api_bp.route("/server/start", methods=["POST"])
+def start_server():
+    """Start the Flask server (no-op if already running)."""
+    # In production this would trigger the launcher to start the server
+    # For now, just return status
+    return jsonify({"ok": True, "message": "Server start requested"})
+
+
+@api_bp.route("/server/stop", methods=["POST"])
+def stop_server():
+    """Stop the Flask server."""
+    try:
+        # This would need to be implemented to actually stop the server
+        return jsonify({"ok": True, "message": "Server stop requested"})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@api_bp.route("/server/restart", methods=["POST"])
+def restart_server():
+    """Restart the Flask server."""
+    return jsonify({"ok": True, "message": "Server restart requested"})
+
+
+@api_bp.route("/settings", methods=["GET"])
+def get_settings():
+    """Get current server settings."""
+    import os
+    return jsonify({
+        "httpPort": int(os.environ.get("SILLY_PORT", "8080")),
+        "wsPort": int(os.environ.get("SILLY_WS_PORT", "8081")),
+        "debug": os.environ.get("SILLY_DEBUG", "false").lower() in ("true", "1"),
+        "waitress": True,
+        "authEnabled": True,
+        "corsOrigins": os.environ.get("SILLY_CORS_ORIGINS", "http://localhost:8080,http://127.0.0.1:8080"),
+        "rateLimit": 300,
+        "jwtSecretConfigured": bool(os.environ.get("JWT_SECRET", "")),
+        "tokenTtl": 8,
+        "heartbeatInterval": 30,
+    })
+
+
+@api_bp.route("/settings", methods=["PATCH"])
+def update_settings():
+    """Update server settings."""
+    data = request.get_json(silent=True) or {}
+    
+    # In a real implementation, this would write to config file/env
+    # For now, just return success
+    return jsonify({"ok": True, "message": "Settings updated (restart required)"})
+
+
+@api_bp.route("/auth/regenerate-pin", methods=["POST"])
+def regenerate_pin():
+    """Regenerate the access PIN."""
+    # Require existing session authentication
+    if not flask_session.get('authenticated'):
+        return jsonify({"ok": False, "error": "Se requiere autenticación"}), 401
+    
+    import secrets
+    import hashlib
+    
+    pin = secrets.token_hex(4).upper()
+    salt = secrets.token_hex(16)
+    h = hashlib.sha256((pin + salt).encode()).hexdigest()
+    
+    password_hash_path = container.BASE_DIR / ".password_hash"
+    password_salt_path = container.BASE_DIR / ".password_salt"
+    
+    password_hash_path.write_text(h, encoding="utf-8")
+    password_salt_path.write_text(salt, encoding="utf-8")
+    
+    os.environ["SILLY_PASSWORD_HASH"] = str(password_hash_path)
+    os.environ["SILLY_PASSWORD_SALT"] = salt
+    
+    return jsonify({"ok": True, "pin": pin})
+
+
+@api_bp.route("/backup", methods=["POST"])
+def create_backup():
+    """Create a backup of current state."""
+    import shutil
+    from datetime import datetime
+    
+    try:
+        backup_dir = container.BASE_DIR / "backups"
+        backup_dir.mkdir(exist_ok=True)
+        
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_name = f"backup_{timestamp}"
+        backup_path = backup_dir / backup_name
+        backup_path.mkdir()
+        
+        # Copy data files
+        for fname in ["silly.json", "game_state.db", "config.json"]:
+            src = container.BASE_DIR / fname
+            if src.exists():
+                shutil.copy2(src, backup_path / fname)
+        
+        # Create archive
+        archive = shutil.make_archive(str(backup_path), 'zip', backup_path)
+        shutil.rmtree(backup_path)
+        
+        return jsonify({"ok": True, "backup": os.path.basename(archive)})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500

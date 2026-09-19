@@ -1,0 +1,16 @@
+{
+  "name": "Neon Cyberpunk",
+  "category": "modern",
+  "colors": {
+    "primary": "#00FFFF",
+    "secondary": "#FF00FF",
+    "accent": "#FFFF00",
+    "background": "#0A0A1F",
+    "surface": "#13133A",
+    "text": "#E0E0FF"
+  },
+  "font": "'Space Grotesk', sans-serif",
+  "borderRadius": 8,
+  "animationSpeed": 1.2,
+  "glowIntensity": 1.5
+}

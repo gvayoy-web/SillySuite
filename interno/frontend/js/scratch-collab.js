@@ -16,6 +16,63 @@
 
   const SIGNALING_URL = global.__COLLAB_SIGNALING || 'wss://signaling.sillyquiz.io';
 
+  /** CRDT Document simplificado para operaciones de bloques. */
+  class YDoc {
+    constructor() {
+      this.blocks = new Map(); // blockId -> { data, version, origin }
+      this.version = 0;
+    }
+
+    /** Aplica operación local, retorna operación normalizada. */
+    apply(change, origin) {
+      this.version++;
+      const op = { ...change, v: this.version, o: origin, t: Date.now() };
+      this._applyOp(op);
+      return op;
+    }
+
+    /** Aplica operación remota. */
+    applyRemote(op, origin) {
+      if (op.v <= this.version) return; // Ya aplicado
+      this.version = op.v;
+      this._applyOp(op);
+    }
+
+    _applyOp(op) {
+      switch (op.type) {
+        case 'add-block':
+          this.blocks.set(op.id, { data: op.data, version: op.v, origin: op.o });
+          break;
+        case 'move-block':
+          if (this.blocks.has(op.id)) {
+            const b = this.blocks.get(op.id);
+            b.data = op.data;
+            b.version = op.v;
+            b.origin = op.o;
+          }
+          break;
+        case 'delete-block':
+          this.blocks.delete(op.id);
+          break;
+        case 'update-args':
+          if (this.blocks.has(op.id)) {
+            const b = this.blocks.get(op.id);
+            b.data.args = { ...b.data.args, ...op.args };
+            b.version = op.v;
+          }
+          break;
+      }
+    }
+
+    /** Obtiene estado actual para sincronización. */
+    getState() {
+      return {
+        version: this.version,
+        blocks: Array.from(this.blocks.entries()).map(([id, b]) => ({ id, ...b }))
+      };
+    }
+  }
+
   class CollabSession {
     constructor(roomId, userId, opts) {
       this.roomId = roomId;
@@ -175,63 +232,6 @@
       if (peer) { peer.dc.close(); peer.pc.close(); }
       this.peers.delete(peerId);
       this._emit('peer-disconnected', peerId);
-    }
-  }
-
-  /** CRDT Document simplificado para operaciones de bloques. */
-  class YDoc {
-    constructor() {
-      this.blocks = new Map(); // blockId -> { data, version, origin }
-      this.version = 0;
-    }
-
-    /** Aplica operación local, retorna operación normalizada. */
-    apply(change, origin) {
-      this.version++;
-      const op = { ...change, v: this.version, o: origin, t: Date.now() };
-      this._applyOp(op);
-      return op;
-    }
-
-    /** Aplica operación remota. */
-    applyRemote(op, origin) {
-      if (op.v <= this.version) return; // Ya aplicado
-      this.version = op.v;
-      this._applyOp(op);
-    }
-
-    _applyOp(op) {
-      switch (op.type) {
-        case 'add-block':
-          this.blocks.set(op.id, { data: op.data, version: op.v, origin: op.o });
-          break;
-        case 'move-block':
-          if (this.blocks.has(op.id)) {
-            const b = this.blocks.get(op.id);
-            b.data = op.data;
-            b.version = op.v;
-            b.origin = op.o;
-          }
-          break;
-        case 'delete-block':
-          this.blocks.delete(op.id);
-          break;
-        case 'update-args':
-          if (this.blocks.has(op.id)) {
-            const b = this.blocks.get(op.id);
-            b.data.args = { ...b.data.args, ...op.args };
-            b.version = op.v;
-          }
-          break;
-      }
-    }
-
-    /** Obtiene estado actual para sincronización. */
-    getState() {
-      return {
-        version: this.version,
-        blocks: Array.from(this.blocks.entries()).map(([id, b]) => ({ id, ...b }))
-      };
     }
   }
 

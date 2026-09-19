@@ -1175,3 +1175,211 @@ html:not(.light) .scratch-app .scratch-block:hover .scratch-block-label {
   background-position: 0 0, 0 0, 0 0, calc(var(--grid-size, 24px)) calc(var(--grid-size, 24px));
 }
 
+/* ==========================================================================
+   PAINTING SYSTEM (Infinity Canvas) — cursors, layers UI, polish
+   ========================================================================== */
+
+/* Lienzo de pintura: cursor adaptado a la herramienta activa */
+canvas.sq-paint-canvas {
+  display: block;
+  touch-action: none;
+  border-radius: 0;
+  background: var(--paper, #ECEAE3);
+  box-shadow: inset 0 0 0 2px var(--ink, #0a0a0a), var(--hard-lg, 6px 6px 0 #0a0a0a);
+  cursor: crosshair;
+  transition: box-shadow 90ms ease;
+}
+canvas.sq-paint-canvas.tool-select { cursor: default; }
+canvas.sq-paint-canvas.tool-pan    { cursor: grab; }
+canvas.sq-paint-canvas.tool-pan.dragging { cursor: grabbing; }
+canvas.sq-paint-canvas.tool-text   { cursor: text; }
+canvas.sq-paint-canvas.tool-eraser { cursor: cell; }
+
+/* Guías de snap mientras se arrastra */
+.sq-paint-wrap.canvas-snapping::before,
+.sq-paint-wrap.canvas-snapping::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 4;
+  background-image:
+    repeating-linear-gradient(90deg, transparent, transparent 23px, var(--cat-control, #FF5E3A) 23px, var(--cat-control, #FF5E3A) 24px),
+    repeating-linear-gradient(0deg, transparent, transparent 23px, var(--cat-control, #FF5E3A) 23px, var(--cat-control, #FF5E3A) 24px);
+  background-size: 24px 24px;
+  opacity: 0.25;
+}
+
+/* Contenedor del lienzo de pintura */
+.sq-paint-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(10,10,10,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(10,10,10,0.03) 1px, transparent 1px);
+  background-size: var(--grid-size, 24px) var(--grid-size, 24px);
+  background-color: var(--paper, #ECEAE3);
+}
+
+/* Barra de herramientas flotante de pintura */
+.sq-paint-toolbar {
+  position: absolute;
+  top: 12px; left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  background: var(--surface, #F4F2EC);
+  border: 3px solid var(--ink, #0a0a0a);
+  box-shadow: var(--hard, 4px 4px 0 #0a0a0a);
+  z-index: 30;
+  flex-wrap: wrap;
+  max-width: calc(100% - 24px);
+  justify-content: center;
+}
+.sq-paint-tool {
+  width: 42px; height: 42px;
+  display: inline-grid; place-items: center;
+  background: var(--paper-2, #E2DFD6);
+  border: 2px solid var(--ink, #0a0a0a);
+  border-radius: 0;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: transform 70ms ease, box-shadow 90ms ease, background 90ms ease;
+}
+.sq-paint-tool:hover { transform: translate(-1px,-1px); box-shadow: 2px 2px 0 var(--ink); }
+.sq-paint-tool:active { transform: translate(1px,1px); box-shadow: 0 0 0 var(--ink); }
+.sq-paint-tool.active {
+  background: var(--ink, #0a0a0a);
+  color: var(--paper, #ECEAE3);
+  box-shadow: inset 0 0 0 2px var(--cat-control, #FF5E3A);
+}
+
+/* Indicador de zoom */
+.sq-paint-zoom-indicator {
+  position: absolute;
+  bottom: 14px; left: 14px;
+  padding: 5px 10px;
+  background: var(--ink, #0a0a0a);
+  color: var(--paper, #ECEAE3);
+  font: 900 0.72rem var(--font-mono, monospace);
+  border: 2px solid var(--ink, #0a0a0a);
+  box-shadow: var(--hard, 3px 3px 0 #0a0a0a);
+  z-index: 30;
+  pointer-events: none;
+  letter-spacing: 0.04em;
+}
+
+/* Panel de propiedades de trazo rápido */
+.sq-paint-props {
+  position: absolute;
+  top: 12px; right: 12px;
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 10px;
+  background: var(--surface, #F4F2EC);
+  border: 3px solid var(--ink, #0a0a0a);
+  box-shadow: var(--hard, 4px 4px 0 #0a0a0a);
+  z-index: 30;
+  width: 184px;
+}
+.sq-paint-props .pp-row { display: flex; align-items: center; gap: 6px; }
+.sq-paint-props label {
+  font: 900 0.6rem var(--font-display, sans-serif);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--ink, #0a0a0a);
+  flex: 0 0 auto; min-width: 44px;
+}
+.sq-paint-props input[type="color"] {
+  width: 34px; height: 28px; padding: 0;
+  border: 2px solid var(--ink, #0a0a0a); background: none; cursor: pointer;
+}
+.sq-paint-props input[type="range"] { flex: 1; accent-color: var(--cat-control, #FF5E3A); }
+.sq-paint-props select {
+  flex: 1; background: var(--paper, #ECEAE3);
+  border: 2px solid var(--ink, #0a0a0a); border-radius: 0;
+  font: 700 0.72rem var(--font-display, sans-serif); color: var(--ink);
+  padding: 3px 6px;
+}
+
+/* Lista de capas (reutiliza estética brutalist) */
+.sq-layer-panel {
+  position: absolute;
+  bottom: 14px; right: 14px;
+  width: 240px; max-height: 46%;
+  display: flex; flex-direction: column;
+  background: var(--surface, #F4F2EC);
+  border: 3px solid var(--ink, #0a0a0a);
+  box-shadow: var(--hard, 4px 4px 0 #0a0a0a);
+  z-index: 30;
+  overflow: hidden;
+}
+.sq-layer-panel .lp-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px;
+  background: var(--ink, #0a0a0a); color: var(--paper, #ECEAE3);
+  font: 900 0.7rem var(--font-display, sans-serif);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.sq-layer-panel .lp-actions { display: flex; gap: 4px; }
+.sq-layer-panel .lp-actions button {
+  width: 24px; height: 24px; display: grid; place-items: center;
+  background: var(--paper, #ECEAE3); color: var(--ink);
+  border: 2px solid var(--ink); cursor: pointer; font-size: 0.8rem;
+}
+.sq-layer-panel .lp-actions button:hover { background: var(--cat-control, #FF5E3A); color: var(--ink); }
+.sq-layer-list { overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
+.sq-layer-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 8px;
+  background: var(--paper-2, #E2DFD6);
+  border: 2px solid var(--ink, #0a0a0a);
+  cursor: grab; transition: transform 70ms ease, background 90ms ease;
+}
+.sq-layer-item:hover { transform: translateX(2px); background: var(--paper, #ECEAE3); }
+.sq-layer-item.active { box-shadow: inset 0 0 0 2px var(--cat-control, #FF5E3A); background: #fff; }
+.sq-layer-item.locked { opacity: 0.55; }
+.sq-layer-item .li-name { flex: 1; font: 800 0.74rem var(--font-mono, monospace); color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sq-layer-item .li-btn {
+  width: 22px; height: 22px; display: grid; place-items: center;
+  border: 2px solid var(--ink, #0a0a0a); background: var(--paper, #ECEAE3);
+  cursor: pointer; font-size: 0.72rem;
+}
+.sq-layer-item .li-btn:hover { background: var(--cat-control, #FF5E3A); }
+.sq-layer-item.drag-over { outline: 3px dashed var(--cat-control, #FF5E3A); outline-offset: -3px; }
+
+/* Toast de pintura */
+.sq-paint-toast {
+  position: absolute; top: 64px; left: 50%; transform: translateX(-50%) translateY(-12px);
+  background: var(--ink, #0a0a0a); color: var(--paper, #ECEAE3);
+  border: 2px solid var(--ink); box-shadow: var(--hard, 4px 4px 0 #0a0a0a);
+  padding: 8px 16px; font: 800 0.78rem var(--font-display, sans-serif);
+  z-index: 40; opacity: 0; pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.sq-paint-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .sq-paint-tool, .sq-layer-item, .sq-paint-toast { transition: none; }
+}
+
+/* Dark mode para el sistema de pintura */
+html:not(.light) .sq-paint-wrap { background-color: #0B0B0B; }
+html:not(.light) .sq-paint-toolbar,
+html:not(.light) .sq-paint-props,
+html:not(.light) .sq-layer-panel {
+  background: #141414; border-color: #2A2A2A; box-shadow: 4px 4px 0 #2A2A2A;
+}
+html:not(.light) .sq-paint-tool { background: #1A1A1A; border-color: #2A2A2A; color: #F2EBDD; }
+html:not(.light) .sq-paint-tool.active { background: #F2EBDD; color: #0B0B0B; }
+html:not(.light) .sq-layer-item { background: #1A1A1A; border-color: #2A2A2A; color: #F2EBDD; }
+html:not(.light) .sq-layer-item .li-name { color: #F2EBDD; }
+html:not(.light) .sq-layer-item .li-btn { background: #0B0B0B; border-color: #2A2A2A; color: #F2EBDD; }
+html:not(.light) .sq-paint-zoom-indicator { background: #F2EBDD; color: #0B0B0B; border-color: #F2EBDD; }
+html:not(.light) .sq-paint-props label { color: #8B8B8B; }
+html:not(.light) .sq-paint-props select { background: #0B0B0B; border-color: #2A2A2A; color: #F2EBDD; }
+

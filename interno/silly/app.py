@@ -9,6 +9,7 @@ import os
 import secrets
 import signal
 import sys
+import threading
 import time
 from contextlib import contextmanager
 from flask import Flask, jsonify, request, session
@@ -38,6 +39,35 @@ log = logging.getLogger(__name__)
 DATA_FILE = os.getenv("SILLY_DATA_FILE", "silly.json")
 SERVER_PORT = int(os.getenv("SILLY_PORT", "8080"))
 SERVER_DEBUG = os.getenv("SILLY_DEBUG", "false").lower() in ("true", "1")
+
+
+def _resolve_secret_key() -> str:
+    """Devuelve una clave de sesion estable.
+
+    Prioridad: variable de entorno FLASK_SECRET_KEY. Si no existe, se persiste
+    una clave en <BASE_DIR>/.flask_secret para que las sesiones sobrevivan a
+    reinicios (en lugar de regenerarse aleatoriamente en cada arranque).
+    """
+    env_key = os.environ.get("FLASK_SECRET_KEY")
+    if env_key:
+        return env_key
+    secret_path = os.path.join(BASE_DIR, ".flask_secret")
+    try:
+        if os.path.exists(secret_path):
+            with open(secret_path, "r", encoding="utf-8") as fh:
+                key = fh.read().strip()
+                if key:
+                    return key
+        key = secrets.token_hex(32)
+        with open(secret_path, "w", encoding="utf-8") as fh:
+            fh.write(key)
+        try:
+            os.chmod(secret_path, 0o600)
+        except OSError:
+            pass
+        return key
+    except OSError:
+        return secrets.token_hex(32)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # CORS origins from env or defaults
@@ -63,8 +93,37 @@ preguntas_data = load_questions()
 from silly.models.state import AppState
 from silly.models.cronometro import Cronometro
 
+# Initialize the application state and mode manager with enhanced error handling
 state = AppState(config, preguntas_data)
 mode_manager = ModeManager(state)
+
+# Enhanced validation and initialization with better error handling
+# Enhanced validation and initialization with better error handling
+def _init_core():
+    # Load rotation persistence from config (best effort).
+    rotation_cfg = config.get("theme_rotation", {})
+    if rotation_cfg:
+        try:
+            theme_engine.set_rotation_state(rotation_cfg)
+            log.info("Rotacion de temas cargada: %s", rotation_cfg)
+        except Exception as exc:  # noqa: BLE001 - degradar sin romper arranque
+            log.warning("No se pudo cargar rotacion: %s", exc)
+
+    # Verify essential components are initialized
+    if not isinstance(getattr(state, "display_config", None), dict):
+        raise RuntimeError("State display_config no inicializado correctamente")
+    if not isinstance(getattr(mode_manager, "_modes", None), dict):
+        raise RuntimeError("Mode manager no inicializado correctamente")
+    log.info("SillyQuiz v6: Nucleo del servidor listo - todos los componentes verificados")
+
+
+try:
+    _init_core()
+except Exception as error:  # noqa: BLE001 - permitir fallback en produccion
+    log.error("Error critico durante la inicializacion: %s", error)
+    if SERVER_DEBUG:
+        raise
+    log.warning("Continuando con configuracion minima debido a error de inicializacion")
 
 global stats_service
 stats_service = StatsService()
@@ -167,7 +226,7 @@ def _shutdown():
 
 
 def _signal_handler(signum, frame):
-    log.info("Señal %s recibida, iniciando apagado graceful...", signum)
+    log.info("SeÃ±al %s recibida, iniciando apagado graceful...", signum)
     _shutdown()
     sys.exit(0)
 
@@ -178,7 +237,7 @@ def create_app():
     _shutdown_event = threading.Event()
 
     app = Flask(__name__, static_folder=None)
-    app.secret_key = os.environ.get("FLASK_SECRET_KEY") or secrets.token_hex(32)
+    app.secret_key = _resolve_secret_key()
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     app.config["SESSION_COOKIE_NAME"] = "silly_session"
@@ -253,7 +312,7 @@ def create_app():
     app.register_blueprint(sync_bp)
 
     # =========================================================================
-    # AUTH ROUTES — login/logout endpoints
+    # AUTH ROUTES â€” login/logout endpoints
     # =========================================================================
     @app.route("/login", methods=["GET", "POST"])
     def login():
@@ -288,7 +347,7 @@ button:hover{background:#FF7A5C}
 <body>
 <div class="card">
 <h1>SillyQuiz</h1>
-<p class="sub">Panel de Control — Acceso</p>
+<p class="sub">Panel de Control â€” Acceso</p>
 <form method="POST" action="/login">
 <label for="pin">PIN de acceso</label>
 <input type="password" id="pin" name="pin" maxlength="32" autocomplete="current-password" autofocus required>
@@ -397,8 +456,9 @@ button:hover{background:#FF7A5C}
             from flask import jsonify as _jsonify
             return _jsonify({"error": "Rate limit excedido"}), 429
 
-        # Request size limit
-        if request.content_length and request.content_length > 10 * 1024 * 1024:  # 10MB
+        # Request size limit (configurable; individual asset sanitizer still applies its own caps)
+        _max_payload = int(os.getenv("SILLY_MAX_PAYLOAD_MB", "50")) * 1024 * 1024
+        if request.content_length and request.content_length > _max_payload:
             from flask import jsonify as _jsonify
             return _jsonify({"error": "Payload demasiado grande"}), 413
 
@@ -425,7 +485,7 @@ button:hover{background:#FF7A5C}
     @app.errorhandler(400)
     def _handle_400(exc):
         log.warning("Bad request: %s %s - %s", request.method, request.path, exc)
-        return jsonify({"error": "Solicitud inválida"}), 400
+        return jsonify({"error": "Solicitud invÃ¡lida"}), 400
 
     @app.errorhandler(401)
     def _handle_401(exc):
@@ -454,12 +514,17 @@ button:hover{background:#FF7A5C}
 
     @app.errorhandler(Exception)
     def _handle_exception(exc):
-        log.exception("Excepción no manejada: %s", exc)
+        log.exception("ExcepciÃ³n no manejada: %s", exc)
         return jsonify({"error": "Error interno del servidor"}), 500
 
-    # Register signal handlers for graceful shutdown
-    signal.signal(signal.SIGTERM, _signal_handler)
-    signal.signal(signal.SIGINT, _signal_handler)
+    # Register signal handlers for graceful shutdown (only in main thread)
+    try:
+        if threading.main_thread() is threading.current_thread():
+            signal.signal(signal.SIGTERM, _signal_handler)
+            signal.signal(signal.SIGINT, _signal_handler)
+    except (ValueError, OSError):
+        # Signal handlers not available in this context (e.g., non-main thread)
+        pass
 
     app.config["START_TIME"] = time.time()
 
@@ -475,7 +540,7 @@ if __name__ == "__main__":
         guardar_datos(state.datos_persistibles())
     crear_backup()
     log.info("=" * 60)
-    log.info("  SILLYQUIZ v6 — Servidor listo")
+    log.info("  SILLYQUIZ v6 â€” Servidor listo")
     log.info("  Panel:    http://localhost:%d/control", SERVER_PORT)
     log.info("  Display:  http://localhost:%d/display", SERVER_PORT)
     log.info("  Canva:    http://localhost:%d/canva", SERVER_PORT)
@@ -487,3 +552,4 @@ if __name__ == "__main__":
         waitress_serve(app, host="0.0.0.0", port=SERVER_PORT, threads=100)
     else:
         app.run(debug=SERVER_DEBUG, host="0.0.0.0", port=SERVER_PORT, use_reloader=False, threaded=True)
+

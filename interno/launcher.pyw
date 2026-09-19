@@ -1,6 +1,6 @@
 """
-launcher.pyw — SillyQuiz Server Launcher
-Robust launcher with thread-safe GUI, proper resource cleanup, and security bootstrap.
+launcher.pyw — SillyQuiz Server Launcher v6.0
+Robust launcher with neo-brutalist GUI, proper resource cleanup, and security bootstrap.
 """
 import os
 import sys
@@ -14,6 +14,7 @@ import socket
 import atexit
 import traceback
 import logging
+import json
 from pathlib import Path
 
 # GUI dependencies
@@ -27,17 +28,19 @@ except ImportError:
 # System tray dependencies
 try:
     import pystray
-    from PIL import Image
+    from PIL import Image, ImageDraw
     HAS_TRAY = True
 except ImportError:
     HAS_TRAY = False
 
 BASE_DIR = Path(__file__).parent.resolve()
+PROJECT_ROOT = BASE_DIR.parent.resolve()
 INSTALADO_FILE = BASE_DIR / ".instalado"
-REQUIREMENTS_FILE = BASE_DIR.parent / "requirements.txt"
+REQUIREMENTS_FILE = BASE_DIR / "requirements.txt"
+CONFIG_FILE = BASE_DIR / "config.json"
 PORT = 8080
 SERVER_URL = f"http://127.0.0.1:{PORT}/sillycontrol"
-BUILDER_URL = f"http://127.0.0.1:{PORT}/html/buildsilly.html"
+BUILDER_URL = f"http://127.0.0.1:{PORT}/html/SillyBuild.html"
 DISPLAY_URL = f"http://127.0.0.1:{PORT}/display"
 WS_PORT = 8081
 WS_URL = f"ws://127.0.0.1:{WS_PORT}"
@@ -53,7 +56,7 @@ _server_error = None
 _instance_sock = None
 _instance_port = 4890
 
-# GUI State (guarded by _state_lock where accessed from threads)
+# GUI State
 _gui_running = False
 _server_online = False
 _gui_window = None
@@ -63,40 +66,41 @@ _btn_stop = None
 _status_canvas = None
 _status_dot = None
 
-# Color Palette
+# Neo-brutalist Color Palette (matching design-tokens.css)
 COLOR_BG = "#0B0B0B"
 COLOR_SURFACE = "#161616"
 COLOR_SURFACE_HOVER = "#1E1E1E"
-COLOR_BORDER = "#2A2A2A"
+COLOR_BORDER = "#3A3A3A"
 COLOR_PRIMARY = "#FF5E3A"
 COLOR_PRIMARY_HOVER = "#FF7A5C"
-COLOR_PRIMARY_PRESSED = "#BF4A2E"
-COLOR_DANGER = "#FF3B30"
-COLOR_DANGER_HOVER = "#FF6B6B"
-COLOR_DANGER_PRESSED = "#E82E22"
-COLOR_WARNING = "#FFD400"
+COLOR_PRIMARY_PRESSED = "#E04D2E"
+COLOR_DANGER = "#EF4444"
+COLOR_DANGER_HOVER = "#F87171"
+COLOR_DANGER_PRESSED = "#DC2626"
+COLOR_WARNING = "#FFB000"
+COLOR_SUCCESS = "#10B981"
 COLOR_TEXT_PRIMARY = "#F2EBDD"
 COLOR_TEXT_SECONDARY = "#A8A090"
-COLOR_TEXT_MUTED = "#6B6B6B"
-COLOR_ACCENT = "#7C3AED"
-COLOR_ACCENT_HOVER = "#8B5CF6"
-COLOR_ONLINE = "#00B894"
-COLOR_OFFLINE = "#FF3B30"
+COLOR_TEXT_MUTED = "#7A7468"
+COLOR_ACCENT = "#9B6BFF"
+COLOR_ONLINE = "#10B981"
+COLOR_OFFLINE = "#EF4444"
 
 FONT_FAMILY = "Space Grotesk"
 FONT_MONO = "Space Mono"
-
 
 # =============================================================================
 # Logging
 # =============================================================================
 def _setup_logging():
     try:
+        log_file = BASE_DIR / "launcher.log"
         logging.basicConfig(
-            filename=str(BASE_DIR / "launcher.log"),
+            filename=str(log_file),
             level=logging.INFO,
             format="%(asctime)s [%(levelname)s] %(message)s",
             filemode="a",
+            encoding="utf-8",
         )
         if sys.stdout is not None:
             console = logging.StreamHandler(sys.stdout)
@@ -106,13 +110,11 @@ def _setup_logging():
     except Exception:
         pass
 
-
 def log_error(msg):
     try:
         logging.error(msg)
     except Exception:
         pass
-
 
 def log_info(msg):
     try:
@@ -120,6 +122,11 @@ def log_info(msg):
     except Exception:
         pass
 
+def log_debug(msg):
+    try:
+        logging.debug(msg)
+    except Exception:
+        pass
 
 # =============================================================================
 # Single-instance mutex
@@ -136,7 +143,6 @@ def ensure_single_instance():
     except OSError:
         return False
 
-
 def _cleanup_instance():
     global _instance_sock
     if _instance_sock:
@@ -146,7 +152,6 @@ def _cleanup_instance():
             pass
         _instance_sock = None
 
-
 # =============================================================================
 # Helpers
 # =============================================================================
@@ -155,25 +160,24 @@ def get_base_dir():
         return Path(sys._MEIPASS).resolve()
     return BASE_DIR
 
-
 def install_dependencies():
     base_dir = get_base_dir()
-    req_file = base_dir.parent / "requirements.txt"
+    req_file = base_dir / "requirements.txt"
     if not req_file.exists():
+        log_error(f"Requirements file not found: {req_file}")
         return
     try:
         subprocess.check_call([
             sys.executable, "-m", "pip", "install", "-r", str(req_file)
         ], cwd=base_dir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         INSTALADO_FILE.write_text(str(time.time()))
+        log_info("Dependencies installed successfully")
     except subprocess.CalledProcessError as e:
         log_error(f"Error instalando dependencias: {e}")
     except Exception as e:
         log_error(f"Error inesperado instalando dependencias: {e}")
 
-
-CRITICAL_MODULES = ["flask", "waitress", "flask_cors", "websockets", "jsonschema", "Pillow", "pystray"]
-
+CRITICAL_MODULES = ["flask", "waitress", "flask_cors", "websockets", "jsonschema", "PIL", "pystray"]
 
 def _ensure_module(mod):
     try:
@@ -190,13 +194,11 @@ def _ensure_module(mod):
             log_error(f"No se pudo instalar modulo critico: {mod}")
             return False
 
-
 def ensure_dependencies():
     for m in CRITICAL_MODULES:
         _ensure_module(m)
     if not INSTALADO_FILE.exists():
         install_dependencies()
-
 
 def kill_port(port):
     try:
@@ -213,7 +215,6 @@ def kill_port(port):
     except Exception as e:
         log_error(f"Error matando puerto {port}: {e}")
 
-
 def wait_for_port(port, timeout=10):
     start = time.time()
     while time.time() - start < timeout:
@@ -224,6 +225,71 @@ def wait_for_port(port, timeout=10):
             time.sleep(0.2)
     return False
 
+def _generate_pin(length=6):
+    """Generate a random numeric PIN."""
+    return ''.join(secrets.choice('0123456789') for _ in range(length))
+
+def _hash_pin(pin, salt):
+    """SHA-256 hash of PIN + salt."""
+    return hashlib.sha256((pin + salt).encode()).hexdigest()
+
+def security_bootstrap():
+    """Generate CSRF_SECRET + PIN hash on first run. Shows PIN to user."""
+    config_path = BASE_DIR / "config.json"
+    password_hash_path = BASE_DIR / ".password_hash"
+    password_salt_path = BASE_DIR / ".password_salt"
+
+    # --- CSRF_SECRET: inject into env if not set ---
+    if not os.environ.get("CSRF_SECRET"):
+        if config_path.exists():
+            try:
+                with open(config_path, "r", encoding="utf-8") as f:
+                    cfg = json.load(f)
+                csrf = cfg.get("csrf_secret")
+                if csrf:
+                    os.environ["CSRF_SECRET"] = csrf
+                    log_info("CSRF_SECRET loaded from config.json")
+            except Exception as e:
+                log_error(f"Error reading config.json: {e}")
+        if not os.environ.get("CSRF_SECRET"):
+            new_secret = secrets.token_hex(32)
+            os.environ["CSRF_SECRET"] = new_secret
+            log_info("Generated ephemeral CSRF_SECRET")
+
+    # --- PIN: generate and store hash + salt on first run ---
+    if not password_hash_path.exists() or not password_salt_path.exists():
+        pin = _generate_pin()
+        salt = secrets.token_hex(16)
+        hash_val = _hash_pin(pin, salt)
+        try:
+            password_hash_path.write_text(hash_val)
+            password_salt_path.write_text(salt)
+            # Set restrictive permissions
+            try:
+                os.chmod(password_hash_path, 0o600)
+                os.chmod(password_salt_path, 0o600)
+            except Exception:
+                pass
+            log_info(f"FIRST RUN PIN GENERATED: {pin}")
+            if HAS_GUI:
+                try:
+                    root = tk.Tk()
+                    root.withdraw()
+                    messagebox.showinfo(
+                        "SillyQuiz - Primer Inicio",
+                        f"PIN de acceso generado:\n\n{pin}\n\nGuárdalo en un lugar seguro.\nSe requerirá para acceder al Panel de Control.",
+                    )
+                    root.destroy()
+                except Exception:
+                    pass
+            else:
+                print(f"\n{'='*50}")
+                print(f"SillyQuiz - Primer Inicio")
+                print(f"PIN de acceso: {pin}")
+                print(f"Guárdalo en un lugar seguro.")
+                print(f"{'='*50}\n")
+        except Exception as e:
+            log_error(f"Error generating PIN: {e}")
 
 # =============================================================================
 # Server management
@@ -237,6 +303,10 @@ def run_server():
     os.chdir(base_dir)
     if str(base_dir) not in sys.path:
         sys.path.insert(0, str(base_dir))
+    # Also add project root (parent of interno/) for scripts/ imports
+    project_root = base_dir.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
 
     try:
         from silly.app import app, SERVER_PORT, HAS_WAITRESS, waitress_serve
@@ -256,14 +326,12 @@ def run_server():
             _server_error = f"El servidor fallo al iniciar (puerto {SERVER_PORT} en uso?): {e}"
         log_error(_server_error)
 
-
 def open_browser():
     if wait_for_port(PORT, 15):
         webbrowser.open(SERVER_URL, new=2)
         return True
-    log_error("Timeout esperando que el servidor arranque en puerto " + str(PORT))
+    log_error(f"Timeout esperando que el servidor arranque en puerto {PORT}")
     return False
-
 
 # =============================================================================
 # WebSocket management
@@ -293,13 +361,11 @@ def _run_ws_thread():
             if _ws_loop is loop:
                 _ws_loop = None
 
-
 def start_ws_sync():
     global _ws_thread
     t = threading.Thread(target=_run_ws_thread, daemon=True, name="ws-sync")
     t.start()
     return t
-
 
 def ensure_ws_lib():
     try:
@@ -314,7 +380,6 @@ def ensure_ws_lib():
             return True
         except Exception:
             return False
-
 
 def _stop_ws():
     global _ws_thread, _ws_loop
@@ -332,7 +397,6 @@ def _stop_ws():
         _ws_loop = None
     kill_port(WS_PORT)
 
-
 # =============================================================================
 # GUI-safe helpers
 # =============================================================================
@@ -344,7 +408,6 @@ def _safe_gui(func, *args, **kwargs):
     except Exception:
         pass
     return None
-
 
 def _update_status_gui(online):
     """Update the status indicator in the GUI (must be called from GUI thread)."""
@@ -361,7 +424,6 @@ def _update_status_gui(online):
     except Exception:
         pass
 
-
 def _schedule_gui_update(func, delay_ms=0):
     """Schedule a function on the GUI thread. Safe if window is destroyed."""
     try:
@@ -373,7 +435,6 @@ def _schedule_gui_update(func, delay_ms=0):
     except Exception:
         pass
 
-
 # =============================================================================
 # Tray icon
 # =============================================================================
@@ -381,18 +442,17 @@ def create_tray_icon():
     if not HAS_TRAY:
         return None
 
-    icon_path = BASE_DIR.parent / "sillyquiz.ico"
+    icon_path = PROJECT_ROOT / "sillyquiz.ico"
     if not icon_path.exists():
         icon_path = BASE_DIR / "sillyquiz.ico"
 
     if icon_path.exists():
-        image = Image.open(icon_path)
+        try:
+            image = Image.open(icon_path)
+        except Exception:
+            image = _create_fallback_icon()
     else:
-        image = Image.new("RGBA", (64, 64), (13, 15, 20, 0))
-        from PIL import ImageDraw
-        draw = ImageDraw.Draw(image)
-        draw.rounded_rectangle([8, 8, 56, 56], radius=12, fill=(0, 212, 170, 255))
-        draw.text((22, 20), "SQ", fill=(13, 15, 20, 255), font_size=24)
+        image = _create_fallback_icon()
 
     menu = pystray.Menu(
         pystray.MenuItem("SillyQuiz", None, enabled=False),
@@ -407,6 +467,15 @@ def create_tray_icon():
     icon = pystray.Icon("SillyQuiz", image, "SillyQuiz", menu)
     return icon
 
+def _create_fallback_icon():
+    image = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    draw.rounded_rectangle([8, 8, 56, 56], radius=12, fill=(0, 212, 170, 255))
+    try:
+        draw.text((22, 20), "SQ", fill=(13, 15, 20, 255), font_size=24)
+    except Exception:
+        draw.text((22, 20), "SQ", fill=(13, 15, 20, 255))
+    return image
 
 def _tray_exit_handler(icon=None, item=None):
     _do_shutdown()
@@ -418,7 +487,6 @@ def _tray_exit_handler(icon=None, item=None):
     _cleanup_instance()
     os._exit(0)
 
-
 def _stop_current_tray():
     """Stop the existing tray icon if any."""
     global _tray_icon
@@ -429,7 +497,6 @@ def _stop_current_tray():
             old.stop()
         except Exception:
             pass
-
 
 # =============================================================================
 # Shutdown
@@ -444,16 +511,14 @@ def _do_shutdown():
         pass
     _stop_ws()
 
-
 def on_exit(icon=None, item=None):
     """Tray exit handler."""
     _do_shutdown()
     _cleanup_instance()
     os._exit(0)
 
-
 # =============================================================================
-# Modern styled button
+# Modern styled button (neo-brutalist)
 # =============================================================================
 class ModernButton(tk.Button):
     def __init__(self, master, style="primary", **kwargs):
@@ -545,15 +610,14 @@ class ModernButton(tk.Button):
         except Exception:
             pass
 
-
 # =============================================================================
 # GUI creation
 # =============================================================================
 def create_gui():
-    global (_gui_window, _gui_running, _status_label, _btn_start, _btn_stop,
-            _status_canvas, _status_dot)
+    global _gui_window, _gui_running, _status_label, _btn_start, _btn_stop, _status_canvas, _status_dot
 
     if not HAS_GUI:
+        log_error("GUI not available (tkinter not installed)")
         return
 
     _gui_running = True
@@ -563,20 +627,20 @@ def create_gui():
     log_info("create_gui: Tk() created")
 
     _gui_window.title("SillyQuiz - Administrador del Servidor")
-    _gui_window.geometry("540x620")
+    _gui_window.geometry("560x680")
     _gui_window.configure(bg=COLOR_BG)
     _gui_window.resizable(False, False)
-    _gui_window.minsize(540, 620)
+    _gui_window.minsize(560, 680)
 
     # Center window
     _gui_window.update_idletasks()
-    x = (_gui_window.winfo_screenwidth() // 2) - 270
-    y = (_gui_window.winfo_screenheight() // 2) - 310
+    x = (_gui_window.winfo_screenwidth() // 2) - 280
+    y = (_gui_window.winfo_screenheight() // 2) - 340
     _gui_window.geometry(f"+{x}+{y}")
 
     # Set icon
     try:
-        icon_path = BASE_DIR.parent / "sillyquiz.ico"
+        icon_path = PROJECT_ROOT / "sillyquiz.ico"
         if not icon_path.exists():
             icon_path = BASE_DIR / "sillyquiz.ico"
         if icon_path.exists():
@@ -587,44 +651,44 @@ def create_gui():
     log_info("create_gui: Building UI...")
 
     # Main container
-    main_frame = tk.Frame(_gui_window, bg=COLOR_BG, padx=24, pady=20)
+    main_frame = tk.Frame(_gui_window, bg=COLOR_BG, padx=28, pady=24)
     main_frame.pack(fill=tk.BOTH, expand=True)
 
     # Header
     header_frame = tk.Frame(main_frame, bg=COLOR_BG)
-    header_frame.pack(fill=tk.X, pady=(0, 24))
+    header_frame.pack(fill=tk.X, pady=(0, 28))
     logo_frame = tk.Frame(header_frame, bg=COLOR_BG)
     logo_frame.pack(anchor=tk.W)
 
-    icon_canvas = tk.Canvas(logo_frame, width=48, height=48, bg=COLOR_BG, highlightthickness=0)
-    icon_canvas.pack(side=tk.LEFT, padx=(0, 14))
-    icon_canvas.create_oval(4, 4, 44, 44, fill=COLOR_PRIMARY, outline="")
-    icon_canvas.create_text(24, 24, text="SQ", fill=COLOR_BG, font=(FONT_FAMILY, 16, "bold"))
+    icon_canvas = tk.Canvas(logo_frame, width=56, height=56, bg=COLOR_BG, highlightthickness=0)
+    icon_canvas.pack(side=tk.LEFT, padx=(0, 16))
+    icon_canvas.create_oval(4, 4, 52, 52, fill=COLOR_PRIMARY, outline="")
+    icon_canvas.create_text(28, 28, text="SQ", fill=COLOR_BG, font=(FONT_FAMILY, 20, "bold"))
 
     title_frame = tk.Frame(logo_frame, bg=COLOR_BG)
     title_frame.pack(side=tk.LEFT, fill=tk.Y)
-    tk.Label(title_frame, text="SillyQuiz", font=(FONT_FAMILY, 22, "bold"),
+    tk.Label(title_frame, text="SillyQuiz", font=(FONT_FAMILY, 26, "bold"),
              bg=COLOR_BG, fg=COLOR_TEXT_PRIMARY).pack(anchor=tk.W)
-    tk.Label(title_frame, text="Administrador del Servidor", font=(FONT_FAMILY, 10),
+    tk.Label(title_frame, text="Administrador del Servidor", font=(FONT_FAMILY, 11),
              bg=COLOR_BG, fg=COLOR_TEXT_MUTED).pack(anchor=tk.W)
 
     # Status Card
-    status_card = tk.Frame(main_frame, bg=COLOR_SURFACE, highlightbackground=COLOR_BORDER, highlightthickness=1)
-    status_card.pack(fill=tk.X, pady=(0, 20), ipady=16, ipadx=20)
+    status_card = tk.Frame(main_frame, bg=COLOR_SURFACE, highlightbackground=COLOR_BORDER, highlightthickness=2)
+    status_card.pack(fill=tk.X, pady=(0, 24), ipady=20, ipadx=24)
     status_header = tk.Frame(status_card, bg=COLOR_SURFACE)
-    status_header.pack(fill=tk.X, pady=(0, 8))
-    tk.Label(status_header, text="Estado del Servidor", font=(FONT_FAMILY, 11, "bold"),
+    status_header.pack(fill=tk.X, pady=(0, 10))
+    tk.Label(status_header, text="Estado del Servidor", font=(FONT_FAMILY, 12, "bold"),
              bg=COLOR_SURFACE, fg=COLOR_TEXT_SECONDARY).pack(side=tk.LEFT)
 
     status_row = tk.Frame(status_card, bg=COLOR_SURFACE)
     status_row.pack(fill=tk.X)
 
-    _status_canvas = tk.Canvas(status_row, width=12, height=12, bg=COLOR_SURFACE,
+    _status_canvas = tk.Canvas(status_row, width=14, height=14, bg=COLOR_SURFACE,
                                highlightthickness=0, name="status_indicator")
-    _status_canvas.pack(side=tk.LEFT, padx=(0, 10))
-    _status_dot = _status_canvas.create_oval(2, 2, 10, 10, fill=COLOR_OFFLINE, outline="")
+    _status_canvas.pack(side=tk.LEFT, padx=(0, 12))
+    _status_dot = _status_canvas.create_oval(3, 3, 11, 11, fill=COLOR_OFFLINE, outline="")
 
-    _status_label = tk.Label(status_row, text="\u25cf PARADO", font=(FONT_FAMILY, 13, "bold"),
+    _status_label = tk.Label(status_row, text="\u25cf PARADO", font=(FONT_FAMILY, 14, "bold"),
                              bg=COLOR_SURFACE, fg=COLOR_OFFLINE)
     _status_label.pack(side=tk.LEFT, anchor=tk.W)
 
@@ -641,37 +705,38 @@ def create_gui():
     log_info("create_gui: pulse_status started")
 
     # Divider
-    tk.Frame(main_frame, bg=COLOR_BORDER, height=1).pack(fill=tk.X, pady=(0, 20))
+    tk.Frame(main_frame, bg=COLOR_BORDER, height=2).pack(fill=tk.X, pady=(0, 24))
 
     # Control Buttons
     btn_frame = tk.Frame(main_frame, bg=COLOR_BG)
-    btn_frame.pack(fill=tk.X, pady=(0, 24))
+    btn_frame.pack(fill=tk.X, pady=(0, 28))
 
     _btn_start = ModernButton(btn_frame, style="primary", text="\u25b6  Iniciar Servidor",
                               command=start_server_gui)
-    _btn_start.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 8))
+    _btn_start.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
 
     _btn_stop = ModernButton(btn_frame, style="danger", text="\u23f9  Detener Servidor",
                              command=stop_server_gui, state=tk.DISABLED)
-    _btn_stop.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(8, 0))
+    _btn_stop.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(10, 0))
 
     log_info("create_gui: Control buttons created")
 
     # Divider
-    tk.Frame(main_frame, bg=COLOR_BORDER, height=1).pack(fill=tk.X, pady=(0, 20))
+    tk.Frame(main_frame, bg=COLOR_BORDER, height=2).pack(fill=tk.X, pady=(0, 24))
 
     # Quick Links
-    tk.Label(main_frame, text="\u26a1  Accesos Rapidos", font=(FONT_FAMILY, 11, "bold"),
-             bg=COLOR_BG, fg=COLOR_TEXT_SECONDARY).pack(anchor=tk.W, pady=(0, 12))
+    tk.Label(main_frame, text="\u26a1  Accesos Rapidos", font=(FONT_FAMILY, 12, "bold"),
+             bg=COLOR_BG, fg=COLOR_TEXT_SECONDARY).pack(anchor=tk.W, pady=(0, 14))
 
     links_data = [
         ("\U0001f4ca", "Panel de Control", SERVER_URL, COLOR_PRIMARY),
         ("\U0001f5a5\ufe0f", "Pantalla Display", DISPLAY_URL, COLOR_ACCENT),
         ("\U0001f9e9", "Constructor (BuildSilly)", BUILDER_URL, COLOR_WARNING),
         ("\U0001f4cb", "Estado API", f"http://127.0.0.1:{PORT}/api/estado-actual", COLOR_TEXT_MUTED),
+        ("\U0001f4de", "WebSocket Sync", WS_URL, COLOR_SUCCESS),
     ]
 
-    def lighten_color(hex_color, factor=0.2):
+    def lighten_color(hex_color, factor=0.15):
         hex_color = hex_color.lstrip('#')
         r = int(hex_color[0:2], 16)
         g = int(hex_color[2:4], 16)
@@ -682,17 +747,17 @@ def create_gui():
         return f"#{r:02x}{g:02x}{b:02x}"
 
     for icon, title, url, accent_color in links_data:
-        link_frame = tk.Frame(main_frame, bg=COLOR_SURFACE, highlightbackground=COLOR_BORDER, highlightthickness=1)
-        link_frame.pack(fill=tk.X, pady=4, ipady=10, ipadx=14)
+        link_frame = tk.Frame(main_frame, bg=COLOR_SURFACE, highlightbackground=COLOR_BORDER, highlightthickness=2)
+        link_frame.pack(fill=tk.X, pady=5, ipady=12, ipadx=16)
 
-        icon_canvas = tk.Canvas(link_frame, width=36, height=36, bg=COLOR_SURFACE, highlightthickness=0)
-        icon_canvas.pack(side=tk.LEFT, padx=(0, 14))
-        icon_canvas.create_oval(2, 2, 34, 34, fill=lighten_color(accent_color), outline=accent_color)
-        icon_canvas.create_text(18, 18, text=icon, font=(FONT_FAMILY, 13), fill=accent_color)
+        icon_canvas = tk.Canvas(link_frame, width=40, height=40, bg=COLOR_SURFACE, highlightthickness=0)
+        icon_canvas.pack(side=tk.LEFT, padx=(0, 16))
+        icon_canvas.create_oval(2, 2, 38, 38, fill=lighten_color(accent_color), outline=accent_color, width=2)
+        icon_canvas.create_text(20, 20, text=icon, font=(FONT_FAMILY, 14), fill=accent_color)
 
         text_frame = tk.Frame(link_frame, bg=COLOR_SURFACE)
         text_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        tk.Label(text_frame, text=title, font=(FONT_FAMILY, 10, "bold"),
+        tk.Label(text_frame, text=title, font=(FONT_FAMILY, 11, "bold"),
                  bg=COLOR_SURFACE, fg=COLOR_TEXT_PRIMARY, anchor=tk.W).pack(anchor=tk.W)
         tk.Label(text_frame, text=url, font=(FONT_MONO, 8),
                  bg=COLOR_SURFACE, fg=COLOR_TEXT_MUTED, anchor=tk.W).pack(anchor=tk.W)
@@ -709,12 +774,12 @@ def create_gui():
     log_info("create_gui: Quick links created")
 
     # Divider
-    tk.Frame(main_frame, bg=COLOR_BORDER, height=1).pack(fill=tk.X, pady=(20, 16))
+    tk.Frame(main_frame, bg=COLOR_BORDER, height=2).pack(fill=tk.X, pady=(24, 18))
 
     # Server info
     info_frame = tk.Frame(main_frame, bg=COLOR_BG)
-    info_frame.pack(fill=tk.X, pady=(0, 20))
-    tk.Label(info_frame, text=f"Servidor HTTP: http://127.0.0.1:{PORT}",
+    info_frame.pack(fill=tk.X, pady=(0, 24))
+    tk.Label(info_frame, text=f"Servidor HTTP:  http://127.0.0.1:{PORT}",
              font=(FONT_MONO, 9), bg=COLOR_BG, fg=COLOR_TEXT_MUTED).pack(anchor=tk.W)
     tk.Label(info_frame, text=f"WebSocket Sync: ws://127.0.0.1:{WS_PORT}",
              font=(FONT_MONO, 9), bg=COLOR_BG, fg=COLOR_TEXT_MUTED).pack(anchor=tk.W)
@@ -725,7 +790,7 @@ def create_gui():
 
     if HAS_TRAY:
         ModernButton(bottom_frame, style="secondary", text="\U0001f4e5 Minimizar a Bandeja",
-                     command=minimize_to_tray).pack(side=tk.LEFT, padx=(0, 8))
+                     command=minimize_to_tray).pack(side=tk.LEFT, padx=(0, 10))
 
     ModernButton(bottom_frame, style="ghost", text="\u2715  Salir",
                  command=on_gui_close).pack(side=tk.RIGHT)
@@ -741,7 +806,6 @@ def create_gui():
     _gui_window.mainloop()
     _gui_running = False
     log_info("create_gui: mainloop ENDED")
-
 
 # =============================================================================
 # Server status polling
@@ -759,7 +823,6 @@ def _poll_server_status():
     except Exception:
         pass
     _schedule_gui_update(_poll_server_status, 1000)
-
 
 # =============================================================================
 # Server start / stop from GUI
@@ -785,7 +848,6 @@ def start_server_gui():
         else:
             log_error("No se pudo instalar 'websockets'; sync multi-display desactivado.")
 
-        # Don't set online yet — wait for port check
         _schedule_gui_update(_check_server_started, 200)
 
         if _btn_start:
@@ -797,7 +859,6 @@ def start_server_gui():
         log_error(f"Error iniciando servidor: {e}")
         _safe_gui(messagebox.showerror, "Error", f"No se pudo iniciar el servidor: {e}")
         _update_status_gui(False)
-
 
 def _check_server_started():
     """Poll until the server port is listening, then report success/failure."""
@@ -831,7 +892,6 @@ def _check_server_started():
         if _btn_stop:
             _btn_stop.set_state(tk.DISABLED)
 
-
 def stop_server_gui():
     try:
         _do_shutdown()
@@ -856,9 +916,8 @@ def stop_server_gui():
         log_error(f"Error deteniendo servidor: {e}")
         _safe_gui(messagebox.showerror, "Error", f"No se pudo detener el servidor: {e}")
 
-
 def minimize_to_tray():
-    _stop_current_tray()  # Stop old icon first
+    _stop_current_tray()
     if HAS_TRAY and _gui_window:
         _gui_window.withdraw()
         _tray_icon_local = create_tray_icon()
@@ -866,7 +925,6 @@ def minimize_to_tray():
             global _tray_icon
             _tray_icon = _tray_icon_local
             threading.Thread(target=_tray_icon_local.run, daemon=True, name="tray-icon").start()
-
 
 def on_gui_close():
     if _safe_gui(messagebox.askokcancel, "Salir",
@@ -881,185 +939,73 @@ def on_gui_close():
         _cleanup_instance()
         os._exit(0)
 
-
 # =============================================================================
-# Security bootstrap
-# =============================================================================
-def security_bootstrap():
-    """Generate CSRF_SECRET + PIN hash on first run. Shows PIN to user."""
-    config_path = BASE_DIR / "config.json"
-    password_hash_path = BASE_DIR / ".password_hash"
-    password_salt_path = BASE_DIR / ".password_salt"
-
-    # --- CSRF_SECRET: inject into env if not set ---
-    if not os.environ.get("CSRF_SECRET"):
-        if config_path.exists():
-            try:
-                import json as _json
-                with open(config_path, "r", encoding="utf-8") as f:
-                    cfg = _json.load(f)
-                csrf = cfg.get("security", {}).get("csrf_secret", "")
-                if csrf:
-                    os.environ["CSRF_SECRET"] = csrf
-            except Exception as e:
-                log_error(f"Error leyendo config.json para CSRF_SECRET: {e}")
-
-        if not os.environ.get("CSRF_SECRET"):
-            new_secret = secrets.token_hex(32)
-            os.environ["CSRF_SECRET"] = new_secret
-            try:
-                import json as _json
-                cfg = {}
-                if config_path.exists():
-                    try:
-                        with open(config_path, "r", encoding="utf-8") as f:
-                            cfg = _json.load(f)
-                    except Exception:
-                        cfg = {}
-                cfg.setdefault("security", {})["csrf_secret"] = new_secret
-                with open(config_path, "w", encoding="utf-8") as f:
-                    _json.dump(cfg, f, indent=4, ensure_ascii=False)
-                log_info("CSRF_SECRET generado y guardado en config.json")
-            except Exception as e:
-                log_error(f"No se pudo guardar CSRF_SECRET en config.json: {e}")
-
-    # --- PIN: generate on first run ---
-    os.environ["SILLY_PASSWORD_HASH"] = str(password_hash_path)
-    os.environ["SILLY_PASSWORD_SALT"] = ""
-
-    if password_salt_path.exists():
-        try:
-            os.environ["SILLY_PASSWORD_SALT"] = password_salt_path.read_text(encoding="utf-8").strip()
-        except Exception:
-            pass
-
-    if not password_hash_path.exists():
-        # Generate 8-char PIN: 4 hex bytes -> 8 hex chars, uppercase
-        pin = secrets.token_hex(4).upper()
-        salt = secrets.token_hex(16)
-        try:
-            h = hashlib.sha256((pin + salt).encode()).hexdigest()
-            password_hash_path.write_text(h, encoding="utf-8")
-            password_salt_path.write_text(salt, encoding="utf-8")
-            os.environ["SILLY_PASSWORD_SALT"] = salt
-            log_info("PIN de acceso generado (primer arranque)")
-
-            # Show PIN to user — use print first (works for both GUI and headless)
-            pin_msg = (
-                f"{'='*50}\n"
-                f"  SILLYQUIZ — Primer Arranque\n"
-                f"  PIN de acceso: {pin}\n"
-                f"  Guardalo en un lugar seguro.\n"
-                f"{'='*50}"
-            )
-            print(f"\n{pin_msg}\n")
-
-            # If GUI available and we haven't created the main Tk yet, show messagebox
-            if HAS_GUI:
-                try:
-                    root = tk.Tk()
-                    root.withdraw()
-                    messagebox.showinfo(
-                        "SillyQuiz — Primer Arranque",
-                        f"Se ha generado un PIN de acceso para el panel de control.\n\n"
-                        f"PIN: {pin}\n\n"
-                        f"Guardalo en un lugar seguro. Se requiere para acceder al panel."
-                    )
-                    root.destroy()
-                except Exception:
-                    pass  # PIN already printed to console
-        except Exception as e:
-            log_error(f"No se pudo generar PIN: {e}")
-
-
-# =============================================================================
-# Main
+# Main entry point
 # =============================================================================
 def main():
-    global _gui_running, _server_thread, _ws_thread
+    _setup_logging()
+    log_info("=" * 50)
+    log_info("SillyQuiz Launcher v6.0 starting...")
+    log_info(f"Base dir: {BASE_DIR}")
+    log_info(f"Project root: {PROJECT_ROOT}")
 
-    # Security bootstrap: generate secrets + PIN on first run
-    security_bootstrap()
+    # Single instance check
+    if not ensure_single_instance():
+        log_error("Another instance is already running.")
+        if HAS_GUI:
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showwarning("SillyQuiz", "Ya hay una instancia en ejecucion.\nRevisa la bandeja del sistema.")
+            root.destroy()
+        sys.exit(1)
 
     # Headless mode (servers / CI / tests): SILLYQUIZ_HEADLESS=1
     if os.environ.get("SILLYQUIZ_HEADLESS"):
+        log_info("Running in headless mode (SILLYQUIZ_HEADLESS=1)")
         if not getattr(sys, 'frozen', False):
             ensure_dependencies()
         kill_port(PORT)
+        kill_port(WS_PORT)
         _server_thread = threading.Thread(target=run_server, daemon=True, name="flask-server")
         _server_thread.start()
         if ensure_ws_lib():
-            _ws_thread = start_ws_sync()
-        # Open browser with timeout — don't block forever if browser fails
-        t = threading.Thread(target=open_browser, daemon=True, name="browser-launch")
-        t.start()
+            start_ws_sync()
         _shutdown_event.wait()
         return
 
-    # First try GUI
-    gui_ok = False
+    # Security bootstrap (generates PIN on first run)
+    security_bootstrap()
+
+    # Dependencies
+    if not getattr(sys, 'frozen', False):
+        ensure_dependencies()
+
+    # Kill any stale ports
+    kill_port(PORT)
+    kill_port(WS_PORT)
+
     if HAS_GUI:
-        try:
-            create_gui()
-            gui_ok = True
-        except Exception as e:
-            log_error(f"Error al crear GUI: {e}")
-            try:
-                if _gui_window:
-                    _gui_window.destroy()
-            except Exception:
-                pass
-
-    if not gui_ok:
-        # No GUI (or failed): auto-start server + tray or headless
-        log_info("Modo servidor (sin GUI interactiva). Abriendo panel en navegador...")
-
-        kill_port(PORT)
-        _server_thread = threading.Thread(target=run_server, daemon=True, name="flask-server")
-        _server_thread.start()
-
-        if ensure_ws_lib():
-            _ws_thread = start_ws_sync()
-
-        browser_t = threading.Thread(target=open_browser, daemon=True, name="browser-launch")
-        browser_t.start()
-
-        if HAS_TRAY:
-            _stop_current_tray()
-            _tray_icon_local = create_tray_icon()
-            if _tray_icon_local:
-                _tray_icon = _tray_icon_local
-                _tray_icon_local.run()
-            else:
-                _shutdown_event.wait()
-        else:
-            _shutdown_event.wait()
-
+        create_gui()
+    else:
+        # Headless mode
+        log_info("Running in headless mode (no GUI)")
+        run_server()
 
 if __name__ == "__main__":
-    _setup_logging()
     try:
-        if not ensure_single_instance():
-            log_info("Otra instancia de SillyQuiz ya esta en ejecucion; se aborta esta.")
-            headless = bool(os.environ.get("SILLYQUIZ_HEADLESS")) or not HAS_GUI
-            if not headless:
-                try:
-                    root = tk.Tk()
-                    root.withdraw()
-                    messagebox.showerror(
-                        "SillyQuiz",
-                        "Ya hay otra instancia de SillyQuiz ejecutandose.\n\n"
-                        "Cierra la ventana del administrador o el icono de la bandeja "
-                        "del sistema antes de abrir otra."
-                    )
-                    root.destroy()
-                except Exception:
-                    pass
-            sys.exit(1)
-
-        log_info("Launcher iniciado (PID %s)." % os.getpid())
         main()
-        log_info("Launcher finalizado.")
-    except Exception:
-        log_error("Excepcion no controlada en el launcher:\n" + traceback.format_exc())
-        raise
+    except KeyboardInterrupt:
+        log_info("Interrupted by user")
+        _do_shutdown()
+        _cleanup_instance()
+    except Exception as e:
+        log_error(f"Fatal error: {e}\n{traceback.format_exc()}")
+        if HAS_GUI:
+            try:
+                root = tk.Tk()
+                root.withdraw()
+                messagebox.showerror("Error Fatal", f"Error critico:\n{e}")
+                root.destroy()
+            except Exception:
+                pass
+        sys.exit(1)

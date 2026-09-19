@@ -26,7 +26,7 @@
 /* ===================================================================
  * CONSTANTES DE SEGURIDAD
  * =================================================================== */
-const MAX_STEPS = 2000000;
+const MAX_STEPS = 10000000;
 
 // Opcodes peligrosos: bloqueo duro, igual que el backend (_security.py).
 const DANGEROUS_OPCODES = new Set(['execute_raw_javascript', 'inject_css_raw']);
@@ -153,7 +153,16 @@ function buildProviders() {
       case 'question_image': return '(img)';
       case 'difficulty': return 'media';
       case 'total_questions': return num(ctx.state['total_questions'], 0);
-      case 'top_n': return JSON.stringify(['Jugador 1', 'Jugador 2', 'Jugador 3'].slice(0, Math.max(1, num(args.N, 3))));
+      case 'top_n': {
+        const n = Math.max(1, Math.floor(num(args.N, 3)));
+        const scores = ctx.state['player_scores'];
+        if (Array.isArray(scores) && scores.length) {
+          return JSON.stringify(scores.slice(0, n));
+        }
+        const names = [];
+        for (let i = 1; i <= n; i++) { const nm = ctx.state['player_name_' + i]; names.push(nm != null ? nm : ('Jugador ' + i)); }
+        return JSON.stringify(names);
+      }
       case 'list_pop': { const l = ctx.state['list_' + args.NAME]; return Array.isArray(l) && l.length ? l.pop() : ''; }
       case 'list_to_json': { const l = ctx.state['list_' + args.NAME]; return JSON.stringify(Array.isArray(l) ? l : []); }
       case 'string_trim': return String(args.TXT || '').trim();

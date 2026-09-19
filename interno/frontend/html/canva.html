@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; font-src https://fonts.gstatic.com; connect-src 'self' ws://*:8081 wss://*:8081; worker-src blob:; img-src 'self' data: https:; media-src 'self' data: https:;">
+  <title>SillyQuiz · Canva — Sprite & Animation Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <!-- Unified Design Tokens (MUST BE FIRST) -->
+  <link rel="stylesheet" href="../css/design-tokens.css">
+
+  <!-- Builder Styles -->
+  <link rel="stylesheet" href="../css/sillybuild.css">
+  <link rel="stylesheet" href="../css/scratch-blocks.css">
+  <link rel="stylesheet" href="../css/scratch-canvas.css">
+
+  <!-- Canva Editor Styles -->
+  <link rel="stylesheet" href="../css/canva-editor.css">
+
+  <style>
+    .sq-splash {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--sq-color-bg-primary);
+      overflow: hidden;
+      font-family: var(--sq-font-sans);
+      color: var(--sq-color-fg-primary);
+      transition: opacity 0.4s ease, transform 0.4s ease, pointer-events 0.4s ease;
+    }
+
+    .sq-splash::before {
+      content: '';
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 20% 30%, var(--sq-color-accent-primary) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 70%, var(--sq-color-accent-secondary) 0%, transparent 50%),
+                  radial-gradient(circle at 50% 50%, var(--sq-color-accent-tertiary) 0%, transparent 70%);
+      animation: pulseBackground 20s ease-in-out infinite alternate;
+      opacity: 0.3;
+    }
+
+    .sq-splash__content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: var(--sq-space-8);
+      max-width: 450px;
+      background: var(--sq-color-bg-overlay);
+      border: 2px solid var(--sq-color-border-default);
+      border-radius: var(--sq-radius-brutal);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--sq-shadow-glow),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transform: translateY(0);
+      animation: editorSlideIn 1s cubic-bezier(0.4, 0, 0.2, 1), editorGlow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes editorSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes editorGlow {
+      0%, 100% {
+        box-shadow: var(--sq-shadow-glow), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      }
+      50% {
+        box-shadow: var(--sq-shadow-glow-strong), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+    }
+
+    @keyframes pulseBackground {
+      0%, 100% {
+        transform: translate(-10%, -10%) scale(1);
+        opacity: 0.2;
+      }
+      50% {
+        transform: translate(10%, -20%) scale(1.2);
+        opacity: 0.4;
+      }
+    }
+
+    .sq-splash__logo {
+      margin: 0 auto var(--sq-space-6);
+      filter: drop-shadow(0 8px 24px rgba(255, 94, 58, 0.5));
+      animation: logoFloat 4s ease-in-out infinite;
+      position: relative;
+    }
+
+    .sq-splash__logo::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 120%;
+      height: 120%;
+      background: radial-gradient(circle, rgba(255, 94, 58, 0.3) 0%, transparent 70%);
+      filter: blur(20px);
+      animation: logoPulse 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes logoFloat {
+      0%, 100% {
+        transform: translateY(0) rotate(0deg);
+      }
+      50% {
+        transform: translateY(-10px) rotate(3deg);
+      }
+    }
+
+    @keyframes logoPulse {
+      from {
+        opacity: 0.5;
+        transform: translate(-50%, -50%) scale(1);
+      }
+      to {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1.1);
+      }
+    }
+
+    .sq-splash__title {
+      font-family: var(--sq-font-heading);
+      font-weight: 900;
+      font-size: var(--sq-font-size-5xl);
+      color: var(--sq-color-fg-primary);
+      margin: 0 0 var(--sq-space-2);
+      letter-spacing: -0.02em;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      position: relative;
+      display: inline-block;
+    }
+
+    .sq-splash__title::before {
+      content: '🎨';
+      position: absolute;
+      left: -40px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.8em;
+      animation: titleEmoji 2s ease-in-out infinite alternate;
+    }
+
+    .sq-splash__title::after {
+      content: '✨';
+      position: absolute;
+      right: -40px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.8em;
+      animation: titleEmoji 2s ease-in-out infinite alternate reverse;
+    }
+
+    @keyframes titleEmoji {
+      0%, 100% {
+        transform: translateY(-50%) translateX(0) rotate(0deg);
+        opacity: 0.7;
+      }
+      50% {
+        transform: translateY(-50%) translateX(5px) rotate(10deg);
+        opacity: 1;
+      }
+    }
+
+    .sq-splash__tagline {
+      font-size: var(--sq-font-size-xl);
+      color: var(--sq-color-accent-primary);
+      margin: 0 0 var(--sq-space-8);
+      font-weight: 500;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      animation: taglineFade 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes taglineFade {
+      0%, 100% {
+        opacity: 0.8;
+        transform: translateY(0);
+      }
+      50% {
+        opacity: 1;
+        transform: translateY(-3px);
+      }
+    }
+
+    .sq-splash__progress {
+      width: 100%;
+      height: 8px;
+      background: var(--sq-color-bg-tertiary);
+      border-radius: var(--sq-radius-brutal);
+      overflow: hidden;
+      margin-bottom: var(--sq-space-4);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.3),
+                  0 0 10px rgba(255, 94, 58, 0.3);
+      position: relative;
+      animation: progressShine 2s linear infinite;
+      background-size: 200% 100%;
+      background-image: linear-gradient(90deg, transparent, rgba(255, 94, 58, 0.5), transparent);
+    }
+
+    @keyframes progressShine {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .sq-splash__bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--sq-color-accent-primary), var(--sq-color-accent-secondary), var(--sq-color-accent-tertiary));
+      border-radius: var(--sq-radius-brutal);
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 12px var(--sq-color-accent-glow),
+                  0 0 20px rgba(255, 94, 58, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sq-splash__bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+      animation: barFlash 2s ease-in-out infinite;
+    }
+
+    @keyframes barFlash {
+      0%, 100% {
+        opacity: 0;
+        transform: translateX(-100%);
+      }
+      50% {
+        opacity: 1;
+        transform: translateX(100%);
+      }
+    }
+
+    .sq-splash__status {
+      font-family: var(--sq-font-mono);
+      font-size: var(--sq-font-size-sm);
+      color: var(--sq-color-fg-secondary);
+      margin: 0 0 var(--sq-space-4);
+      min-height: 1.5em;
+      position: relative;
+      display: inline-block;
+      align-self: center;
+    }
+
+    .sq-splash__status::before {
+      content: '▶';
+      margin-right: var(--sq-space-2);
+      color: var(--sq-color-accent-primary);
+      animation: pulsePlay 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulsePlay {
+      from {
+        opacity: 0.7;
+        transform: scale(1);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1.1);
+      }
+    }
+
+    .sq-splash__hints {
+      position: relative;
+      margin-top: var(--sq-space-6);
+      padding: var(--sq-space-4);
+      background: var(--sq-color-bg-tertiary);
+      border: 1px solid var(--sq-color-border-default);
+      border-radius: var(--sq-radius-md);
+      font-size: var(--sq-font-size-xs);
+      color: var(--sq-color-fg-muted);
+      min-height: 2.5em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      animation: hintFade 4s ease-in-out infinite alternate;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .sq-splash__hints:hover {
+      background: var(--sq-color-bg-hover);
+      box-shadow: 0 0 15px rgba(255, 94, 58, 0.2),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes hintFade {
+      0%, 100% {
+        opacity: 0.7;
+        border-color: var(--sq-color-border-subtle);
+      }
+      50% {
+        opacity: 1;
+        border-color: var(--sq-color-accent-primary);
+      }
+    }
+
+    .sq-splash__hint-particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .sq-splash__bar { transition: none; }
+      .sq-splash { transition: none; }
+      .sq-splash::before,
+      .sq-splash__content,
+      .sq-splash__logo,
+      .sq-splash__title,
+      .sq-splash__tagline,
+      .sq-splash__progress,
+      .sq-splash__status,
+      .sq-splash__hints {
+        animation: none !important;
+        transition: none !important;
+      }
+      .sq-splash__content {
+        transform: none;
+      }
+    }
+
+    /* Enhanced editor canvas styling */
+    .sq-canva {
+      position: relative;
+      overflow: hidden;
+      border: 2px solid var(--sq-color-border-default);
+      border-radius: var(--sq-radius-brutal);
+      box-shadow: var(--sq-shadow-lg),
+                  0 0 30px rgba(255, 94, 58, 0.1);
+      background: linear-gradient(135deg, var(--sq-color-bg-primary) 0%, var(--sq-color-bg-secondary) 100%);
+      transition: all 0.3s ease;
+    }
+
+    .sq-canva:hover {
+      box-shadow: var(--sq-shadow-glow), 0 0 40px rgba(255, 94, 58, 0.2);
+      border-color: var(--sq-color-accent-primary);
+    }
+
+    @media (max-width: 768px) {
+      .sq-splash__content {
+        max-width: 90%;
+        padding: var(--sq-space-6);
+      }
+
+      .sq-splash__title {
+        font-size: var(--sq-font-size-4xl);
+      }
+
+      .sq-splash__title::before,
+      .sq-splash__title::after {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Splash Screen -->
+  <div id="silly-splash" class="sq-splash" role="dialog" aria-modal="true" aria-labelledby="splash-title">
+    <div class="sq-splash__content">
+      <div class="sq-splash__logo" aria-hidden="true">
+        <svg viewBox="0 0 80 80" width="80" height="80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="80" height="80" rx="16" fill="var(--sq-color-accent-primary)"/>
+          <rect x="4" y="4" width="72" height="72" rx="12" fill="var(--sq-color-bg-primary)"/>
+          <text x="40" y="52" text-anchor="middle" font-family="var(--sq-font-heading)" font-weight="900" font-size="32" fill="var(--sq-color-accent-primary)">CV</text>
+          <rect x="8" y="8" width="12" height="4" rx="2" fill="var(--sq-color-accent-tertiary)"/>
+          <rect x="60" y="68" width="12" height="4" rx="2" fill="var(--sq-color-accent-secondary)"/>
+        </svg>
+      </div>
+      <h1 id="splash-title" class="sq-splash__title">Canva</h1>
+      <p class="sq-splash__tagline">Editor de Sprites y Animaciones</p>
+      <div class="sq-splash__progress" role="progressbar" aria-label="Progreso de carga" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="sq-splash__bar" id="splashBar"></div>
+      </div>
+      <p class="sq-splash__status" id="splashStatus">Cargando motor gráfico...</p>
+      <div class="sq-splash__hints" id="splashHints" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <!-- Main Editor Application -->
+  <div id="canvaEditor" class="sq-canva" role="application" aria-label="Editor de sprites y animaciones Canva" style="display:none;"></div>
+
+  <!-- Floating Action Button Toolbar -->
+  <div id="sq-float-toolbar" class="sq-fab-toolbar" role="toolbar" aria-label="Acciones rápidas" style="display:none;">
+    <div class="sq-fab-menu" id="sqFabMenu" role="menu" aria-label="Menú de proyecto" hidden>
+      <button class="sq-fab-item" data-act="new" role="menuitem"><span class="sq-fab-ico">📄</span> Nuevo sprite</button>
+      <button class="sq-fab-item" data-act="save" role="menuitem"><span class="sq-fab-ico">💾</span> Guardar proyecto</button>
+      <button class="sq-fab-item" data-act="load" role="menuitem"><span class="sq-fab-ico">📂</span> Cargar proyecto</button>
+      <button class="sq-fab-item" data-act="export-silly" role="menuitem"><span class="sq-fab-ico">📤</span> Exportar .silly</button>
+      <button class="sq-fab-item" data-act="import-silly" role="menuitem"><span class="sq-fab-ico">📥</span> Importar .silly</button>
+      <hr class="sq-fab-divider">
+      <button class="sq-fab-item" data-act="export-png" role="menuitem"><span class="sq-fab-ico">🖼️</span> Exportar PNG</button>
+      <button class="sq-fab-item" data-act="export-gif" role="menuitem"><span class="sq-fab-ico">🎞️</span> Exportar GIF</button>
+      <button class="sq-fab-item" data-act="export-json" role="menuitem"><span class="sq-fab-ico">📋</span> Exportar JSON</button>
+      <hr class="sq-fab-divider">
+      <button class="sq-fab-item" data-act="theme" role="menuitem"><span class="sq-fab-ico">🌓</span> Alternar tema</button>
+      <button class="sq-fab-item" data-act="builder" role="menuitem"><span class="sq-fab-ico">🔧</span> Abrir Builder</button>
+      <button class="sq-fab-item" data-act="preview" role="menuitem"><span class="sq-fab-ico">▶</span> Vista previa animación</button>
+      <hr class="sq-fab-divider">
+      <button class="sq-fab-item" data-act="shortcuts" role="menuitem"><span class="sq-fab-ico">⌨</span> Atajos de teclado</button>
+      <button class="sq-fab-item" data-act="about" role="menuitem"><span class="sq-fab-ico">ℹ</span> Acerca de</button>
+    </div>
+    <button class="sq-fab-btn" id="sqFabBtn" aria-label="Abrir menú de proyecto" aria-expanded="false" aria-controls="sqFabMenu" title="Menú de proyecto (Ctrl+M)">
+      <span class="sq-fab-glyph">☰</span>
+      <span class="sq-fab-tooltip">Menú</span>
+    </button>
+  </div>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <div id="sq-shortcuts-modal" class="sq-modal" role="dialog" aria-modal="true" aria-labelledby="shortcuts-title" style="display:none;">
+    <div class="sq-modal-backdrop"></div>
+    <div class="sq-modal-panel">
+      <div class="sq-modal-header">
+        <h2 id="shortcuts-title">⌨ Atajos de Teclado — Canva</h2>
+        <button class="sq-modal-close" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="sq-modal-body">
+        <div class="sq-shortcuts-category">
+          <h3>Herramientas</h3>
+          <table class="sq-shortcuts-table">
+            <tbody>
+              <tr><td><kbd>B</kbd></td><td>Pincel</td></tr>
+              <tr><td><kbd>E</kbd></td><td>Borrador</td></tr>
+              <tr><td><kbd>F</kbd></td><td>Relleno (Fill)</td></tr>
+              <tr><td><kbd>R</kbd></td><td>Rectángulo</td></tr>
+              <tr><td><kbd>C</kbd></td><td>Círculo</td></tr>
+              <tr><td><kbd>L</kbd></td><td>Línea</td></tr>
+              <tr><td><kbd>I</kbd></td><td>Cuentagotas</td></tr>
+              <tr><td><kbd>V</kbd></td><td>Selección / Mover</td></tr>
+              <tr><td><kbd>M</kbd></td><td>Mano (Pan)</td></tr>
+              <tr><td><kbd>Z</kbd></td><td>Zoom</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="sq-shortcuts-category">
+          <h3>Capas</h3>
+          <table class="sq-shortcuts-table">
+            <tbody>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>G</kbd></td><td>Agrupar capas</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd></td><td>Desagrupar</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>]</kbd></td><td>Subir capa</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>[</kbd></td><td>Bajar capa</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>]</kbd></td><td>Traer al frente</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>[</kbd></td><td>Enviar al fondo</td></tr>
+              <tr><td><kbd>Delete</kbd></td><td>Eliminar capa/selección</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="sq-shortcuts-category">
+          <h3>Animación</h3>
+          <table class="sq-shortcuts-table">
+            <tbody>
+              <tr><td><kbd>Space</kbd></td><td>Play/Pause animación</td></tr>
+              <tr><td><kbd>←</kbd> / <kbd>→</kbd></td><td>Frame anterior/siguiente</td></tr>
+              <tr><td><kbd>Shift</kbd>+<kbd>←</kbd> / <kbd>Shift</kbd>+<kbd>→</kbd></td><td>Primer/último frame</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>N</kbd></td><td>Nuevo frame</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>D</kbd></td><td>Duplicar frame</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd></td><td>Eliminar frame</td></tr>
+              <tr><td><kbd>O</kbd></td><td>Toggle Onion Skinning</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="sq-shortcuts-category">
+          <h3>Archivo & General</h3>
+          <table class="sq-shortcuts-table">
+            <tbody>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Guardar proyecto</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Cargar proyecto</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>E</kbd></td><td>Exportar .silly</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Deshacer</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>Rehacer</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd></td><td>Alternar tema</td></tr>
+              <tr><td><kbd>F1</kbd></td><td>Mostrar esta ayuda</td></tr>
+              <tr><td><kbd>Escape</kbd></td><td>Cancelar / Deseleccionar</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="sq-shortcuts-category">
+          <h3>Canvas</h3>
+          <table class="sq-shortcuts-table">
+            <tbody>
+              <tr><td><kbd>Espacio</kbd> + <kbd>Arrastrar</kbd></td><td>Pan del lienzo</td></tr>
+              <tr><td><kbd>Ctrl</kbd> + <kbd>Rueda</kbd></td><td>Zoom del lienzo</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>0</kbd></td><td>Reset zoom (100%)</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>1</kbd></td><td>Zoom 100%</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>2</kbd></td><td>Zoom 200%</td></tr>
+              <tr><td><kbd>H</kbd></td><td>Centrar canvas</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="sq-toast-container" class="sq-toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Import File Dialog (hidden) -->
+  <input type="file" id="canva-import-file" accept=".silly,.zip,.json,.png,.jpg,.jpeg,.gif,.webp" style="display:none;" multiple>
+
+  <!-- Core Modules -->
+  <script type="module">
+    import { CanvaEditor } from '../js/canva-editor.js';
+    import { CanvaBridge } from '../js/canva-bridge.js';
+    import { CanvaHistory } from '../js/canva-history.js';
+    import { CanvaExport } from '../js/canva-export.js';
+    import { CanvaImport } from '../js/canva-import.js';
+
+    // Global initialization
+    window.CanvaApp = {
+      editor: null,
+      bridge: null,
+      history: null,
+      export: null,
+      import: null
+    };
+  </script>
+
+  <!-- Bootstrap -->
+  <script nonce="__NONCE__">
+    (function() {
+      'use strict';
+
+      const splash = document.getElementById('silly-splash');
+      const splashBar = document.getElementById('splashBar');
+      const splashStatus = document.getElementById('splashStatus');
+      const splashHints = document.getElementById('splashHints');
+      const editor = document.getElementById('canvaEditor');
+      const floatToolbar = document.getElementById('sq-float-toolbar');
+      const fabBtn = document.getElementById('sqFabBtn');
+      const fabMenu = document.getElementById('sqFabMenu');
+      const shortcutsModal = document.getElementById('sq-shortcuts-modal');
+      const importFile = document.getElementById('canva-import-file');
+
+      // Splash hints
+      const hints = [
+        '💡 B = Pincel, E = Borrador, F = Relleno',
+        '💡 R = Rectángulo, C = Círculo, L = Línea',
+        '💡 I = Cuentagotas, V = Seleccionar, M = Mano',
+        '💡 Espacio + Arrastrar = Pan, Ctrl + Rueda = Zoom',
+        '💡 O = Onion Skinning, ←/→ = Navegar frames',
+        '💡 Ctrl+N = Nuevo frame, Ctrl+D = Duplicar frame',
+        '💡 Ctrl+Z = Deshacer, Ctrl+Shift+Z = Rehacer',
+        '💡 Arrastra capas para reordenar',
+        '💡 Click derecho en capa = Menú contextual',
+        '💡 Importa imágenes al Asset Library'
+      ];
+      let hintIndex = 0;
+      function rotateHints() {
+        splashHints.textContent = hints[hintIndex];
+        hintIndex = (hintIndex + 1) % hints.length;
+      }
+      setInterval(rotateHints, 3000);
+      rotateHints();
+
+      let progress = 0;
+      function updateProgress(step, msg) {
+        progress = Math.min(100, progress + step);
+        splashBar.style.width = progress + '%';
+        splashStatus.textContent = msg;
+        if (progress >= 100) {
+          setTimeout(hideSplash, 500);
+        }
+      }
+
+      function hideSplash() {
+        splash.style.opacity = '0';
+        splash.style.pointerEvents = 'none';
+        setTimeout(() => {
+          splash.style.display = 'none';
+          editor.style.display = 'flex';
+          floatToolbar.style.display = 'flex';
+          window.dispatchEvent(new CustomEvent('canva:ready'));
+        }, 400);
+      }
+
+      // Simulate loading
+      updateProgress(20, 'Inicializando canvas...');
+      setTimeout(() => updateProgress(30, 'Cargando herramientas...'), 100);
+      setTimeout(() => updateProgress(25, 'Preparando timeline...'), 200);
+      setTimeout(() => updateProgress(15, 'Conectando con Builder...'), 300);
+      setTimeout(() => updateProgress(10, '¡Listo para crear!'), 400);
+
+      // Theme persistence
+      const THEME_KEY = 'sillyquiz-canva-theme';
+      function applyTheme(theme) {
+        document.documentElement.classList.toggle('theme-light', theme === 'light');
+        localStorage.setItem(THEME_KEY, theme);
+        updateThemeButton();
+      }
+      function updateThemeButton() {
+        const glyph = document.querySelector('#sqFabBtn .sq-fab-glyph');
+        if (glyph) glyph.textContent = document.documentElement.classList.contains('theme-light') ? '☀️' : '🌙';
+      }
+      const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+      applyTheme(savedTheme);
+
+      // FAB Menu
+      function openFabMenu() {
+        fabMenu.hidden = false;
+        fabBtn.setAttribute('aria-expanded', 'true');
+        fabBtn.classList.add('active');
+      }
+      function closeFabMenu() {
+        fabMenu.hidden = true;
+        fabBtn.setAttribute('aria-expanded', 'false');
+        fabBtn.classList.remove('active');
+      }
+      fabBtn.addEventListener('click', (e) => { e.stopPropagation(); fabMenu.hidden ? openFabMenu() : closeFabMenu(); });
+      fabMenu.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-act]');
+        if (!btn) return;
+        closeFabMenu();
+        handleFabAction(btn.dataset.act);
+      });
+      document.addEventListener('click', (e) => { if (!fabMenu.hidden && !floatToolbar.contains(e.target)) closeFabMenu(); });
+
+      // FAB Actions
+      function handleFabAction(act) {
+        const app = window.CanvaApp;
+        switch (act) {
+          case 'new': app.editor?.newSprite(); break;
+          case 'save': app.editor?.saveProject(); break;
+          case 'load': app.editor?.loadProject(); break;
+          case 'export-silly': app.export?.exportSilly(); break;
+          case 'import-silly': importFile.click(); break;
+          case 'export-png': app.export?.exportPNG(); break;
+          case 'export-gif': app.export?.exportGIF(); break;
+          case 'export-json': app.export?.exportJSON(); break;
+          case 'theme': applyTheme(document.documentElement.classList.contains('theme-light') ? 'dark' : 'light'); break;
+          case 'builder': window.open('/html/SillyBuild.html', '_blank'); break;
+          case 'preview': app.editor?.previewAnimation(); break;
+          case 'shortcuts': showModal('sq-shortcuts-modal'); break;
+          case 'about': showToast('Canva v1.0 — SillyQuiz Sprite & Animation Editor', 'info'); break;
+        }
+      }
+
+      // Modal handling
+      function showModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) { modal.style.display = 'flex'; modal.querySelector('.sq-modal-close')?.focus(); document.body.style.overflow = 'hidden'; }
+      }
+      function hideModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
+      }
+      shortcutsModal.querySelector('.sq-modal-close').addEventListener('click', () => hideModal('sq-shortcuts-modal'));
+      shortcutsModal.querySelector('.sq-modal-backdrop').addEventListener('click', () => hideModal('sq-shortcuts-modal'));
+
+      // Import file handler
+      importFile.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          try {
+            await window.CanvaApp.import?.importFile(file);
+            showToast('Proyecto importado correctamente', 'success');
+          } catch (err) {
+            showToast('Error al importar: ' + err.message, 'error');
+          }
+          importFile.value = '';
+        }
+      });
+
+      // Toast system
+      window.showToast = function(message, type = 'info', duration = 3000) {
+        const container = document.getElementById('sq-toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'sq-toast sq-toast-' + type;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'polite');
+        const icons = { info: 'ℹ️', success: '✅', warning: '⚠️', error: '❌' };
+        toast.innerHTML = `<span class="sq-toast-icon" aria-hidden="true">${icons[type] || icons.info}</span><span class="sq-toast-message">${message}</span><button class="sq-toast-close" aria-label="Cerrar">✕</button>`;
+        toast.querySelector('.sq-toast-close').addEventListener('click', () => removeToast(toast));
+        container.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('show'));
+        const timeout = setTimeout(() => removeToast(toast), duration);
+        toast.addEventListener('mouseenter', () => clearTimeout(timeout));
+        toast.addEventListener('mouseleave', () => setTimeout(() => removeToast(toast), 1000));
+      };
+      function removeToast(toast) { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }
+
+      // Global keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'F1') { e.preventDefault(); showModal('sq-shortcuts-modal'); }
+        if (e.key === 'Escape') { hideModal('sq-shortcuts-modal'); }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'm') { e.preventDefault(); fabMenu.hidden ? openFabMenu() : closeFabMenu(); }
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'L') { e.preventDefault(); applyTheme(document.documentElement.classList.contains('theme-light') ? 'dark' : 'light'); }
+      });
+
+      // Initialize on ready
+      window.addEventListener('canva:ready', async () => {
+        const { CanvaEditor } = await import('../js/canva-editor.js');
+        const { CanvaBridge } = await import('../js/canva-bridge.js');
+        const { CanvaHistory } = await import('../js/canva-history.js');
+        const { CanvaExport } = await import('../js/canva-export.js');
+        const { CanvaImport } = await import('../js/canva-import.js');
+
+        window.CanvaApp.editor = new CanvaEditor();
+        window.CanvaApp.bridge = new CanvaBridge(window.CanvaApp.editor);
+        window.CanvaApp.history = new CanvaHistory(window.CanvaApp.editor);
+        window.CanvaApp.export = new CanvaExport(window.CanvaApp.editor);
+        window.CanvaApp.import = new CanvaImport(window.CanvaApp.editor);
+
+        await window.CanvaApp.editor.init();
+        window.CanvaApp.bridge.init();
+
+        // Listen for incoming project data from SillyBuilder
+        window.addEventListener('message', (e) => {
+          if (e.data?.type === 'sillybuilder-canva-bridge' && e.data.action === 'loadProject') {
+            window.CanvaApp.editor.loadFromBuilder(e.data.payload);
+          }
+        });
+      });
+
+      window.CanvaApp.showToast = window.showToast;
+    })();
+  </script>
+</body>
+</html>

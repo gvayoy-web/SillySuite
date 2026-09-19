@@ -3,15 +3,20 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="theme-color" content="#0038ff" />
+        <meta name="theme-color" content="#0B0B0B" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <title>Display — SillyQuiz</title>
         <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;700&family=Cinzel:wght@400;600;700;900&family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap"
             rel="stylesheet"
         />
         <script>!function(){function e(){document.documentElement.style.setProperty('--vh',window.innerHeight/100+'px')}e();window.addEventListener('resize',e)}()</script>
+
+        <!-- Unified Design Tokens (MUST BE FIRST) -->
+        <link rel="stylesheet" href="/css/design-tokens.css" />
+
+        <!-- Display Styles -->
         <link rel="stylesheet" href="/css/display-base.css" />
         <link rel="stylesheet" href="/css/display-overlays.css" />
         <link rel="stylesheet" href="/css/display-mcq.css" />
@@ -23,7 +28,7 @@
 
         <!-- Monitor de carga: visible AUN SI FALLAN LOS MÓDULOS JS.
              Diagnostica por qué la pantalla no muestra nada. -->
-        <script>
+        <script nonce="__NONCE__">
           (function () {
             function pill(estado, texto, detalle) {
               var p = document.getElementById("connPill");
